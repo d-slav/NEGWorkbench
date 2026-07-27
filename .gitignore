@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# FreeCAD backup/lock files
+*.FCStd1
+*.FCBak
+*.lock
+
+# OS/editor cruft
+.DS_Store
+*.swp
+.vscode/
+.idea/

@@ -1,0 +1,13 @@
+*
+*   test cteni pres IDEV/READ/GET
+*
+SUBRO/IOTEST/out:D1,out:I1,out:D2,out:I2,out:P(2)
+DIMEN,P(2)
+IDEV,'test_data1.txt',1
+READ1,D1
+READ1,I1
+READ1,P(1)
+IDEV,'test_data2.txt',2
+GET2,D2,I2,P(2)
+RETSUB
+END

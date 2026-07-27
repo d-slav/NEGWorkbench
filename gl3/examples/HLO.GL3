@@ -1,0 +1,26 @@
+*
+*   prepocet hloubky profilu
+*
+SUBRO/HLO/in:I,in:DH,in:PI(2),out:PO(2)
+*
+*   I    -  pocet prepoctenych bodu
+*   DH   -  nova hloubka profilu
+*   PI(2) - vstupni pole bodu
+*   PO(2) - vystupni pole bodu
+*
+E=E01>PI(1),I
+LN=L46>LY,E,1
+*S=S01>P(1),I
+*LN=L36>LY,S,1
+DS=D11>PI(1),LN
+D=DH/DS
+PRINT,DH,DS,D
+SCALE,PO(1),PI(1),D,I
+DS=D30>PO(1),1
+DX=DH-DS
+DY=D30>PO(1),2
+DO,K=1,I
+PO(K)=P10>PO(K),DX,-DY
+ENDDO
+RETSUB
+END

@@ -1,0 +1,6 @@
+SUBRO/TEST1/in:DI,out:DO
+
+DO=DI*10
+
+RETSUB
+END
