@@ -1,0 +1,67 @@
+# -*- coding: utf-8 -*-
+"""
+gl3_library.py - GL3Library: FreeCAD objekt drzici seznam adresaru, kde se
+hledaji SUBRO soubory volane pres CALL z GL3Program objektu (typ 2 z
+diskuze - uzivatelem definovana SUBRO). Nenese zadnou geometrii ani
+vlastni Placement - je to cisty "registr cest".
+
+Format SearchPaths (PropertyPythonObject): list dictu
+    [{"path": "/abs/cesta/k/adresari", "hidden": False}, ...]
+"hidden" ted nema zadny funkcni vyznam pro hledani (adresar se prohleda
+tak jako tak) - je to jen priznak pro budouci UI (nezobrazovat uzivateli
+jako "jeho" SUBRO, az pribudou systemova SUBRA, typ 3 z diskuze).
+
+Editace kodu samotnych .GL3 souboru je v teto fazi projektu vyrizena
+externe (bezny textovy editor na disku) - Library jen rika, KDE ty
+soubory hledat; recompute Programu je znovu nacte ze souboru (viz
+Gl3FileRegistry - zadny interni cache napric recompute, vzdy cerstve
+cteni pri kazdem CALL, tzn. zmena souboru se projevi po pristim
+recomputu bez nutnosti cokoliv rucne "reloadovat").
+"""
+
+import sys
+import os
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from gl3fc.gl3_registry import Gl3FileRegistry
+
+
+class GL3Library(object):
+    """Proxy pro App::FeaturePython objekt typu GL3Library."""
+
+    def __init__(self, obj):
+        obj.Proxy = self
+        self.Type = "GL3Library"
+        if not hasattr(obj, "SearchPaths"):
+            obj.addProperty(
+                "App::PropertyPythonObject",
+                "SearchPaths",
+                "GL3",
+                "Seznam adresaru [{'path':..., 'hidden':...}] pro hledani <JMENO>.GL3 souboru",
+            )
+            obj.SearchPaths = []
+
+    def add_path(self, obj, path, hidden=False):
+        entries = list(obj.SearchPaths or [])
+        entries.append({"path": path, "hidden": bool(hidden)})
+        obj.SearchPaths = entries
+
+    def build_registry(self, obj, extra=None):
+        """Vrati Gl3FileRegistry pripraveny k pouziti jako Interpreter(registry=...)."""
+        entries = list(obj.SearchPaths or [])
+        return Gl3FileRegistry(search_entries=entries, extra=extra)
+
+    def execute(self, obj):
+        # Library sama o sobe nic nepocita, jen drzi data.
+        pass
+
+    def onDocumentRestored(self, obj):
+        self.Type = "GL3Library"
+
+
+def create(doc, name="GL3Library"):
+    """Pomocna funkce pro vytvoreni GL3Library objektu v danem dokumentu."""
+    obj = doc.addObject("App::FeaturePython", name)
+    GL3Library(obj)
+    return obj
