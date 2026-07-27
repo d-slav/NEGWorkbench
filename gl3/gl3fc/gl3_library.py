@@ -25,6 +25,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from gl3fc.gl3_registry import Gl3FileRegistry
+from gl3fc.gl3_props import add_property
 
 
 class GL3Library(object):
@@ -33,13 +34,14 @@ class GL3Library(object):
     def __init__(self, obj):
         obj.Proxy = self
         self.Type = "GL3Library"
-        if not hasattr(obj, "SearchPaths"):
-            obj.addProperty(
-                "App::PropertyPythonObject",
-                "SearchPaths",
-                "GL3",
-                "Seznam adresaru [{'path':..., 'hidden':...}] pro hledani <JMENO>.GL3 souboru",
-            )
+        add_property(
+            obj,
+            "App::PropertyPythonObject",
+            "SearchPaths",
+            "GL3",
+            "Seznam adresaru [{'path':..., 'hidden':...}] pro hledani <JMENO>.GL3 souboru",
+        )
+        if obj.SearchPaths is None:
             obj.SearchPaths = []
 
     def add_path(self, obj, path, hidden=False):
@@ -64,4 +66,6 @@ def create(doc, name="GL3Library"):
     """Pomocna funkce pro vytvoreni GL3Library objektu v danem dokumentu."""
     obj = doc.addObject("App::FeaturePython", name)
     GL3Library(obj)
+    if getattr(obj, "ViewObject", None) is not None:
+        obj.ViewObject.Visibility = True
     return obj

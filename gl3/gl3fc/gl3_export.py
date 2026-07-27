@@ -36,6 +36,8 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from gl3fc.gl3_props import add_property
+
 try:
     import FreeCAD as App
     import Part
@@ -121,6 +123,34 @@ def _build_curve(slot):
     return Part.Wire(edges)
 
 
+def _single_bspline_edge(points, tangents):
+    """Vsechny uzly definovane, otevrena Spline -> JEDNA Part.BSplineCurve
+    hrana (misto N-1 samostatnych Bezier hran spojenych ve Wire).
+
+    Pouziva standardni "Bezier segmenty jako jeden BSpline" konstrukci:
+    stupen 3, N+1 uzlovych hodnot (0..N), nasobnost 4 na krajich (clamped),
+    nasobnost 3 (=stupen) na vnitrnich uzlech. Kontrolni body jsou uplne
+    stejne, jako u drivejsiho po-segmentech pristupu (viz
+    _hermite_to_bezier_edge) - jde jen o jinak zabaleny, geometricky
+    identicky vysledek, tentokrat jako jedna vybiratelna hrana/krivka.
+    """
+    n = len(points) - 1  # pocet segmentu
+
+    poles = [points[0]]
+    for i in range(n):
+        p0, p1, t0, t1 = points[i], points[i + 1], tangents[i], tangents[i + 1]
+        poles.append(p0 + t0 * (1.0 / 3.0))
+        poles.append(p1 - t1 * (1.0 / 3.0))
+        poles.append(p1)
+
+    knots = list(range(n + 1))
+    mults = [4] + [3] * (n - 1) + [4]
+
+    curve = Part.BSplineCurve()
+    curve.buildFromPolesMultsKnots(poles, mults, knots, False, 3)
+    return curve.toShape()
+
+
 def _build_spline(slot):
     points_slot = slot.get("points")
     tangents_slot = slot.get("tangents")
@@ -134,6 +164,14 @@ def _build_spline(slot):
             % (len(points), len(tangents))
         )
 
+    all_defined = all(p is not None for p in points) and all(t is not None for t in tangents)
+
+    if all_defined and not closed and len(points) >= 2:
+        return _single_bspline_edge(points, tangents)
+
+    # Fallback: nedefinovane mezery, nebo uzavrena Spline (periodicky BSpline
+    # zatim neni implementovan) - puvodni pristup po segmentech, kazdy
+    # segment vlastni hrana, spojene do Wire.
     pairs = list(zip(range(len(points) - 1), range(1, len(points))))
     if closed and len(points) > 1:
         pairs.append((len(points) - 1, 0))
@@ -205,16 +243,14 @@ class GL3Export(object):
         obj.Proxy = self
         self.Type = "GL3Export"
 
-        if not hasattr(obj, "Source"):
-            obj.addProperty(
-                "App::PropertyLink", "Source", "GL3",
-                "GL3Program, ze ktereho se exportuje vystup",
-            )
-        if not hasattr(obj, "OutputName"):
-            obj.addProperty(
-                "App::PropertyString", "OutputName", "GL3",
-                "Jmeno vystupni property na Source (napr. 'S' nebo 'PO')",
-            )
+        add_property(
+            obj, "App::PropertyLink", "Source", "GL3",
+            "GL3Program, ze ktereho se exportuje vystup",
+        )
+        add_property(
+            obj, "App::PropertyString", "OutputName", "GL3",
+            "Jmeno vystupni property na Source (napr. 'S' nebo 'PO')",
+        )
 
     def execute(self, obj):
         source = getattr(obj, "Source", None)
@@ -273,6 +309,7 @@ def create(doc, name, source, output_name):
     GL3Export(obj)
     if hasattr(obj, "ViewObject") and obj.ViewObject is not None:
         ViewProviderGL3Export(obj.ViewObject)
+        obj.ViewObject.Visibility = True
     obj.Source = source
     obj.OutputName = output_name
     return obj

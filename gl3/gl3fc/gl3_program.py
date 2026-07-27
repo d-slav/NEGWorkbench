@@ -37,6 +37,7 @@ from gl3_interpreter import Interpreter
 from gl3_ops import classify
 from gerlib.serialize import serialize
 from gl3fc.gl3_registry import Gl3FileRegistry
+from gl3fc.gl3_props import add_property
 
 try:
     import FreeCAD as App
@@ -58,21 +59,21 @@ class GL3Program(object):
         obj.Proxy = self
         self.Type = "GL3Program"
 
-        if not hasattr(obj, "SourceFile"):
-            obj.addProperty(
-                "App::PropertyFile",
-                "SourceFile",
-                "GL3",
-                "Cesta k vlastnimu .GL3 souboru (jeho jmeno SUBRO urcuje in:/out:)",
-            )
-        if not hasattr(obj, "Library"):
-            obj.addProperty(
-                "App::PropertyLink",
-                "Library",
-                "GL3",
-                "GL3Library pro rozreseni CALL na dalsi SUBRO (nepovinne, jen "
-                "pokud vlastni SUBRO nekoho vola)",
-            )
+        add_property(
+            obj,
+            "App::PropertyFile",
+            "SourceFile",
+            "GL3",
+            "Cesta k vlastnimu .GL3 souboru (jeho jmeno SUBRO urcuje in:/out:)",
+        )
+        add_property(
+            obj,
+            "App::PropertyLink",
+            "Library",
+            "GL3",
+            "GL3Library pro rozreseni CALL na dalsi SUBRO (nepovinne, jen "
+            "pokud vlastni SUBRO nekoho vola)",
+        )
 
     # -----------------------------------------------------------------
     # Hlavni vypocet
@@ -120,8 +121,7 @@ class GL3Program(object):
                 if kind == "composite":
                     native_type = "App::PropertyPythonObject"
 
-            if not hasattr(obj, name):
-                obj.addProperty(native_type, name, group, doc)
+            add_property(obj, native_type, name, group, doc)
 
     # -----------------------------------------------------------------
     # Vstupy pro Interpreter.run()
@@ -200,7 +200,11 @@ class ViewProviderGL3Program(object):
             proxy = getattr(candidate, "Proxy", None)
             if getattr(proxy, "Type", None) != "GL3Export":
                 continue
-            if getattr(candidate, "Source", None) is obj:
+            source = getattr(candidate, "Source", None)
+            # Porovnani pres Name/Document, ne Python 'is' - FreeCAD muze pri
+            # kazdem cteni PropertyLink vratit novy Python wrapper okolo
+            # stejneho C++ objektu, takze 'is obj' muze spurious selhat.
+            if source is not None and source.Name == obj.Name and source.Document == obj.Document:
                 children.append(candidate)
         return children
 
@@ -217,6 +221,7 @@ def create(doc, name, source_file, library=None):
     GL3Program(obj)
     if hasattr(obj, "ViewObject") and obj.ViewObject is not None:
         ViewProviderGL3Program(obj.ViewObject)
+        obj.ViewObject.Visibility = True
     obj.SourceFile = source_file
     if library is not None:
         obj.Library = library

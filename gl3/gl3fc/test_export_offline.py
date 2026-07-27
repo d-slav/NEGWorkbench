@@ -49,6 +49,25 @@ class FakeBezierCurve(object):
         return ("BezierEdge", self.poles)
 
 
+class FakeBSplineCurve(object):
+    def __init__(self):
+        self.poles = None
+        self.mults = None
+        self.knots = None
+        self.periodic = None
+        self.degree = None
+
+    def buildFromPolesMultsKnots(self, poles, mults, knots, periodic, degree):
+        self.poles = list(poles)
+        self.mults = list(mults)
+        self.knots = list(knots)
+        self.periodic = periodic
+        self.degree = degree
+
+    def toShape(self):
+        return ("BSplineEdge", self.poles, self.mults, self.knots)
+
+
 class FakeCircle(object):
     def __init__(self, center, normal, radius):
         self.center, self.normal, self.radius = center, normal, radius
@@ -62,6 +81,7 @@ fake_freecad.Vector = FakeVector
 
 fake_part = types.ModuleType("Part")
 fake_part.BezierCurve = FakeBezierCurve
+fake_part.BSplineCurve = FakeBSplineCurve
 fake_part.Circle = FakeCircle
 fake_part.Vertex = lambda v: ("Vertex", v)
 fake_part.makeCompound = lambda shapes: ("Compound", shapes)
@@ -112,21 +132,34 @@ def main():
     spline = result["S"]
 
     slot = serialize(spline)
-    kind, edges = build_shape(slot)
-    assert kind == "Wire"
-    n = len(spline.points)
-    assert len(edges) == n - 1, "otevrena Spline musi mit N-1 segmentu"
-    print("Spline -> Wire, %d segmentu (N=%d bodu, otevrena): OK" % (len(edges), n))
+    kind, poles, mults, knots = build_shape(slot)
+    n = len(spline.points) - 1  # pocet segmentu
+    assert kind == "BSplineEdge", "otevrena, plne definovana Spline musi jit jako 1 BSplineCurve"
+    assert len(poles) == 3 * n + 1, "spatny pocet polu pro Bezier-jako-BSpline konstrukci"
+    assert mults == [4] + [3] * (n - 1) + [4]
+    assert knots == list(range(n + 1))
+    print("Spline -> JEDNA BSplineCurve hrana (%d polu, %d segmentu, N=%d bodu): OK"
+          % (len(poles), n, n + 1))
 
-    # over prvni segment - kontrolni body musi presne sedet na referencni vzorec
-    edge_kind, poles = edges[0]
-    assert edge_kind == "BezierEdge"
+    # over prvni segment - kontrolni body (poly 0..3) musi presne sedet na
+    # referencni Hermite->Bezier vzorec
     ref = hermite_to_bezier_ref(spline.points[0], spline.points[1],
                                  spline.tangents[0], spline.tangents[1])
-    got = [(p.x, p.y) for p in poles]
+    got = [(p.x, p.y) for p in poles[0:4]]
     for (rx, ry), (gx, gy) in zip(ref, got):
         assert abs(rx - gx) < 1e-9 and abs(ry - gy) < 1e-9, (ref, got)
-    print("  kontrolni body 1. Bezier segmentu sedi na referencni vzorec: OK")
+    print("  kontrolni body 1. segmentu (poly 0-3) sedi na referencni vzorec: OK")
+
+    # --- otevrena Spline s nedefinovanou mezerou -> fallback na Wire ---
+    gap_points = list(spline.points)
+    gap_tangents = list(spline.tangents)
+    gap_points[5] = None
+    gap_spline = Spline(gap_points, gap_tangents, closed=False)
+    slot = serialize(gap_spline)
+    kind, edges = build_shape(slot)
+    assert kind == "Wire", "s nedefinovanou mezerou se musi pouzit fallback (Wire po segmentech)"
+    assert len(edges) == n - 2, "2 segmenty sousedici s mezerou se maji preskocit"
+    print("Spline s nedefinovanou mezerou -> fallback Wire, %d segmentu: OK" % len(edges))
 
     # --- uzavrena Spline (synteticky test wrap-segmentu) ---
     closed_spline = Spline(
