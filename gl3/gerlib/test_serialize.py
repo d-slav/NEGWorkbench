@@ -1,0 +1,126 @@
+# -*- coding: utf-8 -*-
+"""Round-trip test gerlib.serialize - bez FreeCADu."""
+import json
+import sys
+import os
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from gerlib.types import Point, Vector, Line, Circle, Plane, Spline, Curve
+from gerlib.serialize import serialize, deserialize, is_defined
+from gerlib.e01 import make_chain
+
+
+def pts_equal(a, b, tol=1e-12):
+    return len(a) == len(b) and all(
+        (abs(x.x - y.x) < tol and abs(x.y - y.y) < tol and abs(x.z - y.z) < tol)
+        for x, y in zip(a, b)
+    )
+
+
+def roundtrip_json(obj):
+    """serialize -> json.dumps -> json.loads -> deserialize, over pameti."""
+    data = serialize(obj)
+    text = json.dumps(data)
+    data2 = json.loads(text)
+    return deserialize(data2)
+
+
+def check(label, obj, compare_fn):
+    restored = roundtrip_json(obj)
+    ok = compare_fn(obj, restored)
+    print("%-10s %s" % (label, "OK" if ok else "SELHALO"))
+    assert ok, "%s: round-trip neodpovida originalu" % label
+
+
+def main():
+    # --- zakladni skalarni typy ---
+    p = Point(1.5, -2.25, 0.0)
+    check("Point", p, lambda a, b: (a.x, a.y, a.z) == (b.x, b.y, b.z))
+
+    v = Vector(0.0, 1.0, 0.0)
+    check("Vector", v, lambda a, b: (a.x, a.y, a.z) == (b.x, b.y, b.z))
+
+    ln = Line(Point(0, 0), Vector(1, 0))
+    check("Line", ln, lambda a, b: (a.origin.x, a.origin.y) == (b.origin.x, b.origin.y)
+          and (a.direction.x, a.direction.y) == (b.direction.x, b.direction.y))
+
+    c = Circle(Point(1, 1), 5.0, Vector(0, 0, 1))
+    check("Circle", c, lambda a, b: a.radius == b.radius
+          and (a.center.x, a.center.y) == (b.center.x, b.center.y))
+
+    pl = Plane(Point(0, 0, 0), Vector(0, 0, 1))
+    check("Plane", pl, lambda a, b: (a.origin.x, a.normal.z) == (b.origin.x, b.normal.z))
+
+    # --- Curve primo z E01 na realnych bodech ---
+    src_points = [Point(0, 0), Point(1, 1), Point(2, 0), Point(0, 0)]  # uzavreny
+    curve = make_chain(src_points)
+    check(
+        "Curve(E01)",
+        curve,
+        lambda a, b: pts_equal(a.points, b.points)
+        and a.closed == b.closed
+        and a.indices == b.indices
+        and a.is_end == b.is_end
+        and a.eps == b.eps,
+    )
+    print("  closed =", curve.closed, " indices =", curve.indices, " is_end =", curve.is_end)
+
+    # --- Spline primo z realneho behu TEHLO (S03) ---
+    from gl3_lang import parse_program
+    from gl3_interpreter import Interpreter
+
+    examples_dir = os.path.join(os.path.dirname(__file__), "..", "examples")
+
+    def load(name):
+        with open(os.path.join(examples_dir, name), "r", encoding="utf-8", errors="replace") as f:
+            return parse_program(f.read())
+
+    tehlo = load("TEHLO.GL3")
+    hlo = load("HLO.GL3")
+    interp = Interpreter(registry={"TEHLO": tehlo, "HLO": hlo})
+    result = interp.run(tehlo, inputs={"BJM": os.path.join(examples_dir, "E374.TXT"), "DH": 15.2})
+    spline = result["S"]
+
+    check(
+        "Spline(S03, TEHLO)",
+        spline,
+        lambda a, b: pts_equal(a.points, b.points)
+        and pts_equal(a.tangents, b.tangents)
+        and a.closed == b.closed,
+    )
+    print("  uzlu =", len(spline.points))
+
+    # --- pole s dirami (None) - napr. vystup PO pred plnym naplnenim ---
+    sparse = [Point(0, 0), None, Point(2, 2)]
+    slot = serialize(sparse)
+    text = json.dumps(slot)
+    slot2 = json.loads(text)
+    restored = deserialize(slot2)
+    assert restored[1] is None and pts_equal([restored[0], restored[2]], [sparse[0], sparse[2]])
+    print("%-10s %s" % ("Pole+None", "OK"))
+
+    # --- explicitni 'defined' priznak ---
+    assert is_defined(serialize(Point(0, 0))) is True
+    assert is_defined(serialize(None)) is False
+    # kazdy prvek pole ma vlastni 'defined', ne jen pole jako celek
+    items = slot2["items"]
+    assert is_defined(items[0]) is True
+    assert is_defined(items[1]) is False
+    assert is_defined(items[2]) is True
+    print("%-10s %s" % ("Defined-flag", "OK"))
+
+    # top-level nedefinovany vystup (napr. out: parametr, ktery vetev
+    # podprogramu nikdy nenastavila) musi jit rozpoznat bez importu gerlib
+    undefined_output = serialize(None)
+    assert undefined_output == {"defined": False}
+    assert deserialize(undefined_output) is None
+    print("%-10s %s" % ("Top-level None", "OK"))
+
+    print()
+    print("VSE OK - serializace je bezeztratova (JSON round-trip) na realnych datech")
+    print("a nese explicitni 'defined' priznak na kazde urovni.")
+
+
+if __name__ == "__main__":
+    main()
