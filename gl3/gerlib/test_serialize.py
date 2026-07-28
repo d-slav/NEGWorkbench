@@ -7,7 +7,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from gerlib.types import Point, Vector, Line, Circle, Plane, Spline, Curve
-from gerlib.serialize import serialize, deserialize, is_defined
+from gerlib.serialize import serialize, deserialize, is_defined, dump_json, load_json
 from gerlib.e01 import make_chain
 
 
@@ -119,7 +119,35 @@ def main():
 
     print()
     print("VSE OK - serializace je bezeztratova (JSON round-trip) na realnych datech")
-    print("a nese explicitni 'defined' priznak na kazde urovni.")
+    print("a nese 'defined' priznak jen na cele hodnote/prvku pole (viz dale).")
+
+    # --- format v2: 'defined' NENI na vnorenych polich jiz definovaneho
+    # objektu (Point.x/y/z, Line.origin, Spline.closed...) - jen na celem
+    # objektu a na prvcich poli ---
+    ln_slot = serialize(Line(Point(0, 0), Vector(1, 0)))
+    assert "defined" not in ln_slot["origin"], "Line.origin nemá mít vlastní 'defined'"
+    assert "defined" not in ln_slot["direction"]
+    assert isinstance(ln_slot["origin"]["x"], (int, float)), "x/y/z jsou holé hodnoty, ne dalsi slot"
+    print("%-10s %s" % ("Format v2", "OK (zadne 'defined' na vnorenych polich)"))
+
+    spline_slot = serialize(spline)
+    assert isinstance(spline_slot["closed"], bool), "Spline.closed je hola hodnota"
+    assert spline_slot["points"]["defined"] is True, "ale Spline.points (seznam) svuj 'defined' ma"
+    assert spline_slot["points"]["items"][0]["defined"] is True, "... a kazdy prvek seznamu taky"
+
+    # --- skutecny JSON text (ne Pythonuv repr) ---
+    text = dump_json(Point(1.5, -2.25, 0.0))
+    assert '"' in text and "'" not in text, "dump_json musi pouzivat uvozovky, ne apostrofy"
+    restored_point = load_json(text)
+    assert (restored_point.x, restored_point.y, restored_point.z) == (1.5, -2.25, 0.0)
+    print("%-10s %s" % ("dump_json", "OK (%s)" % text.replace(chr(10), " ")))
+
+    text2 = dump_json(closed_spline_for_json_test := Spline(
+        [Point(0, 0), Point(1, 1)], [Vector(1, 1), Vector(1, -1)], closed=False
+    ))
+    assert '"closed": false' in text2, "bool se ma zapsat jako lowercase 'false', ne 'False'"
+    print("%-10s OK ('closed' se zapsalo jako lowercase 'false', ne Pythonovske 'False')"
+          % "bool fmt")
 
 
 if __name__ == "__main__":

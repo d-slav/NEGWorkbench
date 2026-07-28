@@ -51,30 +51,45 @@ except ImportError:  # umoznuje syntax-check/testy mimo FreeCAD
 # ---------------------------------------------------------------------------
 
 def _is_defined(slot):
+    """True pro 'slot' dict s defined=True (top-level vystup nebo prvek
+    pole). Bare vnorene pole (Line.origin, Circle.center,...) nemaji
+    vlastni 'defined' klic vubec - ty se ctou primo pres _vector3()/
+    primym pristupem k dict['field'], ne pres tuhle funkci."""
     return bool(isinstance(slot, dict) and slot.get("defined", False))
 
 
 def _scalar(slot):
-    """Precte skalarni slot ({'defined':True,'value':...}). None, pokud
-    nedefinovano."""
+    """Precte skalarni TOP-LEVEL/ARRAY-ITEM slot ({'defined':True,
+    'value':...}). None, pokud nedefinovano. Pro skalarni POLE jiz
+    definovaneho objektu (napr. Circle['radius'], Spline['closed']) se
+    ctou HODNOTY PRIMO (jsou to hole Python hodnoty, ne dalsi slot) -
+    tahle funkce se na ne nepouziva."""
     if not _is_defined(slot):
         return None
     return slot["value"]
 
 
-def _vector3(slot):
-    """Point/Vector slot -> FreeCAD.Vector. None, pokud nedefinovano nebo
-    kterakoliv souradnice chybi."""
-    if not _is_defined(slot):
+def _vector3(body):
+    """Point/Vector - bud plny slot (top-level/prvek pole, ma 'defined'),
+    nebo bare vnorene pole jiz definovaneho objektu (Line.origin,
+    Circle.center/normal - bez 'defined', ale se stejnymi 'type'/'x'/'y'/
+    'z' klici). V obou pripadech vraci FreeCAD.Vector, nebo None, pokud
+    je vstup nedefinovany/chybny."""
+    if not isinstance(body, dict):
         return None
-    x, y, z = _scalar(slot.get("x")), _scalar(slot.get("y")), _scalar(slot.get("z"))
+    if body.get("defined") is False:  # explicitni nedefinovany slot
+        return None
+    if body.get("type") not in ("Point", "Vector"):
+        return None
+    x, y, z = body.get("x"), body.get("y"), body.get("z")
     if x is None or y is None or z is None:
         return None
     return App.Vector(x, y, z)
 
 
 def _array_items(slot):
-    """Array slot -> list slotu (prazdny list, pokud nedefinovano)."""
+    """Array slot ({'defined':True,'type':'Array','items':[...]}) -> list
+    slotu (prazdny list, pokud nedefinovano)."""
     if not _is_defined(slot) or slot.get("type") != "Array":
         return []
     return slot.get("items", [])
@@ -154,7 +169,7 @@ def _single_bspline_edge(points, tangents):
 def _build_spline(slot):
     points_slot = slot.get("points")
     tangents_slot = slot.get("tangents")
-    closed = bool(_scalar(slot.get("closed")))
+    closed = bool(slot.get("closed"))
 
     points = [_vector3(item) for item in _array_items(points_slot)]
     tangents = [_vector3(item) for item in _array_items(tangents_slot)]
@@ -190,7 +205,7 @@ def _build_spline(slot):
 
 def _build_circle(slot):
     center = _vector3(slot.get("center"))
-    radius = _scalar(slot.get("radius"))
+    radius = slot.get("radius")
     normal = _vector3(slot.get("normal")) or App.Vector(0, 0, 1)
     if center is None or radius is None:
         raise ValueError("GL3Export: Circle nema definovany stred nebo polomer")
@@ -280,6 +295,23 @@ class GL3Export(object):
         # Export ho preberá 1:1 (viz architektonicke rozhodnuti: "z vystupu
         # GL3 objektu vyrobi skutecny nativni objekt s realnym Placement").
         obj.Placement = source.Placement
+
+        # Viz gl3_program.py - stejny duvod, opakovane nastaveni Visibility
+        # AZ PO existenci Shape spolehlive opravuje "opticky neviditelny
+        # dokud se soubor neulozi a znovu nenacte".
+        vobj = getattr(obj, "ViewObject", None)
+        if vobj is not None:
+            vobj.Visibility = True
+
+        # "touchnuti" Source zajisti, ze FreeCAD pri pristim recompute
+        # znovu vyhodnoti claimChildren() na Source (GL3Program) - jinak se
+        # strom nemusi dozvedet, ze ma tenhle Export objekt zobrazit jako
+        # sveho potomka, protoze zadna vlastnost SAMOTNEHO Source se
+        # vytvorenim/zmenou Exportu jinak nezmeni.
+        try:
+            source.touch()
+        except AttributeError:
+            pass
 
     def onDocumentRestored(self, obj):
         self.Type = "GL3Export"

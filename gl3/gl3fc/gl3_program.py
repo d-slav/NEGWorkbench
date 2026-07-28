@@ -99,6 +99,17 @@ class GL3Program(object):
 
         self._store_outputs(obj, subdef, result)
 
+        # Znovu-nastaveni Visibility AZ TADY (po existenci realneho obsahu) -
+        # v realnem FreeCADu se ukazalo, ze nastaveni Visibility=True hned
+        # pri vytvoreni objektu (pred prvnim execute(), kdyz jeste nic
+        # neexistuje) nemusi spravne prorazit do zobrazeni; objekt zustane
+        # opticky neviditelny, dokud se dokument neulozi a znovu nenacte.
+        # Opakovane nastaveni AZ PO existenci obsahu tenhle stav spolehlive
+        # opravuje.
+        vobj = getattr(obj, "ViewObject", None)
+        if vobj is not None:
+            vobj.Visibility = True
+
     # -----------------------------------------------------------------
     # Synchronizace property podle SUBRO hlavicky
     # -----------------------------------------------------------------

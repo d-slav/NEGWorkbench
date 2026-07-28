@@ -108,8 +108,8 @@ def main():
     # posledni bod PO musi sedet na drive overenou hodnotu (15.2, 0.0)
     last_point_slot = prog.PO["items"][-1]
     assert last_point_slot["defined"] is True
-    x = last_point_slot["x"]["value"]
-    y = last_point_slot["y"]["value"]
+    x = last_point_slot["x"]
+    y = last_point_slot["y"]
     assert abs(x - 15.2) < 1e-9 and abs(y - 0.0) < 1e-9, (x, y)
 
     print()
