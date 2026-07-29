@@ -16,7 +16,37 @@ zakladni krok spolehlive fungovat - viz README.md a docs/cs/.
 import os
 import sys
 
-_WB_DIR = os.path.dirname(__file__)
+
+def _locate_wb_dir():
+    """InitGui.py se spousti primo (execfile-like, ne pres import), takze
+    nemusi mit spolehlive __file__ (znamy dlouhodoby limit FreeCADu - viz
+    komentar v gl3_wb_paths.py). Zkusi se postupne, od nejspolehlivejsiho:
+
+      1) __file__ primo (nektere zpusoby spusteni/verze ho maji)
+      2) sourozenecky modul gl3_wb_paths.py - BEZNE importovany modul,
+         ten __file__ ma vzdy spravne (oficialni FreeCAD obchvat, viz
+         wiki.freecad.org/Translating_an_external_workbench)
+      3) uzivatelsky Mod adresar + nazev teto slozky (posledni zachrana,
+         kdyby ani import sourozeneckeho modulu neprosel - typicky by to
+         znamenalo, ze FreeCAD tuhle slozku vubec nema na sys.path, coz
+         by ale zaroven rozbilo i "import gl3_commands" v Initialize())
+    """
+    try:
+        return os.path.dirname(os.path.abspath(__file__))
+    except NameError:
+        pass
+
+    try:
+        import gl3_wb_paths
+        return gl3_wb_paths.WB_DIR
+    except ImportError:
+        pass
+
+    import FreeCAD as App
+    return os.path.join(App.getUserAppDataDir(), "Mod", "NEGWorkbench")
+
+
+_WB_DIR = _locate_wb_dir()
 if _WB_DIR not in sys.path:
     sys.path.insert(0, _WB_DIR)
 
