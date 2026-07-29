@@ -36,6 +36,11 @@ commands and its CL-2 CNC postprocessor.
 ## Project layout
 
 ```
+InitGui.py               - FreeCAD workbench entry point (Gui.Workbench,
+                           toolbar/menu registration)
+gl3_commands.py           - Gui.Command definitions (currently: create a
+                           GL3Library object)
+Resources/icons/          - workbench + command icons
 gl3/
     gl3_lang.py         - lexer, parser, AST for GL-3
     gl3_interpreter.py  - interpreter (Environment, CALL, I/O channels, ...)
@@ -94,6 +99,23 @@ docs/
   (`segment_tangents`) in addition to the simpler shared per-node
   `tangents` (which remains sufficient for `S03`).
 
+## Installing as a FreeCAD workbench
+
+Copy (or clone) this whole repository into your FreeCAD user `Mod`
+directory, so that `InitGui.py` ends up directly at
+`Mod/NEGWorkbench/InitGui.py`:
+
+- Windows: `%APPDATA%\FreeCAD\Mod\NEGWorkbench`
+- Linux: `~/.local/share/FreeCAD/Mod/NEGWorkbench`
+- macOS: `~/Library/Preferences/FreeCAD/Mod/NEGWorkbench`
+
+Restart FreeCAD; "NEG/GL3" should appear in the workbench selector.
+
+Status: **one command so far** — "Vytvořit GL3 Library" (creates a
+`GL3Library` object). More commands (creating a `GL3Program` from a
+`.GL3` file, creating a `GL3Export`, editing a Library's search paths)
+will be added incrementally once this first one is confirmed solid.
+
 ## Running the tests (no FreeCAD required)
 
 ```bash
@@ -103,6 +125,8 @@ python3 -m gerlib.test_serialize    # serialization round-trip
 python3 -m gerlib.test_s01          # S01 (chordal) vs S03 (uniform) on real profile data
 python3 -m gl3fc.test_offline       # GL3Library/GL3Program, mocked FreeCAD
 python3 -m gl3fc.test_export_offline # GL3Export dispatch + Bezier math
+cd ..
+python3 test_gl3_commands_offline.py # workbench command (GL3Library creation), mocked FreeCAD/FreeCADGui
 ```
 
 ## Acknowledgments
