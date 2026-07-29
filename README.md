@@ -111,10 +111,17 @@ directory, so that `InitGui.py` ends up directly at
 
 Restart FreeCAD; "NEG/GL3" should appear in the workbench selector.
 
-Status: **one command so far** — "Vytvořit GL3 Library" (creates a
+Status: **one command so far** — "Create GL3 Library" (creates a
 `GL3Library` object). More commands (creating a `GL3Program` from a
 `.GL3` file, creating a `GL3Export`, editing a Library's search paths)
 will be added incrementally once this first one is confirmed solid.
+
+**Localization:** all user-facing strings are wrapped in
+`QT_TRANSLATE_NOOP(context, text)` (source language: English) so that
+translations can be added later as `.ts`/`.qm` files under
+`translations/`, without touching the code — same mechanism FreeCAD's
+own Arch/Draft workbenches use. No `.ts`/`.qm` files exist yet; this is
+just future-proofing.
 
 ## Running the tests (no FreeCAD required)
 

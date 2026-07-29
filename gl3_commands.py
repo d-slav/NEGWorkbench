@@ -21,6 +21,11 @@ import FreeCADGui as Gui
 _ICON_DIR = os.path.join(_WB_DIR, "Resources", "icons")
 
 
+def QT_TRANSLATE_NOOP(context, text):
+    """Viz InitGui.py - zatim jen znaceni pro budouci lupdate extract."""
+    return text
+
+
 class CreateGL3LibraryCommand(object):
     """Vytvori novy GL3Library objekt (viz gl3fc/gl3_library.py) v aktivnim
     dokumentu - pokud zadny neni otevreny, novy dokument se vytvori."""
@@ -28,11 +33,11 @@ class CreateGL3LibraryCommand(object):
     def GetResources(self):
         return {
             "Pixmap": os.path.join(_ICON_DIR, "create_library.svg"),
-            "MenuText": "Vytvorit GL3 Library",
-            "ToolTip": (
-                "Vytvori novy GL3Library objekt - seznam adresaru, ve "
-                "kterych se hledaji .GL3 soubory volane pres CALL z "
-                "GL3Program objektu."
+            "MenuText": QT_TRANSLATE_NOOP("NEG_CreateLibrary", "Create GL3 Library"),
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "NEG_CreateLibrary",
+                "Creates a new GL3Library object - a list of directories to "
+                "search for .GL3 files called via CALL from a GL3Program object.",
             ),
         }
 
