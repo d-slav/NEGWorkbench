@@ -64,19 +64,57 @@ class Plane:
 
 class Spline:
     """Krivka typu S - kubicky Hermitovsky splajn danymi uzlovymi body a
-    tecnymi vektory v kazdem uzlu (odpovida zaznamum QA,QB,UA,UB z
-    SPLIN.FOR - kazdy segment je kubicky Hermitovsky kus parametrizovany
-    0-1 mezi sousednimi uzly)."""
-    __slots__ = ("points", "tangents", "closed")
+    tecnymi vektory (odpovida zaznamum QA,QB,UA,UB ze SPLIN.FOR - kazdy
+    segment je kubicky Hermitovsky kus parametrizovany 0-1 mezi sousednimi
+    uzly).
 
-    def __init__(self, points, tangents, closed=False):
+    opcode/parametrization - "vlajka jak krivka vznikla": ktery GL3 opcode
+    ji vyrobil (napr. "S03", "S01") a jakou parametrizaci pouziva
+    ("uniform" - ignoruje skutecne vzdalenosti mezi body, vs "chordal" -
+    tecny prepocitane skutecnou delkou tetivy segmentu). Dulezite nejen
+    pro Export, ale i do budoucna pro pravidla, ktere krivky lze pouzit
+    pro generovani ploch.
+
+    tangents       - JEDNA tecna na uzel (delka jako points). Autoritativni
+                     jen pokud segment_tangents is None (typicky "uniform"
+                     parametrizace jako S03, kde je tecna na uzlu skutecne
+                     sdilena obema sousednimi segmenty). Pro "chordal"
+                     pripady (S01) je tu jen informativne (viz
+                     segment_tangent_pair()).
+    segment_tangents - None (staci tangents), NEBO seznam N-1 dvojic
+                     (tecna_na_zacatku_segmentu, tecna_na_konci_segmentu) -
+                     jedna dvojice na kazdy segment. Pouzivano u
+                     chordalni parametrizace (S01/GLSPL.FOR), kde tecna
+                     "na tomtez" uzlu ma jinou velikost podle toho, pro
+                     ktery ze dvou sousednich segmentu se pouzije (kazdy
+                     segment se skaluje svou vlastni delkou tetivy).
+    """
+    __slots__ = ("points", "tangents", "closed", "opcode", "parametrization", "segment_tangents")
+
+    def __init__(self, points, tangents, closed=False, opcode="S03",
+                 parametrization="uniform", segment_tangents=None):
         self.points = list(points)
         self.tangents = list(tangents)  # stejna delka jako points
         self.closed = closed
+        self.opcode = opcode
+        self.parametrization = parametrization
+        self.segment_tangents = (
+            [(t0, t1) for (t0, t1) in segment_tangents] if segment_tangents is not None else None
+        )
+
+    def segment_tangent_pair(self, i):
+        """Tecny pouzitelne pro segment i (mezi body i a i+1) - funguje
+        stejne bez ohledu na to, jestli krivka ma spolecnou tecnu na uzel
+        (S03) nebo rozdilne tecny po segmentech (S01)."""
+        if self.segment_tangents is not None:
+            return self.segment_tangents[i]
+        return (self.tangents[i], self.tangents[i + 1])
 
     def __repr__(self):
         kind = "uzavrena" if self.closed else "otevrena"
-        return "Spline(%d uzlu, %s)" % (len(self.points), kind)
+        return "Spline(%d uzlu, %s, %s/%s)" % (
+            len(self.points), kind, self.opcode, self.parametrization
+        )
 
 
 class Curve:

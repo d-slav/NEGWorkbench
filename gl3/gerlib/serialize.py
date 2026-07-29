@@ -87,12 +87,23 @@ def _body(obj):
         }
 
     if isinstance(obj, Spline):
-        return {
+        body = {
             "type": "Spline",
             "points": serialize(obj.points),
             "tangents": serialize(obj.tangents),
             "closed": obj.closed,
+            "opcode": obj.opcode,
+            "parametrization": obj.parametrization,
         }
+        if obj.segment_tangents is not None:
+            # dvojice (t_start,t_end) na segment - kazda tecna zvlast pres
+            # _body (jsou to Vector, vzdy pritomne, netreba dalsi 'defined')
+            body["segment_tangents"] = [
+                [_body(t0), _body(t1)] for (t0, t1) in obj.segment_tangents
+            ]
+        else:
+            body["segment_tangents"] = None
+        return body
 
     if isinstance(obj, Curve):
         return {
@@ -152,7 +163,18 @@ def _decode_body(d):
         return Plane(_decode_body(d["origin"]), _decode_body(d["normal"]))
 
     if kind == "Spline":
-        return Spline(deserialize(d["points"]), deserialize(d["tangents"]), closed=d["closed"])
+        seg = d.get("segment_tangents")
+        segment_tangents = (
+            [(_decode_body(t0), _decode_body(t1)) for (t0, t1) in seg] if seg is not None else None
+        )
+        return Spline(
+            deserialize(d["points"]),
+            deserialize(d["tangents"]),
+            closed=d["closed"],
+            opcode=d.get("opcode", "S03"),
+            parametrization=d.get("parametrization", "uniform"),
+            segment_tangents=segment_tangents,
+        )
 
     if kind == "Curve":
         return Curve(

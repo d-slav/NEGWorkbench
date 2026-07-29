@@ -28,6 +28,7 @@ from .a510 import angle_between_deg
 from .vnorm import is_zero_vector
 from .gtrin import solve_tridiagonal
 from .dsn import tangent_vectors
+from .dspn import tangent_vectors as tangent_vectors_chordal
 
 from .d01 import sum_or_diff
 from .d02 import product_or_quotient
@@ -48,6 +49,7 @@ from .p85 import tangent_point
 from .p86 import tangent_point_from_line
 from .l46 import tangent_line
 from .s03 import make_spline
+from .s01 import make_spline as make_spline1
 
 from .scale import scale
 
@@ -55,13 +57,13 @@ __all__ = [
     "Point", "Vector", "Line", "Circle", "Plane", "Curve", "Spline",
     "builtin_constants",
     "unit_vector", "polar_angle_deg", "angle_between_deg",
-    "is_zero_vector", "solve_tridiagonal", "tangent_vectors",
+    "is_zero_vector", "solve_tridiagonal", "tangent_vectors", "tangent_vectors_chordal",
     "sum_or_diff", "product_or_quotient",
     "point_point", "point_line", "vector_magnitude", "get_component",
     "triangle_area", "triangle_area_signed", "triangle_area_from_lines", "circle_area",
     "offset_point", "line_intersection",
     "make_chain", "tangent_point_on_chain",
     "tangent_point", "tangent_point_from_line", "tangent_line",
-    "make_spline",
+    "make_spline", "make_spline1",
     "scale",
 ]
