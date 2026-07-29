@@ -75,11 +75,24 @@ docs/
   recompute, re-read fresh on the next one (source editing today is via a
   plain external `.GL3` file + FreeCAD recompute; an in-app editor is a
   possible future addition).
-- **Curve export** (Hermite spline `S03` output) is converted to a
-  `Part.Wire` built from exact cubic Bezier segments, using the identity
-  `B1 = P_i + T_i/3`, `B2 = P_{i+1} - T_{i+1}/3` — this reproduces the
-  original Hermite spline exactly (verified numerically to ~1e-15), rather
-  than relying on an approximate OCC interpolation.
+- **Curve export** (Hermite spline output) is converted to a `Part.Wire`/
+  single `Part.BSplineCurve` built from exact cubic Bezier segments, using
+  the identity `B1 = P_i + T_i/3`, `B2 = P_{i+1} - T_{i+1}/3` — this
+  reproduces the original Hermite spline exactly (verified numerically to
+  ~1e-15), rather than relying on an approximate OCC interpolation.
+- **Two curve-fitting opcodes, tracked via provenance flags:** `S03`
+  (`dsn.py`) uses *uniform* parametrization (ignores actual distances
+  between points); `S01` (`dspn.py`) uses *chord-length* parametrization
+  (weights neighbor contributions by actual chord length — closer to what
+  most CAD kernels, including OCC, do internally). Every `Spline` carries
+  `opcode`/`parametrization` fields recording which method produced it —
+  relevant not just for export, but for future rules about which curve
+  types are valid input to surface generation. Because chord-length
+  parametrization can give a *different* effective tangent magnitude on
+  either side of the same node (each segment rescales by its own chord
+  length), `Spline` also supports per-segment tangent pairs
+  (`segment_tangents`) in addition to the simpler shared per-node
+  `tangents` (which remains sufficient for `S03`).
 
 ## Running the tests (no FreeCAD required)
 
@@ -87,6 +100,7 @@ docs/
 cd gl3
 python3 gl3_test.py                 # interpreter regression tests
 python3 -m gerlib.test_serialize    # serialization round-trip
+python3 -m gerlib.test_s01          # S01 (chordal) vs S03 (uniform) on real profile data
 python3 -m gl3fc.test_offline       # GL3Library/GL3Program, mocked FreeCAD
 python3 -m gl3fc.test_export_offline # GL3Export dispatch + Bezier math
 ```

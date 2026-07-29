@@ -138,9 +138,13 @@ def _build_curve(slot):
     return Part.Wire(edges)
 
 
-def _single_bspline_edge(points, tangents):
+def _single_bspline_edge(points, segment_pairs):
     """Vsechny uzly definovane, otevrena Spline -> JEDNA Part.BSplineCurve
     hrana (misto N-1 samostatnych Bezier hran spojenych ve Wire).
+
+    segment_pairs[i] = (tecna_na_zacatku_segmentu_i, tecna_na_konci_segmentu_i)
+    - obecne, funguje stejne pro spolecnou tecnu na uzel (S03) i pro
+    rozdilne tecny po stranach uzlu (S01, viz Spline.segment_tangents).
 
     Pouziva standardni "Bezier segmenty jako jeden BSpline" konstrukci:
     stupen 3, N+1 uzlovych hodnot (0..N), nasobnost 4 na krajich (clamped),
@@ -153,7 +157,8 @@ def _single_bspline_edge(points, tangents):
 
     poles = [points[0]]
     for i in range(n):
-        p0, p1, t0, t1 = points[i], points[i + 1], tangents[i], tangents[i + 1]
+        p0, p1 = points[i], points[i + 1]
+        t0, t1 = segment_pairs[i]
         poles.append(p0 + t0 * (1.0 / 3.0))
         poles.append(p1 - t1 * (1.0 / 3.0))
         poles.append(p1)
@@ -166,37 +171,62 @@ def _single_bspline_edge(points, tangents):
     return curve.toShape()
 
 
+def _spline_segment_pairs(slot, n_segments):
+    """Vrati seznam n_segments dvojic (t_start,t_end) - z 'segment_tangents'
+    (S01, obecne ruzne tecny po stranach uzlu), nebo z 'tangents' (S03,
+    stejna tecna sdilena obema segmenty na uzlu), podle toho, co slot
+    obsahuje. Prvek je None, pokud dany segment nema plne definovane
+    obe tecny (nedefinovany uzel/tecna)."""
+    seg_slot = slot.get("segment_tangents")
+    if seg_slot is not None:
+        pairs = []
+        for i in range(n_segments):
+            t0_body, t1_body = seg_slot[i]
+            t0, t1 = _vector3(t0_body), _vector3(t1_body)
+            pairs.append((t0, t1) if (t0 is not None and t1 is not None) else None)
+        return pairs
+
+    tangents = [_vector3(item) for item in _array_items(slot.get("tangents"))]
+    pairs = []
+    for i in range(n_segments):
+        t0, t1 = tangents[i], tangents[i + 1]
+        pairs.append((t0, t1) if (t0 is not None and t1 is not None) else None)
+    return pairs
+
+
 def _build_spline(slot):
     points_slot = slot.get("points")
-    tangents_slot = slot.get("tangents")
     closed = bool(slot.get("closed"))
 
     points = [_vector3(item) for item in _array_items(points_slot)]
-    tangents = [_vector3(item) for item in _array_items(tangents_slot)]
-    if len(points) != len(tangents):
-        raise ValueError(
-            "GL3Export: Spline ma nesouhlasny pocet bodu (%d) a tecen (%d)"
-            % (len(points), len(tangents))
-        )
+    if len(points) < 2:
+        raise ValueError("GL3Export: Spline ma min nez 2 body")
 
-    all_defined = all(p is not None for p in points) and all(t is not None for t in tangents)
+    n_segments = len(points) - 1
+    segment_pairs = _spline_segment_pairs(slot, n_segments)
+
+    all_defined = all(p is not None for p in points) and all(pr is not None for pr in segment_pairs)
 
     if all_defined and not closed and len(points) >= 2:
-        return _single_bspline_edge(points, tangents)
+        return _single_bspline_edge(points, segment_pairs)
 
     # Fallback: nedefinovane mezery, nebo uzavrena Spline (periodicky BSpline
     # zatim neni implementovan) - puvodni pristup po segmentech, kazdy
     # segment vlastni hrana, spojene do Wire.
-    pairs = list(zip(range(len(points) - 1), range(1, len(points))))
-    if closed and len(points) > 1:
-        pairs.append((len(points) - 1, 0))
-
     edges = []
-    for i, j in pairs:
-        p0, p1, t0, t1 = points[i], points[j], tangents[i], tangents[j]
-        if p0 is None or p1 is None or t0 is None or t1 is None:
-            continue  # nedefinovany uzel - segment se preskoci
-        edges.append(_hermite_to_bezier_edge(p0, p1, t0, t1))
+    for i in range(n_segments):
+        if points[i] is None or points[i + 1] is None or segment_pairs[i] is None:
+            continue  # nedefinovany uzel/tecna - segment se preskoci
+        t0, t1 = segment_pairs[i]
+        edges.append(_hermite_to_bezier_edge(points[i], points[i + 1], t0, t1))
+
+    if closed and len(points) > 1 and points[-1] is not None and points[0] is not None:
+        # wrap segment (posledni bod -> prvni) - jen pro spolecnou tecnu na
+        # uzel (S03 styl); segment_tangents (S01) periodicky pripad zatim
+        # neresi (DSPP/GTRIP nejsou implementovany - viz projektove poznamky).
+        tangents = [_vector3(item) for item in _array_items(slot.get("tangents"))]
+        if tangents and tangents[-1] is not None and tangents[0] is not None:
+            edges.append(_hermite_to_bezier_edge(points[-1], points[0], tangents[-1], tangents[0]))
 
     if not edges:
         raise ValueError("GL3Export: Spline neobsahuje zadny plne definovany segment")

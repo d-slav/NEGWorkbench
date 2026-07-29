@@ -31,6 +31,7 @@ from gerlib import (
     get_component as _gerlib_get_component,
     offset_point as _gerlib_offset_point,
     make_spline as _gerlib_make_spline,
+    make_spline1 as _gerlib_make_spline1,
     builtin_constants as _gerlib_builtin_constants,
 )
 
@@ -199,6 +200,15 @@ def _op_p10(point, dx, dy):
     return _gerlib_offset_point(point, dx, dy)
 
 
+def _op_s01(points_ref, k, *rest):
+    """S01: SM=S01>P(I),K[,[V1],[VK]] - krivka (Spline) K body, chordalni
+    (chord-length) parametrizace, viz gerlib.make_spline1. Na rozdil od
+    S03 nema volitelny krok N (viz signatura v zadani)."""
+    v1 = rest[0] if len(rest) >= 1 else None
+    vk = rest[1] if len(rest) >= 2 else None
+    return _gerlib_make_spline1(points_ref, k, v1, vk)
+
+
 def _op_s03(points_ref, k, *rest):
     """S03: SM=S03>P(I),K[,[V1],[VK][,N]] - krivka (Spline) K body se
     dvema okrajovymi tecnymi vektory, viz gerlib.make_spline."""
@@ -265,7 +275,7 @@ OPERATIONS = {
     "C49": _stub("C49", "kopie hodnoty kruznice (ekvivalent P49, jen pro kruznici)"),
 
     # --- krivky / retezce ---
-    "S01": _stub("S01", "krivka (string) danymi N body z pole"),
+    "S01": _op_s01,
     "S03": _op_s03,
     "E01": _op_e01,
     "E45": _stub("E45", "diskretizace krivky na retezec s danou presnosti / vyrez segmentu"),
