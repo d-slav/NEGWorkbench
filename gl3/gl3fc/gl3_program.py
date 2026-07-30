@@ -174,7 +174,12 @@ class GL3Program(object):
             value = result.get(name)
 
             if kind == "composite":
-                setattr(obj, name, dump_json(value))
+                # indent=None -> kompaktni JEDNORADKOVY JSON (zadne "\n").
+                # dump_json() ma default indent=2 (hodi se pro ulozeni do
+                # .json souboru a cteni v textovem editoru), ale v Property
+                # View kazdy "\n" v retezci roztahne radek na vic radku -
+                # pro zobrazeni v jednom radku chceme kompaktni variantu.
+                setattr(obj, name, dump_json(value, indent=None))
                 continue
 
             if value is None:
