@@ -99,12 +99,58 @@ def main():
     obj = cmd.Activated()
     assert obj is not None
     assert hasattr(obj, "SearchPaths"), "GL3Library musi mit property SearchPaths"
-    assert obj.SearchPaths == [], "SearchPaths se ma inicializovat na prazdny seznam"
+
+    import gl3fc.gl3_library as gl3_library_mod
+
+    expected_default = gl3_library_mod._default_examples_dir()
+    assert obj.SearchPaths == [expected_default], (
+        "SearchPaths se ma po vytvoreni inicializovat na vychozi "
+        "adresar gl3/examples dodavany s doplnkem, misto: %r" % (obj.SearchPaths,)
+    )
     assert obj.Proxy.Type == "GL3Library"
-    print("Activated(): OK - vytvoren GL3Library objekt '%s' s prazdnym SearchPaths" % obj.Name)
+    print(
+        "Activated(): OK - vytvoren GL3Library objekt '%s' s vychozi cestou %s"
+        % (obj.Name, expected_default)
+    )
 
     print()
-    print("VSE OK - gl3_commands.CreateGL3LibraryCommand funguje (offline, bez realneho FreeCADu).")
+    print("--- CreateGL3ProgramCommand ---")
+
+    prog_cmd = gl3_commands.CreateGL3ProgramCommand()
+    res = prog_cmd.GetResources()
+    assert "Pixmap" in res and os.path.isfile(res["Pixmap"]), "ikona create_program.svg musi existovat"
+    assert "MenuText" in res and "ToolTip" in res
+    print("GetResources(): OK (ikona nalezena na disku)")
+    assert prog_cmd.IsActive() is True
+
+    examples_dir = os.path.join(_HERE, "gl3", "examples")
+    tehlo_path = os.path.join(examples_dir, "TEHLO.GL3")
+    assert os.path.isfile(tehlo_path), "ocekavany priklad TEHLO.GL3 nenalezen"
+
+    # Skutecny Qt file-dialog nema smysl v offline testu volat - nahradime
+    # ho pevnou hodnotou (viz _ask_source_file volane jen z Activated()).
+    prog_cmd._ask_source_file = lambda: tehlo_path
+
+    prog_obj = prog_cmd.Activated()
+    assert prog_obj is not None
+    assert prog_obj.SourceFile == tehlo_path
+    assert prog_obj.Proxy.Type == "GL3Program"
+    assert prog_obj.Name.startswith("TEHLO"), "Name se ma odvodit ze jmena souboru (+ counter FakeDocument)"
+    # v dokumentu uz existuje presne jedna GL3Library (z testu vyse) ->
+    # ocekavame automaticke pripojeni
+    assert getattr(prog_obj, "Library", None) is obj, (
+        "s jedinou GL3Library v dokumentu se ma automaticky pripojit jako Library"
+    )
+    print("Activated(): OK - vytvoren GL3Program objekt '%s' ze souboru %s" % (prog_obj.Name, tehlo_path))
+
+    # zruseni dialogu (uzivatel dal Cancel) -> zadny objekt se nevytvori
+    prog_cmd._ask_source_file = lambda: None
+    assert prog_cmd.Activated() is None
+    print("Activated() se zrusenym dialogem: OK - nic se nevytvorilo")
+
+    print()
+    print("VSE OK - gl3_commands.CreateGL3LibraryCommand i CreateGL3ProgramCommand funguji")
+    print("(offline, bez realneho FreeCADu).")
 
 
 if __name__ == "__main__":

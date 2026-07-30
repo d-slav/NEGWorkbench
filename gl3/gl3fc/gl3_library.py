@@ -38,6 +38,14 @@ from gl3fc.gl3_registry import Gl3FileRegistry
 from gl3fc.gl3_props import add_property
 
 
+def _default_examples_dir():
+    """Adresar <doplnek>/gl3/examples - dodavany primo s doplnkem, obsahuje
+    ukazkova SUBRO (HLO.GL3 aj.) pouzita i v test_offline.py/gl3_test.py."""
+    # tenhle soubor: <doplnek>/gl3/gl3fc/gl3_library.py
+    addon_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    return os.path.join(addon_dir, "gl3", "examples")
+
+
 class GL3Library(object):
     """Proxy pro App::FeaturePython objekt typu GL3Library."""
 
@@ -53,6 +61,10 @@ class GL3Library(object):
         )
         if obj.SearchPaths is None:
             obj.SearchPaths = []
+        if not obj.SearchPaths:
+            default_dir = _default_examples_dir()
+            if os.path.isdir(default_dir):
+                obj.SearchPaths = [default_dir]
 
     def add_path(self, obj, path):
         entries = list(obj.SearchPaths or [])

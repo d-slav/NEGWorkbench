@@ -56,7 +56,12 @@ def main():
     # --- GL3Library ---
     lib_obj = FakeObj("GL3Library")
     GL3Library(lib_obj)
-    lib_obj.Proxy.add_path(lib_obj, examples_dir)
+    # GL3Library.__init__ uz sam predvyplni SearchPaths na dodavany
+    # gl3/examples adresar (viz _default_examples_dir), takze rucni
+    # add_path() tu neni potreba - jen si to overime:
+    assert lib_obj.SearchPaths == [examples_dir], (
+        "ocekavan vychozi SearchPaths = [%r], je: %r" % (examples_dir, lib_obj.SearchPaths)
+    )
     print("Library.SearchPaths =", lib_obj.SearchPaths)
 
     # --- GL3Program (TEHLO) ---
