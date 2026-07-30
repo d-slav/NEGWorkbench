@@ -13,74 +13,86 @@ GL3Export, editace Library, ...) pribudou postupne, az bude tenhle
 zakladni krok spolehlive fungovat - viz README.md a docs/cs/.
 """
 
-import os
-import sys
+"""
+InitGui.py - vstupni bod FreeCAD GUI doplnku NEGWorkbench.
 
+FreeCAD tenhle soubor automaticky najde a nacte pri startu, POKUD je
+tahle slozka primo pod uzivatelskym Mod/ adresarem (napr.
+%APPDATA%\\FreeCAD\\Mod\\NEGWorkbench\\InitGui.py na Windows,
+~/.local/share/FreeCAD/Mod/NEGWorkbench/InitGui.py na Linuxu) - staci
+zkopirovat/naklonovat cely tenhle repozitar tam a restartovat FreeCAD.
 
-def _locate_wb_dir():
-    """InitGui.py se spousti primo (execfile-like, ne pres import), takze
-    nemusi mit spolehlive __file__ (znamy dlouhodoby limit FreeCADu - viz
-    komentar v gl3_wb_paths.py). Zkusi se postupne, od nejspolehlivejsiho:
+DULEZITA POZNAMKA K TOMU, JAK FREECAD TENHLE SOUBOR SPOUSTI:
+FreeCAD InitGui.py/Init.py nenacita jako normalni Python modul (import),
+ale spousti primo pres `exec(compile(obsah_souboru))` UVNITR SVE VLASTNI
+FUNKCE (RunInitGuiPy ve FreeCADGuiInit.py). Protoze je exec() zavolany
+BEZ explicitnich globals/locals uvnitr funkce, Python pouzije pro tenhle
+exec DVE ODDELENE veci: skutecne globals (vnitrni modul FreeCADu) a
+locals te funkce (jako by nas kod byl proste vlozeny primo doprostred
+teto funkce). Dusledek: cokoliv, co si NA NEJVYSSI UROVNI TOHOTO SOUBORU
+prirsadime (_WB_DIR = ..., import os, def QT_TRANSLATE_NOOP...), skonci
+v teto specialni "locals" dict - NE ve skutecnych globals. Trida
+(NEGWorkbench) a jeji metody ale pri hledani jmen, ktera sami nemaji
+definovana, koukaji JEN do skutecnych globals (ne do teto "locals" dict)
+- takze cokoliv definovane na teto (souborove) urovni NENI VIDET ZEVNITR
+TRIDY/METOD (odtud presne hlaska "name '_WB_DIR' is not defined").
 
-      1) __file__ primo (nektere zpusoby spusteni/verze ho maji)
-      2) sourozenecky modul gl3_wb_paths.py - BEZNE importovany modul,
-         ten __file__ ma vzdy spravne (oficialni FreeCAD obchvat, viz
-         wiki.freecad.org/Translating_an_external_workbench)
-      3) uzivatelsky Mod adresar + nazev teto slozky (posledni zachrana,
-         kdyby ani import sourozeneckeho modulu neprosel - typicky by to
-         znamenalo, ze FreeCAD tuhle slozku vubec nema na sys.path, coz
-         by ale zaroven rozbilo i "import gl3_commands" v Initialize())
-    """
-    try:
-        return os.path.dirname(os.path.abspath(__file__))
-    except NameError:
-        pass
+Reseni: trida i kazda jeji metoda si musi VSECHNO, co potrebuji, znovu
+naimportovat/spocitat PRIMO VE SVEM VLASTNIM TELE - nespolehat na nic
+z vrcholu souboru. Proto tu vidite "import os"/"import gl3_wb_paths"
+opakovane na nekolika mistech - neni to preklep, je to nutne.
 
-    try:
-        import gl3_wb_paths
-        return gl3_wb_paths.WB_DIR
-    except ImportError:
-        pass
-
-    import FreeCAD as App
-    return os.path.join(App.getUserAppDataDir(), "Mod", "NEGWorkbench")
-
-
-_WB_DIR = _locate_wb_dir()
-if _WB_DIR not in sys.path:
-    sys.path.insert(0, _WB_DIR)
+Zatim jen jeden prikaz (vytvoreni GL3Library) - dalsi (GL3Program,
+GL3Export, editace Library, ...) pribudou postupne, az bude tenhle
+zakladni krok spolehlive fungovat - viz README.md a docs/cs/.
+"""
 
 import FreeCADGui as Gui
 
 
-def QT_TRANSLATE_NOOP(context, text):
-    """Neni skutecny preklad (zadny .ts/.qm zatim neexistuje) - jen
-    oznaceni textu pro pripadny budouci 'lupdate' extract, aby se
-    lokalizace dala pridat pozdeji jako .ts/.qm soubor bez zasahu do
-    kodu. Viz https://wiki.freecad.org/Translating_an_external_workbench
-    """
-    return text
-
-
 class NEGWorkbench(Gui.Workbench):
+    # DULEZITE: import primo tady, v tele tridy - ne na vrcholu souboru
+    # (viz vysvetleni v modulovem docstringu vyse). Kazde jmeno pouzite
+    # v tomhle tele tridy musi byt definovane bud tady, nebo byt
+    # skutecny Python builtin.
+    import os as _os
+    import gl3_wb_paths as _wb_paths
+
     MenuText = "NEG/GL3"
     ToolTip = (
         "NEG/GL3 - integrace historickeho geometrickeho jazyka "
         "(LET Kunovice / Aircraft Industries a.s.) do FreeCADu"
     )
-    Icon = os.path.join(_WB_DIR, "Resources", "icons", "neg_workbench.svg")
+    Icon = _os.path.join(_wb_paths.WB_DIR, "Resources", "icons", "neg_workbench.svg")
 
     def Initialize(self):
-        # Az budou nejake .qm soubory, budou se hledat tady (zatim prazdna
-        # slozka staci zaregistrovat uz ted, at se pozdejsi pridani
-        # prekladu obejde bez dalsi zmeny kodu) - dle FreeCAD konvence se
-        # tohle registruje prave tady, v Initialize().
-        Gui.addLanguagePath(os.path.join(_WB_DIR, "translations"))
+        # Znovu import VSEHO potrebneho - viz vysvetleni na vrcholu
+        # souboru. Nelze spolehat na nic z vrcholu souboru ani z tela
+        # tridy (jina metoda = jiny scope, stejny problem).
+        import os
+        import sys
+        import gl3_wb_paths
+        import FreeCADGui as Gui
+
+        def qt_translate_noop(context, text):
+            """Neni skutecny preklad (zadny .ts/.qm zatim neexistuje) -
+            jen oznaceni textu pro pripadny budouci 'lupdate' extract,
+            aby se lokalizace dala pridat pozdeji jako .ts/.qm soubor
+            bez zasahu do kodu. Viz
+            https://wiki.freecad.org/Translating_an_external_workbench
+            """
+            return text
+
+        wb_dir = gl3_wb_paths.WB_DIR
+        if wb_dir not in sys.path:
+            sys.path.insert(0, wb_dir)
+
+        # Az budou nejake .qm soubory, budou se hledat tady (zatim
+        # prazdna slozka staci zaregistrovat uz ted, at se pozdejsi
+        # pridani prekladu obejde bez dalsi zmeny kodu).
+        Gui.addLanguagePath(os.path.join(wb_dir, "translations"))
         Gui.updateLocale()
 
-        # Import az tady (ne na urovni modulu) - FreeCAD nacita InitGui.py
-        # pri kazdem startu, i kdyz se workbench nikdy neaktivuje; import
-        # gl3_commands (a s nim gl3fc/gerlib) chceme az pri prvni aktivaci.
         import gl3_commands  # noqa: F401 - registruje Gui.Command objekty
 
         self.command_list = ["NEG_CreateLibrary"]
@@ -88,8 +100,8 @@ class NEGWorkbench(Gui.Workbench):
         # nazvy (viz Translating_an_external_workbench) - jednotlivé
         # prikazy maji svuj vlastni kontext (jmeno prikazu), viz
         # gl3_commands.py.
-        self.appendToolbar(QT_TRANSLATE_NOOP("Workbench", "NEG/GL3"), self.command_list)
-        self.appendMenu(QT_TRANSLATE_NOOP("Workbench", "NEG/GL3"), self.command_list)
+        self.appendToolbar(qt_translate_noop("Workbench", "NEG/GL3"), self.command_list)
+        self.appendMenu(qt_translate_noop("Workbench", "NEG/GL3"), self.command_list)
 
     def Activated(self):
         pass

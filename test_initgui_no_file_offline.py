@@ -1,30 +1,43 @@
 # -*- coding: utf-8 -*-
 """
-Test, ze InitGui.py neselze na chybejicim __file__ - FreeCAD InitGui.py/
-Init.py spousti pres exec (ne import), takze __file__ v jejich namespace
-NENI k dispozici (znamy limit FreeCADu). Simulujeme presne tohle: exec()
-zdrojoveho kodu InitGui.py v cistem globals dictu bez '__file__' klice.
+Verny test toho, jak FreeCAD skutecne spousti InitGui.py.
 
-Overuje jen to, ze se nacteni nezhrouti a _WB_DIR se spravne dopocita
-pres sourozenecky modul gl3_wb_paths.py (fallback uroven 2) - nikoliv
-skutecne chovani Gui.Workbench/toolbar (na to real FreeCAD).
+Realny FreeCAD zdrojak (FreeCADGuiInit.py, funkce RunInitGuiPy) dela:
+
+    def RunInitGuiPy(Dir):
+        with open(InstallFile) as f:
+            exec(compile(f.read(), InstallFile, "exec"))
+
+`exec(code)` BEZ explicitnich globals/locals, zavolany UVNITR FUNKCE,
+pouzije DVE ODDELENE veci: globals() teto funkce (= skutecny modul
+FreeCADGuiInit.py) a locals() teto funkce (jeji vlastni lokalni
+promenne). Cokoliv InitGui.py na nejvyssi urovni prirsadi, konci v teto
+"locals" dict - NE ve skutecnych globals. Trida/metody v InitGui.py ale
+pri hledani nedefinovanych jmen koukaji JEN do skutecnych globals.
+
+Muj puvodni test (predchozi verze tohohle souboru) tohle NEreplikoval
+verne - pouzival `exec(code, jeden_sdileny_dict)`, kde globals==locals,
+takze chyba se neprojevila (falesny pozitivni vysledek). Tenhle test to
+dela spravne - simuluje RunInitGuiPy jako SKUTECNOU funkci s vlastnim
+__globals__ (fake modul, ktery ma jen 'os' - stejne jako realny
+FreeCADGuiInit.py nejspis ma - a NIC z naseho InitGui.py).
 """
 import os
 import sys
 import types
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, _HERE)  # simuluje "FreeCAD uz pridal Mod/NEGWorkbench na sys.path"
+sys.path.insert(0, _HERE)
 
 
 class FakeWorkbenchBase(object):
-    """Minimalni napodobenina Gui.Workbench - staci na to, aby "class
-    NEGWorkbench(Gui.Workbench)" v InitGui.py fungovalo."""
     pass
 
 
 class FakeGui(object):
     Workbench = FakeWorkbenchBase
+    registered = None
+    commands = {}
 
     @staticmethod
     def addWorkbench(wb):
@@ -38,37 +51,66 @@ class FakeGui(object):
     def updateLocale():
         pass
 
+    @staticmethod
+    def addCommand(name, cmd):
+        FakeGui.commands[name] = cmd
+
 
 def main():
     sys.modules["FreeCADGui"] = FakeGui()
+    sys.modules["FreeCAD"] = types.ModuleType("FreeCAD")  # gl3_commands.py needs 'import FreeCAD as App'
 
     init_gui_path = os.path.join(_HERE, "InitGui.py")
-    with open(init_gui_path, "r", encoding="utf-8") as f:
-        source = f.read()
 
-    code = compile(source, init_gui_path, "exec")
+    # --- simulace FreeCADGuiInit.py jako samostatneho "modulu" (fake
+    # globals dict) - obsahuje jen 'os' (realny FreeCADGuiInit.py si ho
+    # jiste taky importuje pro sve vlastni ucely), NIC z NASEHO kodu ---
+    fake_freecad_gui_init_module = {"os": os, "__name__": "FreeCADGuiInit_sim"}
 
-    # DULEZITE: globals dict BEZ '__file__' - presne simuluje FreeCAD
-    namespace = {"__name__": "__main__"}
-    assert "__file__" not in namespace
-
-    exec(code, namespace)  # nesmi vyhodit NameError na __file__
-
-    assert namespace["_WB_DIR"] == _HERE, (
-        "fallback pres gl3_wb_paths.py musi dat stejny adresar jako "
-        "skutecne umisteni InitGui.py: %r vs %r" % (namespace["_WB_DIR"], _HERE)
+    # RunInitGuiPy definovana PRES EXEC do fake modulu, aby jeji
+    # __globals__ byl SKUTECNE fake_freecad_gui_init_module (ne nas
+    # testovaci skript) - presne jako v realnem FreeCADu.
+    exec(
+        "def RunInitGuiPy(path):\n"
+        "    with open(path, 'r', encoding='utf-8') as f:\n"
+        "        src = f.read()\n"
+        "    code = compile(src, path, 'exec')\n"
+        "    exec(code)\n",
+        fake_freecad_gui_init_module,
     )
-    print("InitGui.py se nactl BEZ __file__ v namespace (presne jako v realnem FreeCADu)")
-    print("_WB_DIR spravne dopocitan pres gl3_wb_paths.py fallback: %s" % namespace["_WB_DIR"])
+    run_init_gui_py = fake_freecad_gui_init_module["RunInitGuiPy"]
 
-    wb_class = namespace["NEGWorkbench"]
+    # Tohle musi projit BEZ vyjimky - presne to same volani, jako dela
+    # FreeCAD (exec() uvnitr funkce, dve oddelene globals/locals).
+    run_init_gui_py(init_gui_path)
+
+    print("InitGui.py se nactl pod VERNOU simulaci FreeCAD exec() (oddelene")
+    print("globals/locals uvnitr funkce) - bez vyjimky.")
+
+    registered = FakeGui.registered
+    assert isinstance(registered, FakeWorkbenchBase)
+    print("Gui.addWorkbench() bylo zavolano s instanci NEGWorkbench: OK")
+
     expected_icon = os.path.join(_HERE, "Resources", "icons", "neg_workbench.svg")
-    assert wb_class.Icon == expected_icon
-    assert os.path.isfile(wb_class.Icon), "ikona workbenche musi existovat na disku"
-    print("Workbench Icon cesta spravna a soubor existuje: %s" % wb_class.Icon)
+    assert registered.Icon == expected_icon, (registered.Icon, expected_icon)
+    assert os.path.isfile(registered.Icon), "ikona workbenche musi existovat na disku"
+    print("Workbench Icon cesta spravna (dopoctena zevnitr tela tridy) a soubor existuje: %s"
+          % registered.Icon)
+
+    # --- a ted i Initialize() sama (registruje prikazy, addLanguagePath) ---
+    registered.command_list = None
+    registered.appendToolbar = lambda name, cmds: setattr(registered, "_toolbar", (name, cmds))
+    registered.appendMenu = lambda name, cmds: setattr(registered, "_menu", (name, cmds))
+    registered.Initialize()
+
+    assert registered.command_list == ["NEG_CreateLibrary"]
+    assert registered._toolbar[1] == ["NEG_CreateLibrary"]
+    assert registered._menu[1] == ["NEG_CreateLibrary"]
+    print("Initialize() probehla bez vyjimky a spravne zaregistrovala prikaz: OK")
 
     print()
-    print("VSE OK - InitGui.py je odolny vuci chybejicimu __file__.")
+    print("VSE OK - InitGui.py je odolny vuci FreeCAD skutecnemu zpusobu spousteni")
+    print("(exec() s oddelenymi globals/locals).")
 
 
 if __name__ == "__main__":
