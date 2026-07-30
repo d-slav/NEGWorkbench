@@ -13,6 +13,7 @@ Overuje se: dynamicke vlastnosti sedi na SUBRO hlavicku, CALL/HLO se
 rozresi pres GL3Library (adresar 'examples/'), a vysledek (PO, S) sedi
 na uz drive overena data z gl3_test.py / proto_bezier_export.py.
 """
+import json
 import os
 import sys
 
@@ -87,8 +88,8 @@ def main():
     print("  ma PO?", hasattr(prog, "PO"), " ma S?", hasattr(prog, "S"))
     assert hasattr(prog, "BJM") and hasattr(prog, "DH")
     assert hasattr(prog, "PO") and hasattr(prog, "S")
-    assert prog._prop_types["S"] == "App::PropertyPythonObject"
-    assert prog._prop_types["PO"] == "App::PropertyPythonObject"
+    assert prog._prop_types["S"] == "App::PropertyString"
+    assert prog._prop_types["PO"] == "App::PropertyString"
     assert prog._prop_types["DH"] == "App::PropertyFloat"
 
     # 2. uzivatel nastavi vstupy
@@ -99,20 +100,22 @@ def main():
     prog.Proxy.execute(prog)
 
     print("Po 2. recompute:")
-    print("  PO['defined'] =", prog.PO["defined"], " pocet bodu =", len(prog.PO["items"]))
-    print("  S['defined']  =", prog.S["defined"], " typ =", prog.S["type"])
+    po = json.loads(prog.PO)
+    s = json.loads(prog.S)
+    print("  PO['defined'] =", po["defined"], " pocet bodu =", len(po["items"]))
+    print("  S['defined']  =", s["defined"], " typ =", s["type"])
 
-    assert prog.PO["defined"] is True
-    assert prog.PO["type"] == "Array"
-    assert len(prog.PO["items"]) == 35
+    assert po["defined"] is True
+    assert po["type"] == "Array"
+    assert len(po["items"]) == 35
 
-    assert prog.S["defined"] is True
-    assert prog.S["type"] == "Spline"
-    assert prog.S["points"]["defined"] is True
-    assert len(prog.S["points"]["items"]) == 35
+    assert s["defined"] is True
+    assert s["type"] == "Spline"
+    assert s["points"]["defined"] is True
+    assert len(s["points"]["items"]) == 35
 
     # posledni bod PO musi sedet na drive overenou hodnotu (15.2, 0.0)
-    last_point_slot = prog.PO["items"][-1]
+    last_point_slot = po["items"][-1]
     assert last_point_slot["defined"] is True
     x = last_point_slot["x"]
     y = last_point_slot["y"]

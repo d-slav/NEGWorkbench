@@ -12,10 +12,19 @@ Vstupy/vystupy se generuji AUTOMATICKY z SUBRO hlavicky vlastniho
   - composite in: NENI V TETO FAZI PODPOROVAN (architektonicke
     rozhodnuti - composite smi do GL3 jen pres Link z jineho GL3
     objektu, ne jako literal z FC; Link je planovan az pozdeji).
-  - composite out: -> App::PropertyPythonObject drzici JSON-safe "slot"
-    z gerlib.serialize.serialize() (viz ten modul) - Export modul si ho
-    precte bez nutnosti importovat gerlib.
-  - skalarni out: -> bezna nativni FC property.
+  - composite out: -> App::PropertyString drzici SKUTECNY JSON text
+    (gerlib.serialize.dump_json(), viz ten modul), status ReadOnly (jde
+    o vypocitanou hodnotu, needitovat rucne - ReadOnly ale nebrani
+    programatickemu zapisu z execute()). Puvodne App::PropertyPythonObject
+    (holy Python dict) - zmeneno, protoze PropertyPythonObject nema v
+    Property View zadny editor (property se nezobrazi bez "Show all", a
+    i pak je jen zluty needitovatelny fallback - viz gl3_props.py).
+    App::PropertyString ma bezny textovy editor (viditelny vzdy, seda
+    barva jen diky ReadOnly). Export modul si vystup precte pres
+    gerlib.serialize.load_json(text) (nebo primo
+    deserialize(json.loads(text)), pripadne jen json.loads(text) pro
+    plochy dict-dotaz jako drive is_defined()/["items"]/...).
+  - skalarni out: -> bezna nativni FC property, taky ReadOnly.
 
 CALL na dalsi SUBRO (napr. TEHLO -> HLO) se resolvuje LENIVE pres
 Gl3FileRegistry postavenem nad pripojenou GL3Library (adresare na
@@ -35,7 +44,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from gl3_lang import parse_program
 from gl3_interpreter import Interpreter
 from gl3_ops import classify
-from gerlib.serialize import serialize
+from gerlib.serialize import dump_json
 from gl3fc.gl3_registry import Gl3FileRegistry
 from gl3fc.gl3_props import add_property
 
@@ -130,9 +139,9 @@ class GL3Program(object):
                 group = "GL3 Out"
                 doc = "GL3 out: %s" % name
                 if kind == "composite":
-                    native_type = "App::PropertyPythonObject"
+                    native_type = "App::PropertyString"
 
-            add_property(obj, native_type, name, group, doc)
+            add_property(obj, native_type, name, group, doc, read_only=(direction == "out"))
 
     # -----------------------------------------------------------------
     # Vstupy pro Interpreter.run()
@@ -165,7 +174,7 @@ class GL3Program(object):
             value = result.get(name)
 
             if kind == "composite":
-                setattr(obj, name, serialize(value))
+                setattr(obj, name, dump_json(value))
                 continue
 
             if value is None:
