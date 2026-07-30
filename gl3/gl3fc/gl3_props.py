@@ -9,6 +9,14 @@ uzivatel nezapnul "Show hidden" - i kdyz addProperty() bylo volano se
 standardnimi (nehidden) argumenty. Tahle funkce proto po pridani property
 jeste explicitne zavola setPropertyStatus(name, "-Hidden"), aby se na
 defaultu FreeCADu/verzi nemuselo spolehat.
+
+POZOR: tohle NEPOMUZE u property typu, ktere v Property View nemaji zadny
+editor (napr. App::PropertyPythonObject, App::PropertyVectorList) - takove
+property se nezobrazi vubec, dokud uzivatel nezapne "Show all", a i pak
+jsou jen ke cteni, bez ohledu na "-Hidden" (viz FreeCAD PR #3535,
+realthunder). Pro cokoliv, co ma byt v Property View editovatelne hned po
+vytvoreni, pouzij typ s vestavenym editorem (PropertyString, -Float,
+-Bool, -StringList, ...).
 """
 
 

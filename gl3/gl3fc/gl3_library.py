@@ -5,11 +5,21 @@ hledaji SUBRO soubory volane pres CALL z GL3Program objektu (typ 2 z
 diskuze - uzivatelem definovana SUBRO). Nenese zadnou geometrii ani
 vlastni Placement - je to cisty "registr cest".
 
-Format SearchPaths (PropertyPythonObject): list dictu
-    [{"path": "/abs/cesta/k/adresari", "hidden": False}, ...]
-"hidden" ted nema zadny funkcni vyznam pro hledani (adresar se prohleda
-tak jako tak) - je to jen priznak pro budouci UI (nezobrazovat uzivateli
-jako "jeho" SUBRO, az pribudou systemova SUBRA, typ 3 z diskuze).
+Format SearchPaths (PropertyStringList): prosty seznam retezcu
+    ["/abs/cesta/k/adresari", ...]
+
+Puvodne PropertyPythonObject s dvojici {"path":..., "hidden":...} -
+zmeneno na PropertyStringList, protoze PropertyPythonObject nema v
+Property View zadny editor (viz FreeCAD PR #3535/realthunder): property
+bez editoru se nezobrazi vubec, dokud uzivatel nezapne "Show all", a i
+pak je jen ke cteni - nejde ji z GUI nastavit. PropertyStringList ma
+vestaveny editor (dvojklik otevre seznam radku), takze je videt a
+editovatelna hned po vytvoreni objektu.
+
+Priznak "hidden" (pro budouci systemova SUBRA, typ 3 z diskuze) timhle
+zjednodusenim odpadl - az na to dojde, resit zvlast (napr. samostatna
+property SystemSearchPaths, nebo UI dialog misto primeho Property View
+editoru).
 
 Editace kodu samotnych .GL3 souboru je v teto fazi projektu vyrizena
 externe (bezny textovy editor na disku) - Library jen rika, KDE ty
@@ -36,17 +46,17 @@ class GL3Library(object):
         self.Type = "GL3Library"
         add_property(
             obj,
-            "App::PropertyPythonObject",
+            "App::PropertyStringList",
             "SearchPaths",
             "GL3",
-            "Seznam adresaru [{'path':..., 'hidden':...}] pro hledani <JMENO>.GL3 souboru",
+            "Seznam adresaru pro hledani <JMENO>.GL3 souboru",
         )
         if obj.SearchPaths is None:
             obj.SearchPaths = []
 
-    def add_path(self, obj, path, hidden=False):
+    def add_path(self, obj, path):
         entries = list(obj.SearchPaths or [])
-        entries.append({"path": path, "hidden": bool(hidden)})
+        entries.append(path)
         obj.SearchPaths = entries
 
     def build_registry(self, obj, extra=None):

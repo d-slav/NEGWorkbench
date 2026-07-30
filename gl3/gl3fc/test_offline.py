@@ -26,6 +26,7 @@ _TYPE_DEFAULTS = {
     "App::PropertyFile": "",
     "App::PropertyLink": None,
     "App::PropertyPythonObject": None,
+    "App::PropertyStringList": [],
 }
 
 
@@ -55,7 +56,7 @@ def main():
     # --- GL3Library ---
     lib_obj = FakeObj("GL3Library")
     GL3Library(lib_obj)
-    lib_obj.Proxy.add_path(lib_obj, examples_dir, hidden=False)
+    lib_obj.Proxy.add_path(lib_obj, examples_dir)
     print("Library.SearchPaths =", lib_obj.SearchPaths)
 
     # --- GL3Program (TEHLO) ---

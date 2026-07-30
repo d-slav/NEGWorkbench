@@ -22,7 +22,9 @@ from gl3_lang import parse_program
 
 
 class Gl3FileRegistry(object):
-    """search_entries - list dictu {"path": adresar, "hidden": bool}
+    """search_entries - seznam adresaru (retezce); kvuli zpetne kompatibilite
+            se stale akceptuje i puvodni format dictu {"path": adresar, ...}
+            (viz _find_path).
     extra - dict {jmeno: SubroutineDef} pro predem znama SUBRO (typicky
             vlastni SUBRO GL3Program objektu, ktery tenhle registry pouziva -
             at CALL na sve vlastni jmeno, kdyby k tomu doslo, nemusi chodit
@@ -43,7 +45,14 @@ class Gl3FileRegistry(object):
             if path is None:
                 raise KeyError(
                     "SUBRO '%s' nenalezeno (hledano jako '%s.GL3' v: %s)"
-                    % (name, name, ", ".join(e["path"] for e in self._search_entries))
+                    % (
+                        name,
+                        name,
+                        ", ".join(
+                            (e["path"] if isinstance(e, dict) else e)
+                            for e in self._search_entries
+                        ),
+                    )
                 )
             with open(path, "r", encoding="utf-8", errors="replace") as f:
                 subdef = parse_program(f.read())
