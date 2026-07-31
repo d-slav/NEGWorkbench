@@ -1,0 +1,37 @@
+*
+* Porovnání profilù E374
+*
+SUBRO/E374/in:BA,in:BB,out:SA,out:SB,out:S(1)
+
+DIMEN,PI(100),PO(100),S(2)
+
+IDEV,BA                 < Otevøe vstunní soubor.
+READ,BNAME              < Ze souboru naète dummy øádek.
+DO,I=1,100              < Cyklus do velikosti pole
+    READ,PI(I)          < Naètení dalšího bodu
+    IFN/PI(I)/THEN      < Test jestli je objket definovám, pøípadnì konec.
+        J=I-1           < Zapamatujeme si kolik jsme naèetli bodù
+        I=100           < Nastavi konec cyklu
+    ENDIF               < Konec testovac9ho bloku
+ENDDO
+
+CALL/HLO/J,100.0,PI,PO
+SA=S01>PO,J
+S(1)=SA
+
+IDEV,BB                 < Otevøe vstunní soubor.
+READ,BNAME              < Ze souboru naète dummy øádek.
+DO,I=1,100              < Cyklus do velikosti pole
+    READ,PI(I)          < Naètení dalšího bodu
+    IFN/PI(I)/THEN      < Test jestli je objket definovám, pøípadnì konec.
+        J=I-1           < Zapamatujeme si kolik jsme naèetli bodù
+        I=100           < Nastavi konec cyklu
+    ENDIF               < Konec testovac9ho bloku
+ENDDO
+
+CALL/HLO/J,100.0,PI,PO
+SB=S01>PO,J
+S(2)=SB
+
+RETSUB
+END
