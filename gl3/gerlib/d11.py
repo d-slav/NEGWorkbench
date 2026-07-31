@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Procedura D611 (GL3 opcode D11)     LET, k.p., Uh.Hradiste     P.Franc
+Procedura D611 (GL3 opcode D11)     LET, k.p., Uh.Hradiste
 Knihovna GERLIBPC                                  Listopad 1989
 
 Ucel:    Vzdalenost bodu od primky.

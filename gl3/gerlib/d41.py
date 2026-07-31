@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Procedura D641 (GL3 opcode D41)     LET, k.p., Uh.Hradiste     P.Franc
+Procedura D641 (GL3 opcode D41)     LET, k.p., Uh.Hradiste
 Knihovna GERLIBPC                                  Listopad 1989
 
 Ucel:    Plocha trojuhelnika vymezeneho tremi primkami.

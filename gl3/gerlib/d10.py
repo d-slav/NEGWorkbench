@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Procedura D610 (GL3 opcode D10)     LET, k.p., Uh.Hradiste     P.Franc
+Procedura D610 (GL3 opcode D10)     LET, k.p., Uh.Hradiste
 Knihovna GERLIBPC                                  Listopad 1989
 
 Ucel:    Vzdalenost dvou bodu.

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Procedura P85 (GL3 opcode P85)      n.p. LET Kunovice     RNDr. Krusina
+Procedura P85 (GL3 opcode P85)      n.p. LET Kunovice
 Knihovna GL3E2                                      Duben 1985
 
 Ucel:    Dotykovy bod na retezci rovnobezne s primkou.

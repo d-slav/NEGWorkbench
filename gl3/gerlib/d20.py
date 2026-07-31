@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Procedura D620 (GL3 opcode D20)     LET, k.p., Uh.Hradiste     P.Franc
+Procedura D620 (GL3 opcode D20)     LET, k.p., Uh.Hradiste
 Knihovna GERLIBPC                                  Listopad 1989
 
 Ucel:    Velikost vektoru.

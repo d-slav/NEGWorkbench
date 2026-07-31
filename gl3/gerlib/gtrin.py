@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Procedura GTRIN     LET n.p. Uh.Hradiste     Ing.S.Trnka
+Procedura GTRIN     LET n.p. Uh.Hradiste
 Knihovna CURLIB32                      Listopad 1982
 
 Ucel:    Reseni soustavy linearnich rovnic s tridiagonalni matici soustavy

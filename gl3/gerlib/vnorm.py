@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Procedura VNORM     LET n.p. Uh.Hradiste     P.Franc
+Procedura VNORM     LET n.p. Uh.Hradiste
 Knihovna CURLIB32                      Unor 1980
 
 Ucel:    Normalizace vektoru o N slozkach.

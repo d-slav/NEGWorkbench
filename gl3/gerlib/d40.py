@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Procedura D640 (GL3 opcode D40)     LET, k.p., Uh.Hradiste     P.Franc
+Procedura D640 (GL3 opcode D40)     LET, k.p., Uh.Hradiste
 Knihovna GERLIBPC                                  Listopad 1989
 
 Ucel:    Plocha trojuhelnika danymi tremi body (vysledek vzdy kladny).
