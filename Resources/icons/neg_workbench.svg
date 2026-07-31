@@ -7,13 +7,13 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
-   sodipodi:docname="neg_workbench.svg"
-   id="svg1"
-   version="1.1"
-   viewBox="0 0 100 100"
+   width="100mm"
    height="100mm"
-   width="100mm">
+   viewBox="0 0 100 100"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="neg_workbench.svg"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)">
   <metadata
      id="metadata10">
     <rdf:RDF>
@@ -22,91 +22,101 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <sodipodi:namedview
-     showgrid="false"
-     inkscape:document-rotation="0"
-     inkscape:current-layer="layer1"
-     inkscape:window-maximized="0"
-     inkscape:window-y="0"
-     inkscape:window-x="288"
-     inkscape:window-height="1041"
-     inkscape:window-width="1397"
-     inkscape:cy="263.55605"
-     inkscape:cx="231.52716"
-     inkscape:zoom="1.5233586"
-     inkscape:document-units="mm"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:pagecheckerboard="0"
-     inkscape:pageopacity="1"
-     inkscape:showpageshadow="0"
-     borderopacity="1"
-     bordercolor="#cccccc"
+     borderlayer="false"
+     showborder="true"
+     id="namedview1"
      pagecolor="#ffffff"
-     id="namedview1" />
+     bordercolor="#cccccc"
+     borderopacity="1"
+     inkscape:showpageshadow="false"
+     inkscape:pageopacity="1"
+     inkscape:pagecheckerboard="true"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="1.5233586"
+     inkscape:cx="206.58228"
+     inkscape:cy="263.55605"
+     inkscape:window-width="1920"
+     inkscape:window-height="1057"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false" />
   <defs
      id="defs1" />
   <g
-     id="layer1"
+     inkscape:label="Vrstva 1"
      inkscape:groupmode="layer"
-     inkscape:label="Vrstva 1">
+     id="layer1">
+    <rect
+       y="0"
+       x="0"
+       height="100"
+       width="100"
+       id="rect841"
+       style="fill:#ffffff;fill-opacity:1;stroke:#0064ff;stroke-width:0" />
     <g
        id="g16">
       <path
-         d="m 36,0 h 4 V 100 H 36 Z M 50,9.5 C 27.656157,9.5 9.5,27.656157 9.5,50 9.5,72.343843 27.656157,90.5 50,90.5 72.343843,90.5 90.5,72.343843 90.5,50 90.5,27.656157 72.343843,9.5 50,9.5 Z m 0,4 C 70.182083,13.5 86.5,29.817917 86.5,50 86.5,70.182083 70.182083,86.5 50,86.5 29.817917,86.5 13.5,70.182083 13.5,50 13.5,29.817917 29.817917,13.5 50,13.5 Z M 0,0 H 32 V 100 H 0 Z"
+         id="rect16"
          style="fill:#1f5aff;stroke-width:0"
-         id="rect16" />
+         d="m 36,0 h 4 V 100 H 36 Z M 50,9.5 C 27.656157,9.5 9.5,27.656157 9.5,50 9.5,72.343843 27.656157,90.5 50,90.5 72.343843,90.5 90.5,72.343843 90.5,50 90.5,27.656157 72.343843,9.5 50,9.5 Z m 0,4 C 70.182083,13.5 86.5,29.817917 86.5,50 86.5,70.182083 70.182083,86.5 50,86.5 29.817917,86.5 13.5,70.182083 13.5,50 13.5,29.817917 29.817917,13.5 50,13.5 Z M 0,0 H 32 V 100 H 0 Z" />
     </g>
     <text
-       id="text16"
-       y="64.863663"
-       x="41.557484"
+       xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:18.259px;line-height:1.85;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:#aa0000;stroke-width:0.264583"
-       xml:space="preserve"><tspan
-         y="64.863663"
-         x="41.557484"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:18.259px;line-height:1.85;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:#aa0000;stroke-width:0.264583"
+       x="41.557484"
+       y="64.863663"
+       id="text16"><tspan
+         sodipodi:role="line"
          id="tspan16"
-         sodipodi:role="line">NEG</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:18.259px;line-height:1.85;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:#aa0000;stroke-width:0.264583"
+         x="41.557484"
+         y="64.863663">NEG</tspan></text>
     <text
-       xml:space="preserve"
-       style="font-size:10.5833px;line-height:1.25;font-family:sans-serif;stroke-width:0.264583"
-       x="33.34737"
+       id="text836"
        y="34.042107"
-       id="text836"><tspan
-         sodipodi:role="line"
-         id="tspan834"
-         x="33.34737"
+       x="33.34737"
+       style="font-size:10.5833px;line-height:1.25;font-family:sans-serif;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         style="stroke-width:0.264583"
          y="34.042107"
-         style="stroke-width:0.264583" /></text>
+         x="33.34737"
+         id="tspan834"
+         sodipodi:role="line" /></text>
+    <text
+       id="text840"
+       y="36.126312"
+       x="42.552631"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;line-height:1;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#aa0000;fill-opacity:1;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#aa0000;fill-opacity:1;stroke-width:0.264583"
+         y="36.126312"
+         x="42.552631"
+         id="tspan838"
+         sodipodi:role="line">Numerical</tspan><tspan
+         id="tspan842"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#aa0000;fill-opacity:1;stroke-width:0.264583"
+         y="40.006874"
+         x="42.552631"
+         sodipodi:role="line" /></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;line-height:1;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#aa0000;fill-opacity:1;stroke-width:0.264583"
-       x="42.552631"
-       y="36.126312"
-       id="text840"><tspan
-         sodipodi:role="line"
-         id="tspan838"
-         x="42.552631"
-         y="36.126312"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#aa0000;fill-opacity:1;stroke-width:0.264583">Numerical</tspan><tspan
-         sodipodi:role="line"
-         x="42.552631"
-         y="40.006874"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#aa0000;fill-opacity:1;stroke-width:0.264583"
-         id="tspan842" /></text>
-    <text
-       id="text841"
-       y="40.613281"
-       x="42.552631"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.264583;fill:#aa0000;fill-opacity:1;"
-       xml:space="preserve"><tspan
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.264583;fill:#aa0000;fill-opacity:1;"
-         y="40.613281"
-         x="42.552631"
+       x="42.552631"
+       y="40.613281"
+       id="text841"><tspan
+         sodipodi:role="line"
          id="tspan839"
-         sodipodi:role="line">Etalon Geometry</tspan></text>
+         x="42.552631"
+         y="40.613281"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.264583;fill:#aa0000;fill-opacity:1;">Etalon Geometry</tspan></text>
   </g>
 </svg>

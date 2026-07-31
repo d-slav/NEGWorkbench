@@ -7,11 +7,11 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
-   sodipodi:docname="create_program.svg"
-   id="svg12"
+   viewBox="0 0 64 64"
    version="1.1"
-   viewBox="0 0 64 64">
+   id="svg12"
+   sodipodi:docname="create_program.svg"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)">
   <metadata
      id="metadata18">
     <rdf:RDF>
@@ -26,60 +26,61 @@
   <defs
      id="defs16" />
   <sodipodi:namedview
-     inkscape:current-layer="svg12"
-     inkscape:window-maximized="1"
-     inkscape:window-y="-8"
-     inkscape:window-x="-8"
-     inkscape:cy="32"
-     inkscape:cx="28.080899"
-     inkscape:zoom="13.90625"
-     showgrid="false"
-     id="namedview14"
-     inkscape:window-height="1057"
-     inkscape:window-width="1920"
-     inkscape:pageshadow="2"
-     inkscape:pageopacity="0"
-     guidetolerance="10"
-     gridtolerance="10"
-     objecttolerance="10"
-     borderopacity="1"
+     inkscape:document-rotation="0"
+     pagecolor="#ffffff"
      bordercolor="#cccccc"
-     pagecolor="#ffffff" />
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1129"
+     inkscape:window-height="985"
+     id="namedview14"
+     showgrid="false"
+     inkscape:zoom="6.953125"
+     inkscape:cx="16.534091"
+     inkscape:cy="40.494826"
+     inkscape:window-x="491"
+     inkscape:window-y="88"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg12" />
   <path
-     style="fill:#d0e0e8;fill-opacity:1;stroke:#0064ff;stroke-opacity:1"
-     id="path2"
-     stroke-linejoin="round"
-     stroke-width="1.5"
-     stroke="#5a4020"
+     d="M 10 6 L 34 6 L 46 18 L 46 58 L 10 58 Z"
      fill="#e8e2d0"
-     d="M 10 6 L 34 6 L 46 18 L 46 58 L 10 58 Z" />
-  <path
-     style="fill:#a0bcc9;fill-opacity:1;stroke:#0064ff;stroke-opacity:1"
-     id="path4"
+     stroke="#5a4020"
+     stroke-width="1.5"
      stroke-linejoin="round"
-     stroke-width="1.5"
-     stroke="#5a4020"
+     id="path2"
+     style="fill:#e5ecff;fill-opacity:1;stroke:#1f5cff;stroke-opacity:1" />
+  <path
+     d="M 34 6 L 34 18 L 46 18 Z"
      fill="#c9bfa0"
-     d="M 34 6 L 34 18 L 46 18 Z" />
-  <path
-     style="stroke:#0064ff;stroke-opacity:1"
-     id="path6"
-     stroke-linecap="round"
-     stroke-width="2"
      stroke="#5a4020"
-     d="M 16 28 L 40 28 M 16 35 L 40 35 M 16 42 L 30 42" />
-  <circle
-     id="circle8"
      stroke-width="1.5"
-     stroke="#e8f1fb"
-     fill="#3f7d3f"
-     r="14"
-     cy="46"
-     cx="46" />
+     stroke-linejoin="round"
+     id="path4"
+     style="fill:#b3c7ff;fill-opacity:1;stroke:#0044ff;stroke-opacity:1" />
   <path
-     id="path10"
+     d="M 16 28 L 40 28 M 16 35 L 40 35 M 16 42 L 30 42"
+     stroke="#5a4020"
+     stroke-width="2"
      stroke-linecap="round"
-     stroke-width="3.2"
+     id="path6"
+     style="stroke:#0044ff;stroke-opacity:1" />
+  <circle
+     cx="46"
+     cy="46"
+     r="14"
+     fill="#3f7d3f"
      stroke="#e8f1fb"
-     d="M 46 39 L 46 53 M 39 46 L 53 46" />
+     stroke-width="1.5"
+     id="circle8" />
+  <path
+     d="M 46 39 L 46 53 M 39 46 L 53 46"
+     stroke="#e8f1fb"
+     stroke-width="3.2"
+     stroke-linecap="round"
+     id="path10" />
 </svg>
