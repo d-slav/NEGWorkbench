@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
 """
 test_gl3_export_offline.py - overuje GL3Export.execute() (ne jen
-build_shape() jako test_export_offline.py) proti FAKE Source objektu,
-jehoz composite "out" property jsou (jak je od GL3Program ocekavano)
-retezce se skutecnym JSON textem - viz gl3_program.py/_store_outputs().
+build_shape() jako test_export_offline.py) proti FAKE Source objektu.
 
-Tenhle test predevsim hlida prave prechod PropertyPythonObject (holy
-dict) -> PropertyString (JSON text) v execute(): json.loads() se musi
-zavolat spravne a chybove hlasky u nevalidnich vstupu musi zustat
-citelne.
+Krome puvodniho JSON-text parsovani (viz gl3_program.py PropertyString
+vystupy) tenhle test hlavne overuje novy format reference: OutputName je
+JEDNA textova property 'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO001.S'),
+pod kapotou drzena synchronizovana se skrytym Linkem "Source" pres
+onChanged() - viz gl3_props.py/gl3_export.py modulove docstringy.
+
+FakeExportObj proto (na rozdil od jednodussich testu jinde v projektu)
+simuluje realne FreeCAD chovani, kdy kazde nastaveni property
+(`obj.OutputName = ...`) automaticky zavola Proxy.onChanged(obj, name) -
+presne to je mechanismus, ktery drzi skryty Link aktualni JESTE PRED
+recompute (viz gl3_props.py).
 """
 import sys
 import os
@@ -62,6 +67,20 @@ sys.modules["Part"] = fake_part
 from gl3fc.gl3_export import GL3Export  # noqa: E402
 
 
+class FakeDocument(object):
+    """Jen tolik, kolik _resync_source() potrebuje: jmenny prostor objektu."""
+
+    def __init__(self):
+        self._objects = {}
+
+    def register(self, obj):
+        self._objects[obj.Name] = obj
+        return obj
+
+    def getObject(self, name):
+        return self._objects.get(name)
+
+
 class FakeSource(object):
     """Minimalni nahrada za GL3Program objekt - jen to, co execute() cte."""
 
@@ -75,13 +94,34 @@ class FakeSource(object):
 
 
 class FakeExportObj(object):
-    def __init__(self, name="Export001"):
-        self.Name = name
-        self.Source = None
-        self.OutputName = None
-        self.Shape = None
-        self.Placement = None
-        self.ViewObject = None
+    """Na rozdil od FakeSource/jinych fake objektu v projektu SIMULUJE
+    realne FreeCAD chovani: kazde nastaveni property zavola
+    Proxy.onChanged(self, name) - presne mechanismus, na kterem stoji
+    synchronizace skryteho Linku "Source" (viz modulovy docstring)."""
+
+    def __init__(self, name="Export001", document=None):
+        object.__setattr__(self, "Name", name)
+        object.__setattr__(self, "Document", document)
+        object.__setattr__(self, "Proxy", None)
+        object.__setattr__(self, "Source", None)
+        object.__setattr__(self, "OutputName", None)
+        object.__setattr__(self, "Shape", None)
+        object.__setattr__(self, "Placement", None)
+        object.__setattr__(self, "ViewObject", None)
+
+    def addProperty(self, type_name, name, group=None, doc=None):
+        if not hasattr(self, name):
+            setattr(self, name, None)
+        return self
+
+    def setPropertyStatus(self, name, status):
+        pass
+
+    def __setattr__(self, name, value):
+        object.__setattr__(self, name, value)
+        proxy = object.__getattribute__(self, "Proxy")
+        if proxy is not None and name != "Proxy" and hasattr(proxy, "onChanged"):
+            proxy.onChanged(self, name)
 
 
 def _valid_spline_json():
@@ -114,28 +154,34 @@ def _valid_spline_json():
 
 def main():
     # --- 1) uspesny pripad: platny JSON text (jak ho uklada GL3Program) ---
-    source = FakeSource()
+    doc = FakeDocument()
+    source = doc.register(FakeSource("TEHLO001"))
     source.S = _valid_spline_json()
 
-    obj = FakeExportObj()
+    obj = FakeExportObj("Export001", document=doc)
     exp = GL3Export(obj)
-    obj.Source = source
-    obj.OutputName = "S"
+    obj.OutputName = "TEHLO001.S"  # -> onChanged() hned vyresolvuje Source
+
+    assert obj.Source is source, (
+        "Source se ma vyresolvovat AUTOMATICKY pres onChanged() hned pri "
+        "nastaveni OutputName, jeste pred execute()"
+    )
 
     exp.execute(obj)
     assert obj.Shape is not None
     assert obj.Placement == "PLACEMENT_STUB", "Export ma prevzit Placement ze Source 1:1"
     assert source._touched, "execute() ma zavolat source.touch() (kvuli claimChildren refresh)"
-    print("execute() s platnym JSON textem: OK - Shape vytvoren, Placement/touch() v poradku")
+    print("execute() s platnym JSON textem: OK - Source vyresolven, Shape vytvoren, "
+          "Placement/touch() v poradku")
 
     # --- 2) property neni retezec (napr. nekdo omylem napoji scalar out) ---
-    source2 = FakeSource()
+    doc2 = FakeDocument()
+    source2 = doc2.register(FakeSource("PROG002"))
     source2.J = 42  # scalar out, ne composite
 
-    obj2 = FakeExportObj()
+    obj2 = FakeExportObj("Export002", document=doc2)
     exp2 = GL3Export(obj2)
-    obj2.Source = source2
-    obj2.OutputName = "J"
+    obj2.OutputName = "PROG002.J"
 
     try:
         exp2.execute(obj2)
@@ -145,13 +191,13 @@ def main():
         print("execute() na ne-retezcove property: OK - jasna chyba (%s)" % e)
 
     # --- 3) property je retezec, ale neplatny JSON ---
-    source3 = FakeSource()
+    doc3 = FakeDocument()
+    source3 = doc3.register(FakeSource("PROG003"))
     source3.S = "{neplatny json"
 
-    obj3 = FakeExportObj()
+    obj3 = FakeExportObj("Export003", document=doc3)
     exp3 = GL3Export(obj3)
-    obj3.Source = source3
-    obj3.OutputName = "S"
+    obj3.OutputName = "PROG003.S"
 
     try:
         exp3.execute(obj3)
@@ -160,12 +206,13 @@ def main():
         assert "neni platny JSON" in str(e)
         print("execute() na neplatnem JSON textu: OK - jasna chyba (%s)" % e)
 
-    # --- 4) OutputName neexistuje na Source ---
-    source4 = FakeSource()
-    obj4 = FakeExportObj()
+    # --- 4) vystupni property neexistuje na Source ---
+    doc4 = FakeDocument()
+    source4 = doc4.register(FakeSource("PROG004"))
+
+    obj4 = FakeExportObj("Export004", document=doc4)
     exp4 = GL3Export(obj4)
-    obj4.Source = source4
-    obj4.OutputName = "NEEXISTUJE"
+    obj4.OutputName = "PROG004.NEEXISTUJE"
 
     try:
         exp4.execute(obj4)
@@ -174,8 +221,36 @@ def main():
         assert "nema property" in str(e)
         print("execute() na neexistujici property: OK - jasna chyba (%s)" % e)
 
+    # --- 5) OutputName bez tecky (spatny format reference) ---
+    doc5 = FakeDocument()
+    obj5 = FakeExportObj("Export005", document=doc5)
+    exp5 = GL3Export(obj5)
+    obj5.OutputName = "spatnyformat"
+
+    try:
+        exp5.execute(obj5)
+        raise AssertionError("mel vyhodit ValueError - spatny format reference")
+    except ValueError as e:
+        assert "musi byt ve formatu" in str(e)
+        print("execute() se spatnym formatem OutputName: OK - jasna chyba (%s)" % e)
+
+    # --- 6) OutputName odkazuje na objekt, ktery v dokumentu neexistuje ---
+    doc6 = FakeDocument()
+    obj6 = FakeExportObj("Export006", document=doc6)
+    exp6 = GL3Export(obj6)
+    obj6.OutputName = "NEEXISTUJICI.S"
+
+    assert obj6.Source is None, "neexistujici objekt -> Source ma zustat None"
+    try:
+        exp6.execute(obj6)
+        raise AssertionError("mel vyhodit ValueError - zdrojovy objekt neexistuje")
+    except ValueError as e:
+        assert "neexistuje" in str(e)
+        print("execute() s neexistujicim zdrojovym objektem: OK - jasna chyba (%s)" % e)
+
     print()
-    print("VSE OK - GL3Export.execute() spravne cte JSON text z composite 'out' property.")
+    print("VSE OK - GL3Export.execute() spravne resolvuje 'Objekt.Vystup' referenci")
+    print("(pres onChanged() synchronizovany skryty Link) a cte JSON text z vystupu.")
 
 
 if __name__ == "__main__":

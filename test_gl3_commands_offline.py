@@ -44,6 +44,16 @@ class FakeObj(object):
         self._prop_groups[name] = group
         return self
 
+    def __setattr__(self, name, value):
+        object.__setattr__(self, name, value)
+        # Simulace realneho FreeCAD chovani: kazde nastaveni property
+        # zavola Proxy.onChanged(self, name) - na tomhle stoji
+        # synchronizace skrytych Linku (viz gl3_props.py/gl3_export.py/
+        # gl3_program.py - "Objekt.Vystup" reference format).
+        proxy = self.__dict__.get("Proxy")
+        if proxy is not None and name != "Proxy" and hasattr(proxy, "onChanged"):
+            proxy.onChanged(self, name)
+
     def setPropertyStatus(self, name, status):
         pass  # FakeObj nema skutecny "Hidden"/"ReadOnly" stav, jen se tu nesmi spadnout
 
@@ -72,6 +82,12 @@ class FakeDocument(object):
 
     def recompute(self):
         pass
+
+    def getObject(self, name):
+        for obj in self.Objects:
+            if obj.Name == name:
+                return obj
+        return None
 
 
 class FakeConsole(object):
@@ -247,7 +263,7 @@ def main():
     exp_obj = export_cmd.Activated()
     assert exp_obj is not None
     assert exp_obj.Source is prog_obj
-    assert exp_obj.OutputName == "S"
+    assert exp_obj.OutputName == "%s.S" % prog_obj.Name
     assert exp_obj.Proxy.Type == "GL3Export"
     assert exp_obj.Document is prog_obj.Document, "Export se ma vytvorit ve stejnem dokumentu jako Source"
     print("Activated() s vybranym vystupem 'S': OK - vytvoren GL3Export objekt '%s'" % exp_obj.Name)

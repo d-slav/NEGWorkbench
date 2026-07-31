@@ -136,7 +136,9 @@ python3 -m gerlib.test_s01             # S01 (chordal) vs S03 (uniform) on real 
 python3 -m gl3fc.test_offline          # GL3Library/GL3Program, mocked FreeCAD
 python3 -m gl3fc.test_props_offline    # add_property() Hidden/ReadOnly status wiring
 python3 -m gl3fc.test_export_offline   # GL3Export dispatch + Bezier math (build_shape only)
-python3 -m gl3fc.test_gl3_export_offline # GL3Export.execute() end-to-end (JSON text parsing)
+python3 -m gl3fc.test_gl3_export_offline    # GL3Export.execute() end-to-end ('Objekt.Vystup' reference + JSON parsing)
+python3 -m gl3fc.test_claim_children_offline    # GL3Export shows as GL3Program's tree child, incl. document-restore ordering race
+python3 -m gl3fc.test_composite_input_offline   # composite in: params (e.g. HLOCUT.gl3 'P') - reference + shadow Link
 cd ..
 python3 test_gl3_commands_offline.py   # workbench commands (Library/Program/Export creation), mocked FreeCAD/FreeCADGui
 ```
