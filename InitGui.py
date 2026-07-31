@@ -8,9 +8,9 @@ tahle slozka primo pod uzivatelskym Mod/ adresarem (napr.
 ~/.local/share/FreeCAD/Mod/NEGWorkbench/InitGui.py na Linuxu) - staci
 zkopirovat/naklonovat cely tenhle repozitar tam a restartovat FreeCAD.
 
-Zatim: vytvoreni GL3Library a GL3Program objektu. Dalsi (GL3Export,
-editace Library pres UI dialog, ...) pribudou postupne, az bude tenhle
-druhy krok spolehlive fungovat - viz README.md a docs/cs/.
+Zatim: vytvoreni GL3Library, GL3Program a GL3Export objektu. Dalsi
+(editace Library pres UI dialog, ...) pribudou postupne - viz README.md
+a docs/cs/.
 """
 
 """
@@ -42,9 +42,9 @@ naimportovat/spocitat PRIMO VE SVEM VLASTNIM TELE - nespolehat na nic
 z vrcholu souboru. Proto tu vidite "import os"/"import gl3_wb_paths"
 opakovane na nekolika mistech - neni to preklep, je to nutne.
 
-Zatim: vytvoreni GL3Library a GL3Program objektu. Dalsi (GL3Export,
-editace Library pres UI dialog, ...) pribudou postupne, az bude tenhle
-druhy krok spolehlive fungovat - viz README.md a docs/cs/.
+Zatim: vytvoreni GL3Library, GL3Program a GL3Export objektu. Dalsi
+(editace Library pres UI dialog, ...) pribudou postupne - viz README.md
+a docs/cs/.
 """
 
 import FreeCADGui as Gui
@@ -95,7 +95,7 @@ class NEGWorkbench(Gui.Workbench):
 
         import gl3_commands  # noqa: F401 - registruje Gui.Command objekty
 
-        self.command_list = ["NEG_CreateLibrary", "NEG_CreateProgram"]
+        self.command_list = ["NEG_CreateLibrary", "NEG_CreateProgram", "NEG_CreateExport"]
         # Kontext "Workbench" je FreeCAD konvence pro appendMenu/appendToolbar
         # nazvy (viz Translating_an_external_workbench) - jednotlivé
         # prikazy maji svuj vlastni kontext (jmeno prikazu), viz

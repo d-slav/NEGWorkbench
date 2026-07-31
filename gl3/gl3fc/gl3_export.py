@@ -8,8 +8,15 @@ Attachmentu/Sketch external geometry/atd.
 Cesta je jednosmerna: GL3Program -> GL3Export -> zbytek FreeCADu,
 nikdy zpatky (viz architektonicke rozhodnuti). Tenhle modul proto
 NEIMPORTUJE gerlib - pracuje jen s JSON-safe "slot" dict formatem z
-gerlib.serialize (kazda hodnota {"defined":..., "type":..., ...}),
-takze zmena vnitrnich gerlib trid Export modul nijak neovlivni.
+gerlib.serialize (kazda hodnota {"defined":..., "type":..., ...}).
+
+GL3Program composite "out" property (viz gl3_program.py) je typu
+App::PropertyString a drzi tenhle slot jako SKUTECNY JSON text
+(gerlib.serialize.dump_json(), kompaktne bez odsazeni) - kvuli
+viditelnosti v Property View bez "Show all" (PropertyPythonObject
+nema editor). execute() proto text nejdriv precte pres json.loads()
+(porad zadna zavislost na gerlib - jen stdlib json), az pak vola
+build_shape() na uz hotovem dictu.
 
 Prevod Spline (S03, kubicky Hermitovsky splajn) na Part.Wire jde pres
 presnou identitu Hermite->Bezier (overeno numericky, viz
@@ -33,6 +40,7 @@ otevrene otazky v shrnuti projektu (nejednoznacne cislovani slozek).
 
 import sys
 import os
+import json
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -312,7 +320,20 @@ class GL3Export(object):
                 % (obj.Name, source.Name, output_name)
             )
 
-        slot = getattr(source, output_name)
+        raw = getattr(source, output_name)
+        if not isinstance(raw, str):
+            raise ValueError(
+                "GL3Export '%s': property '%s' na '%s' neni retezec (JSON text) - "
+                "exportovat lze jen composite vystupy GL3Programu (viz GL3 Out)"
+                % (obj.Name, output_name, source.Name)
+            )
+        try:
+            slot = json.loads(raw)
+        except ValueError as exc:
+            raise ValueError(
+                "GL3Export '%s': property '%s' na '%s' neni platny JSON: %s"
+                % (obj.Name, output_name, source.Name, exc)
+            )
         if not isinstance(slot, dict):
             raise ValueError(
                 "GL3Export '%s': property '%s' na '%s' neni composite (serializovany "

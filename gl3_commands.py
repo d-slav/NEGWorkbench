@@ -2,9 +2,9 @@
 """
 gl3_commands.py - Gui.Command definice pro NEGWorkbench.
 
-Zatim: vytvoreni GL3Library a GL3Program objektu. Dalsi prikazy
-(GL3Export, editace Library pres UI dialog, ...) pribudou postupne az
-bude tenhle druhy krok spolehlive fungovat (viz README.md).
+Zatim: vytvoreni GL3Library, GL3Program a GL3Export objektu. Dalsi
+prikazy (editace Library pres UI dialog, ...) pribudou postupne az
+bude tenhle krok spolehlive fungovat (viz README.md).
 """
 
 import os
@@ -24,6 +24,27 @@ _ICON_DIR = os.path.join(_WB_DIR, "Resources", "icons")
 def QT_TRANSLATE_NOOP(context, text):
     """Viz InitGui.py - zatim jen znaceni pro budouci lupdate extract."""
     return text
+
+
+def _qtwidgets():
+    """FreeCAD 1.0+ pouziva PySide6, starsi 0.2x PySide2 (a velmi stare
+    jeste PySide/QtGui) - zkusit postupne, at prikazy funguji napric
+    verzemi bez natvrdo zavisleho importu."""
+    try:
+        from PySide6 import QtWidgets
+    except ImportError:
+        try:
+            from PySide2 import QtWidgets
+        except ImportError:
+            from PySide import QtGui as QtWidgets
+    return QtWidgets
+
+
+def _sanitize_name(text, fallback):
+    """FreeCAD interni Name nesmi mit mezery/specialni znaky - jen
+    alnum/podtrzitko, jinak fallback."""
+    safe = "".join(ch if (ch.isalnum() or ch == "_") else "_" for ch in text)
+    return safe or fallback
 
 
 class CreateGL3LibraryCommand(object):
@@ -105,7 +126,7 @@ class CreateGL3ProgramCommand(object):
         return obj
 
     def _ask_source_file(self):
-        widgets = self._qtwidgets()
+        widgets = _qtwidgets()
         path, _selected_filter = widgets.QFileDialog.getOpenFileName(
             Gui.getMainWindow(),
             "Vyber .GL3 soubor (hlavni SUBRO programu)",
@@ -115,28 +136,12 @@ class CreateGL3ProgramCommand(object):
         return path or None
 
     @staticmethod
-    def _qtwidgets():
-        """FreeCAD 1.0+ pouziva PySide6, starsi 0.2x PySide2 (a velmi stare
-        jeste PySide/QtGui) - zkusit postupne, at prikaz funguje napric
-        verzemi bez natvrdo zavisleho importu."""
-        try:
-            from PySide6 import QtWidgets
-        except ImportError:
-            try:
-                from PySide2 import QtWidgets
-            except ImportError:
-                from PySide import QtGui as QtWidgets
-        return QtWidgets
-
-    @staticmethod
     def _object_name_from_file(source_file):
         """Interni Name objektu odvozeny ze jmena souboru (jen pro tree/
         Python konzoli - nemusi sedet na skutecne jmeno SUBRO uvnitr,
-        to se overuje az v execute()). FreeCAD Name nesmi mit mezery/
-        specialni znaky, proto sanitizace."""
+        to se overuje az v execute())."""
         stem = os.path.splitext(os.path.basename(source_file))[0]
-        safe = "".join(ch if (ch.isalnum() or ch == "_") else "_" for ch in stem)
-        return safe or "GL3Program"
+        return _sanitize_name(stem, fallback="GL3Program")
 
     @staticmethod
     def _find_single_library(doc):
@@ -152,3 +157,109 @@ class CreateGL3ProgramCommand(object):
 
 
 Gui.addCommand("NEG_CreateProgram", CreateGL3ProgramCommand())
+
+
+class CreateGL3ExportCommand(object):
+    """Vytvori novy GL3Export objekt (viz gl3fc/gl3_export.py) z composite
+    "out" vystupu prave jednoho vybraneho GL3Program objektu ve strome.
+
+    Vyzaduje, aby byl v Model strome vybrany (Gui.Selection) prave jeden
+    GL3Program objekt. Pokud ma vic nez jeden composite vystup (napr. PO
+    i S soucasne), zepta se dialogem, ktery z nich exportovat; pri jednom
+    vystupu se pouzije rovnou bez ptani."""
+
+    def GetResources(self):
+        return {
+            "Pixmap": os.path.join(_ICON_DIR, "create_export.svg"),
+            "MenuText": QT_TRANSLATE_NOOP("NEG_CreateExport", "Create GL3 Export"),
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "NEG_CreateExport",
+                "Creates a new GL3Export object from a composite output of the "
+                "selected GL3Program - converts it into a native Part shape.",
+            ),
+        }
+
+    def Activated(self):
+        source = self._find_selected_program()
+        if source is None:
+            return None
+
+        outputs = self._composite_outputs(source)
+        if not outputs:
+            App.Console.PrintError(
+                "NEG_CreateExport: GL3Program '%s' nema zadny composite 'out' "
+                "vystup (skupina 'GL3 Out') k exportu.\n" % source.Name
+            )
+            return None
+
+        if len(outputs) == 1:
+            output_name = outputs[0]
+        else:
+            output_name = self._ask_output_name(outputs)
+            if output_name is None:
+                return None  # uzivatel dialog zrusil - nic nevytvarime
+
+        from gl3fc.gl3_export import create as create_export
+
+        doc = source.Document
+        name = _sanitize_name("%s_%s" % (source.Name, output_name), fallback="GL3Export")
+
+        obj = create_export(doc, name, source, output_name)
+        doc.recompute()
+
+        Gui.Selection.clearSelection()
+        Gui.Selection.addSelection(obj)
+        return obj
+
+    @staticmethod
+    def _find_selected_program():
+        sel = Gui.Selection.getSelection()
+        programs = [
+            o
+            for o in sel
+            if getattr(getattr(o, "Proxy", None), "Type", None) == "GL3Program"
+        ]
+        if len(programs) != 1:
+            App.Console.PrintError(
+                "NEG_CreateExport: vyber v Model strome prave jeden GL3Program "
+                "objekt (aktualne vybrano: %d).\n" % len(programs)
+            )
+            return None
+        return programs[0]
+
+    @staticmethod
+    def _composite_outputs(source):
+        """Jmena property ve skupine 'GL3 Out' typu App::PropertyString -
+        presne takhle GL3Program uklada composite vystupy (JSON text, viz
+        gl3_program.py). Cte se jen z verejneho FC API (PropertiesList +
+        getGroupOfProperty/getTypeIdOfProperty), zadna zavislost na
+        internich atributech Proxy - funguje i po znovunacteni dokumentu."""
+        names = []
+        for prop_name in source.PropertiesList:
+            try:
+                group = source.getGroupOfProperty(prop_name)
+                type_id = source.getTypeIdOfProperty(prop_name)
+            except AttributeError:
+                continue
+            if group == "GL3 Out" and type_id == "App::PropertyString":
+                names.append(prop_name)
+        return names
+
+    @staticmethod
+    def _ask_output_name(outputs):
+        widgets = _qtwidgets()
+        item, ok = widgets.QInputDialog.getItem(
+            Gui.getMainWindow(),
+            "Vyber vystup k exportu",
+            "Composite vystup (GL3 Out):",
+            outputs,
+            0,
+            False,
+        )
+        return item if ok else None
+
+    def IsActive(self):
+        return True
+
+
+Gui.addCommand("NEG_CreateExport", CreateGL3ExportCommand())
