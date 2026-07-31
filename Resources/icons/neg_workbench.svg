@@ -8,7 +8,7 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
-   sodipodi:docname="neg_workbench3.svg"
+   sodipodi:docname="neg_workbench.svg"
    id="svg1"
    version="1.1"
    viewBox="0 0 100 100"
@@ -29,14 +29,14 @@
      showgrid="false"
      inkscape:document-rotation="0"
      inkscape:current-layer="layer1"
-     inkscape:window-maximized="1"
-     inkscape:window-y="-8"
-     inkscape:window-x="1912"
-     inkscape:window-height="1001"
-     inkscape:window-width="1280"
-     inkscape:cy="276.36303"
-     inkscape:cx="67.613759"
-     inkscape:zoom="0.76167929"
+     inkscape:window-maximized="0"
+     inkscape:window-y="0"
+     inkscape:window-x="288"
+     inkscape:window-height="1041"
+     inkscape:window-width="1397"
+     inkscape:cy="263.55605"
+     inkscape:cx="231.52716"
+     inkscape:zoom="1.5233586"
      inkscape:document-units="mm"
      inkscape:deskcolor="#d1d1d1"
      inkscape:pagecheckerboard="0"
@@ -61,14 +61,52 @@
     </g>
     <text
        id="text16"
-       y="64.334496"
-       x="41.932713"
+       y="64.863663"
+       x="41.557484"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:18.259px;line-height:1.85;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:#aa0000;stroke-width:0.264583"
        xml:space="preserve"><tspan
-         y="64.334496"
-         x="41.932713"
+         y="64.863663"
+         x="41.557484"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:18.259px;line-height:1.85;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:#aa0000;stroke-width:0.264583"
          id="tspan16"
          sodipodi:role="line">NEG</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:10.5833px;line-height:1.25;font-family:sans-serif;stroke-width:0.264583"
+       x="33.34737"
+       y="34.042107"
+       id="text836"><tspan
+         sodipodi:role="line"
+         id="tspan834"
+         x="33.34737"
+         y="34.042107"
+         style="stroke-width:0.264583" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;line-height:1;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#aa0000;fill-opacity:1;stroke-width:0.264583"
+       x="42.552631"
+       y="36.126312"
+       id="text840"><tspan
+         sodipodi:role="line"
+         id="tspan838"
+         x="42.552631"
+         y="36.126312"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#aa0000;fill-opacity:1;stroke-width:0.264583">Numerical</tspan><tspan
+         sodipodi:role="line"
+         x="42.552631"
+         y="40.006874"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#aa0000;fill-opacity:1;stroke-width:0.264583"
+         id="tspan842" /></text>
+    <text
+       id="text841"
+       y="40.613281"
+       x="42.552631"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.264583;fill:#aa0000;fill-opacity:1;"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.264583;fill:#aa0000;fill-opacity:1;"
+         y="40.613281"
+         x="42.552631"
+         id="tspan839"
+         sodipodi:role="line">Etalon Geometry</tspan></text>
   </g>
 </svg>
