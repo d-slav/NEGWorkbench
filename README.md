@@ -111,10 +111,13 @@ directory, so that `InitGui.py` ends up directly at
 
 Restart FreeCAD; "NEG/GL3" should appear in the workbench selector.
 
-Status: **one command so far** — "Create GL3 Library" (creates a
-`GL3Library` object). More commands (creating a `GL3Program` from a
-`.GL3` file, creating a `GL3Export`, editing a Library's search paths)
-will be added incrementally once this first one is confirmed solid.
+Status: **three commands so far** — "Create GL3 Library" (creates a
+`GL3Library` object), "Create GL3 Program" (creates a `GL3Program`
+from a `.GL3` file, in/out properties auto-generated from its SUBRO
+header), and "Create GL3 Export" (from a `GL3Program`'s selected
+composite output, builds a `GL3Export` with a real `Part` shape).
+More commands (editing a Library's search paths via a UI dialog, ...)
+will be added incrementally as needed.
 
 **Localization:** all user-facing strings are wrapped in
 `QT_TRANSLATE_NOOP(context, text)` (source language: English) so that
@@ -127,13 +130,17 @@ just future-proofing.
 
 ```bash
 cd gl3
-python3 gl3_test.py                 # interpreter regression tests
-python3 -m gerlib.test_serialize    # serialization round-trip
-python3 -m gerlib.test_s01          # S01 (chordal) vs S03 (uniform) on real profile data
-python3 -m gl3fc.test_offline       # GL3Library/GL3Program, mocked FreeCAD
-python3 -m gl3fc.test_export_offline # GL3Export dispatch + Bezier math
+python3 gl3_test.py                    # interpreter regression tests
+python3 -m gerlib.test_serialize       # serialization round-trip
+python3 -m gerlib.test_s01             # S01 (chordal) vs S03 (uniform) on real profile data
+python3 -m gl3fc.test_offline          # GL3Library/GL3Program, mocked FreeCAD
+python3 -m gl3fc.test_props_offline    # add_property() Hidden/ReadOnly status wiring
+python3 -m gl3fc.test_export_offline   # GL3Export dispatch + Bezier math (build_shape only)
+python3 -m gl3fc.test_gl3_export_offline    # GL3Export.execute() end-to-end ('Objekt.Vystup' reference + JSON parsing)
+python3 -m gl3fc.test_claim_children_offline    # GL3Export shows as GL3Program's tree child, incl. document-restore ordering race
+python3 -m gl3fc.test_composite_input_offline   # composite in: params (e.g. HLOCUT.gl3 'P') - reference + shadow Link
 cd ..
-python3 test_gl3_commands_offline.py # workbench command (GL3Library creation), mocked FreeCAD/FreeCADGui
+python3 test_gl3_commands_offline.py   # workbench commands (Library/Program/Export creation), mocked FreeCAD/FreeCADGui
 ```
 
 ## Acknowledgments

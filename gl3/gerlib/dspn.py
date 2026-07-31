@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Procedura DSPN      LET n.p. Uh.Hradiste     Ing.S.Trnka
+Procedura DSPN      LET n.p. Uh.Hradiste
 Knihovna CURLIB32                      Unor 1982
 
 Ucel:    Definice kubickeho splinu neperiodickeho - krivky otevrene

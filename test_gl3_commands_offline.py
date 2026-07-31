@@ -17,7 +17,14 @@ sys.path.insert(0, _HERE)
 
 
 _TYPE_DEFAULTS = {
+    "App::PropertyFloat": 0.0,
+    "App::PropertyInteger": 0,
+    "App::PropertyFileIncluded": "",
+    "App::PropertyFile": "",
+    "App::PropertyLink": None,
     "App::PropertyPythonObject": None,
+    "App::PropertyString": "",
+    "App::PropertyStringList": [],
 }
 
 
@@ -26,16 +33,39 @@ class FakeObj(object):
         self.Name = name
         self.Proxy = None
         self.ViewObject = None
+        self.Document = None
         self._prop_types = {}
+        self._prop_groups = {}
 
     def addProperty(self, type_name, name, group=None, doc=None):
         if not hasattr(self, name):
             setattr(self, name, _TYPE_DEFAULTS.get(type_name))
         self._prop_types[name] = type_name
+        self._prop_groups[name] = group
         return self
 
+    def __setattr__(self, name, value):
+        object.__setattr__(self, name, value)
+        # Simulace realneho FreeCAD chovani: kazde nastaveni property
+        # zavola Proxy.onChanged(self, name) - na tomhle stoji
+        # synchronizace skrytych Linku (viz gl3_props.py/gl3_export.py/
+        # gl3_program.py - "Objekt.Vystup" reference format).
+        proxy = self.__dict__.get("Proxy")
+        if proxy is not None and name != "Proxy" and hasattr(proxy, "onChanged"):
+            proxy.onChanged(self, name)
+
     def setPropertyStatus(self, name, status):
-        pass  # FakeObj nema skutecny "Hidden" stav, jen se tu nesmi spadnout
+        pass  # FakeObj nema skutecny "Hidden"/"ReadOnly" stav, jen se tu nesmi spadnout
+
+    @property
+    def PropertiesList(self):
+        return list(self._prop_types.keys())
+
+    def getGroupOfProperty(self, name):
+        return self._prop_groups.get(name)
+
+    def getTypeIdOfProperty(self, name):
+        return self._prop_types.get(name)
 
 
 class FakeDocument(object):
@@ -46,15 +76,29 @@ class FakeDocument(object):
     def addObject(self, type_name, name):
         self._counter += 1
         obj = FakeObj("%s%03d" % (name, self._counter))
+        obj.Document = self
         self.Objects.append(obj)
         return obj
 
     def recompute(self):
         pass
 
+    def getObject(self, name):
+        for obj in self.Objects:
+            if obj.Name == name:
+                return obj
+        return None
+
+
+class FakeConsole(object):
+    @staticmethod
+    def PrintError(msg):
+        sys.stderr.write(msg)
+
 
 class FakeApp(object):
     ActiveDocument = None
+    Console = FakeConsole()
 
     @staticmethod
     def newDocument():
@@ -64,6 +108,8 @@ class FakeApp(object):
 
 
 class FakeSelection(object):
+    _selection = []
+
     @staticmethod
     def clearSelection():
         pass
@@ -71,6 +117,10 @@ class FakeSelection(object):
     @staticmethod
     def addSelection(obj):
         pass
+
+    @staticmethod
+    def getSelection():
+        return list(FakeSelection._selection)
 
 
 class FakeGui(object):
@@ -151,6 +201,75 @@ def main():
     print()
     print("VSE OK - gl3_commands.CreateGL3LibraryCommand i CreateGL3ProgramCommand funguji")
     print("(offline, bez realneho FreeCADu).")
+
+    print()
+    print("--- CreateGL3ExportCommand ---")
+
+    export_cmd = gl3_commands.CreateGL3ExportCommand()
+    res = export_cmd.GetResources()
+    assert "Pixmap" in res and os.path.isfile(res["Pixmap"]), "ikona create_export.svg musi existovat"
+    assert "MenuText" in res and "ToolTip" in res
+    print("GetResources(): OK (ikona nalezena na disku)")
+    assert export_cmd.IsActive() is True
+
+    # nic neni vybrano -> jasna chyba, zadny objekt
+    FakeSelection._selection = []
+    assert export_cmd.Activated() is None
+    print("Activated() bez vyberu: OK - nic se nevytvorilo")
+
+    # vybran objekt, ktery neni GL3Program -> stejne tak
+    FakeSelection._selection = [obj]  # obj = GL3Library z testu vyse
+    assert export_cmd.Activated() is None
+    print("Activated() s vyberem GL3Library (ne GL3Program): OK - nic se nevytvorilo")
+
+    # skutecny GL3Program bez jakekoliv schematu (jeste nikdy nerecomputnuty)
+    # nema zadnou "GL3 Out" property -> take chyba
+    fresh_prog = FakeObj("FreshProgram")
+    from gl3fc.gl3_program import GL3Program
+
+    GL3Program(fresh_prog)
+    FakeSelection._selection = [fresh_prog]
+    assert export_cmd.Activated() is None
+    print("Activated() s GL3Program bez GL3 Out property: OK - nic se nevytvorilo")
+
+    # prog_obj (z testu vyse) jeste taky nema schema (Activated() jen
+    # zavola create_program(), ktery pouziva FakeDocument.recompute() = no-op,
+    # execute() se tedy nikdy nezavola) - dopocitame schema rucne, presne
+    # jak by to udelal skutecny FreeCAD prvnim recompute (viz test_offline.py:
+    # 1. recompute selze na IDEV, ale property uz vytvori).
+    try:
+        prog_obj.Proxy.execute(prog_obj)
+    except OSError:
+        pass  # ocekavano - BJM/DH jeste nejsou vyplnene, schema uz ale existuje
+
+    assert prog_obj._prop_types.get("PO") == "App::PropertyString"
+    assert prog_obj._prop_types.get("S") == "App::PropertyString"
+
+    FakeSelection._selection = [prog_obj]
+
+    # Skutecny Qt vyberovy dialog nema smysl v offline testu volat (a v
+    # tomhle sandboxu stejne neni PySide nainstalovany) - nahradime ho
+    # pevnou hodnotou, presne jako u _ask_source_file v Program testu vyse.
+    export_cmd._ask_output_name = lambda outputs: None  # simulace Cancel
+    exp_obj = export_cmd.Activated()
+    assert exp_obj is None, (
+        "PO i S jsou 2 composite vystupy - bez vybrane hodnoty z dialogu se "
+        "nema nic vytvorit (viz _ask_output_name)"
+    )
+    print("Activated() s vice composite vystupy a zrusenym dialogem: OK - nic se nevytvorilo")
+
+    # ted simulujeme, ze uzivatel v dialogu vybral "S"
+    export_cmd._ask_output_name = lambda outputs: "S"
+    exp_obj = export_cmd.Activated()
+    assert exp_obj is not None
+    assert exp_obj.Source is prog_obj
+    assert exp_obj.OutputName == "%s.S" % prog_obj.Name
+    assert exp_obj.Proxy.Type == "GL3Export"
+    assert exp_obj.Document is prog_obj.Document, "Export se ma vytvorit ve stejnem dokumentu jako Source"
+    print("Activated() s vybranym vystupem 'S': OK - vytvoren GL3Export objekt '%s'" % exp_obj.Name)
+
+    print()
+    print("VSE OK - gl3_commands.CreateGL3ExportCommand funguje (offline, bez realneho FreeCADu).")
 
 
 if __name__ == "__main__":

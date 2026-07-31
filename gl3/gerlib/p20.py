@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Procedura P120 (GL3 opcode P20)     LET, k.p., Uh.Hradiste     P.Franc
+Procedura P120 (GL3 opcode P20)     LET, k.p., Uh.Hradiste
 Knihovna GERLIBPC                                  Listopad 1989
 
 Ucel:    Prusecik dvou primek.

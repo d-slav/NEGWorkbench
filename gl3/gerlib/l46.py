@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Procedura L46 (GL3 opcode L46)      n.p. LET Kunovice     RNDr. Krusina
+Procedura L46 (GL3 opcode L46)      n.p. LET Kunovice
 Knihovna GL3E2                                      Duben 1985
 
 Ucel:    Primka tecne se dotykajici retezce rovnobezne s primkou.

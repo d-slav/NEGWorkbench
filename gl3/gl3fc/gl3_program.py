@@ -9,9 +9,21 @@ Vstupy/vystupy se generuji AUTOMATICKY z SUBRO hlavicky vlastniho
   - skalarni/textove in: -> bezna nativni FC property (App::PropertyFloat/
     Integer/PropertyFileIncluded - viz gl3_ops.classify), edituje se v
     beznem Property editoru, pripadne navazatelna na FC Expression.
-  - composite in: NENI V TETO FAZI PODPOROVAN (architektonicke
-    rozhodnuti - composite smi do GL3 jen pres Link z jineho GL3
-    objektu, ne jako literal z FC; Link je planovan az pozdeji).
+  - composite in: -> JEDNA App::PropertyString property (stejne jmeno
+    jako parametr, napr. "P") drzici referenci ve formatu
+    'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO') na composite vystup
+    JINEHO GL3 objektu (typicky GL3Program) - citelna, editovatelna, da
+    se vlozit odkudkoli. Pod kapotou se drzi skryta App::PropertyLink
+    "<jmeno>_Link" (viz gl3_props.add_hidden_link/parse_ref),
+    synchronizovana pres onChanged() - DUVOD: bez skutecneho Linku by
+    FreeCAD nevedel o zavislosti mezi temito dvema objekty ve svem grafu,
+    a poradi recompute by prestalo byt garantovane. onChanged() se vola
+    SYNCHRONNE hned pri zmene reference (i programove), takze shadow Link
+    je aktualni jeste pred tim, nez se sestavi poradi pro dalsi recompute
+    (stejny mechanismus jako GL3Export.Source, viz gl3_export.py).
+    _gather_inputs() nakonec precte JSON text ze zdroje a
+    gerlib.serialize.load_json() ho prevede zpet na skutecny gerlib
+    objekt (Point/Array/...), ktery Interpreter.run() ocekava.
   - composite out: -> App::PropertyString drzici SKUTECNY JSON text
     (gerlib.serialize.dump_json(), viz ten modul), status ReadOnly (jde
     o vypocitanou hodnotu, needitovat rucne - ReadOnly ale nebrani
@@ -44,9 +56,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from gl3_lang import parse_program
 from gl3_interpreter import Interpreter
 from gl3_ops import classify
-from gerlib.serialize import dump_json
+from gerlib.serialize import dump_json, load_json
 from gl3fc.gl3_registry import Gl3FileRegistry
-from gl3fc.gl3_props import add_property
+from gl3fc.gl3_props import add_property, add_hidden_link, parse_ref
 
 try:
     import FreeCAD as App
@@ -119,6 +131,29 @@ class GL3Program(object):
         if vobj is not None:
             vobj.Visibility = True
 
+    def onChanged(self, obj, prop):
+        link_name = self._shadow_link_name(prop)
+        if hasattr(obj, link_name):
+            self._resync_composite_link(obj, prop)
+
+    @staticmethod
+    def _shadow_link_name(param_name):
+        return "%s_Link" % param_name
+
+    def _resync_composite_link(self, obj, param_name):
+        """Prepocita skryty Link '<param_name>_Link' z aktualniho textu
+        composite in: reference (viz modulovy docstring)."""
+        link_name = self._shadow_link_name(param_name)
+        if not hasattr(obj, link_name):
+            return
+        ref = getattr(obj, param_name, "") or ""
+        src_obj_name, _output_name = parse_ref(ref)
+        new_source = None
+        if src_obj_name is not None and getattr(obj, "Document", None) is not None:
+            new_source = obj.Document.getObject(src_obj_name)
+        if getattr(obj, link_name, None) is not new_source:
+            setattr(obj, link_name, new_source)
+
     # -----------------------------------------------------------------
     # Synchronizace property podle SUBRO hlavicky
     # -----------------------------------------------------------------
@@ -128,11 +163,20 @@ class GL3Program(object):
 
             if direction == "in":
                 if kind == "composite":
-                    raise NotImplementedError(
-                        "GL3Program '%s': vstupni parametr '%s' je composite typ - "
-                        "composite vstup zatim neni podporovan (planovano pres Link "
-                        "na jiny GL3 objekt, viz diskuze o architekture)" % (obj.Name, name)
+                    group = "GL3 In"
+                    doc = (
+                        "GL3 in: %s - odkaz na composite vystup jineho GL3 objektu, "
+                        "format 'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO')" % name
                     )
+                    add_property(obj, "App::PropertyString", name, group, doc)
+                    add_hidden_link(
+                        obj, self._shadow_link_name(name), group,
+                        "(interni) automaticky odvozeny odkaz pro vstup '%s' - "
+                        "nemenit rucne, slouzi jen FreeCAD dependency grafu pro "
+                        "spravne poradi recompute" % name,
+                    )
+                    self._resync_composite_link(obj, name)
+                    continue
                 group = "GL3 In"
                 doc = "GL3 in: %s" % name
             else:
@@ -149,9 +193,56 @@ class GL3Program(object):
     def _gather_inputs(self, obj, subdef):
         inputs = {}
         for name, _size, direction in subdef.params:
-            if direction == "in":
+            if direction != "in":
+                continue
+            kind, _native_type = classify(name)
+            if kind == "composite":
+                inputs[name] = self._resolve_composite_input(obj, name)
+            else:
                 inputs[name] = getattr(obj, name)
         return inputs
+
+    def _resolve_composite_input(self, obj, name):
+        ref = getattr(obj, name, "") or ""
+        src_obj_name, output_name = parse_ref(ref)
+        if src_obj_name is None:
+            raise ValueError(
+                "GL3Program '%s': vstup '%s' musi byt ve formatu "
+                "'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO'), je: %r"
+                % (obj.Name, name, ref)
+            )
+
+        # Pojistka navic k onChanged() - napr. tesne po otevreni dokumentu,
+        # kdyby onChanged() z nejakeho duvodu jeste neproběhlo (viz
+        # gl3_export.py - stejny duvod).
+        self._resync_composite_link(obj, name)
+        source = getattr(obj, self._shadow_link_name(name), None)
+        if source is None:
+            raise ValueError(
+                "GL3Program '%s': objekt '%s' (vstup '%s' = '%s') v dokumentu "
+                "neexistuje" % (obj.Name, src_obj_name, name, ref)
+            )
+
+        if not hasattr(source, output_name):
+            raise ValueError(
+                "GL3Program '%s': zdroj '%s' nema property '%s' (vstup '%s' = '%s')"
+                % (obj.Name, source.Name, output_name, name, ref)
+            )
+
+        raw = getattr(source, output_name)
+        if not isinstance(raw, str):
+            raise ValueError(
+                "GL3Program '%s': property '%s' na '%s' neni retezec (JSON text) - "
+                "vstup '%s' ocekava composite vystup jineho GL3 objektu"
+                % (obj.Name, output_name, source.Name, name)
+            )
+        try:
+            return load_json(raw)
+        except ValueError as exc:
+            raise ValueError(
+                "GL3Program '%s': property '%s' na '%s' neni platny JSON (vstup '%s'): %s"
+                % (obj.Name, output_name, source.Name, name, exc)
+            )
 
     # -----------------------------------------------------------------
     # Registry pro CALL (lenivy, pres pripadnou Library)

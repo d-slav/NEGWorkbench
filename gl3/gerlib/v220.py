@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Procedura V220        LET, k.p., Uh.Hradiste          P.Franc
+Procedura V220        LET, k.p., Uh.Hradiste
 Knihovna GERLIBPC                       Listopad 1989
 
 Ucel:    Jednotkovy vektor, jehoz smer je urcen danym obecnym vektorem.

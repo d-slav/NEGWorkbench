@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Procedura P110 (GL3 opcode P10)     LET, k.p., Uh.Hradiste     P.Franc
+Procedura P110 (GL3 opcode P10)     LET, k.p., Uh.Hradiste
 Knihovna GERLIBPC                                  Listopad 1989
 
 Ucel:    Bod od bodu prirustky.

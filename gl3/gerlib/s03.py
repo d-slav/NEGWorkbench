@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Procedura SPLIN (GL3 opcode S03)    n.p. LET Kunovice     Ing.S.Trnka
+Procedura SPLIN (GL3 opcode S03)    n.p. LET Kunovice
 Knihovna GL3E3                                      17.3.1987
 
 Ucel:    Krivka K body a okrajovymi tecnymi vektory s parametrizaci 0-1.

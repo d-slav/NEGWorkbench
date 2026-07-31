@@ -8,8 +8,26 @@ Attachmentu/Sketch external geometry/atd.
 Cesta je jednosmerna: GL3Program -> GL3Export -> zbytek FreeCADu,
 nikdy zpatky (viz architektonicke rozhodnuti). Tenhle modul proto
 NEIMPORTUJE gerlib - pracuje jen s JSON-safe "slot" dict formatem z
-gerlib.serialize (kazda hodnota {"defined":..., "type":..., ...}),
-takze zmena vnitrnich gerlib trid Export modul nijak neovlivni.
+gerlib.serialize (kazda hodnota {"defined":..., "type":..., ...}).
+
+GL3Program composite "out" property (viz gl3_program.py) je typu
+App::PropertyString a drzi tenhle slot jako SKUTECNY JSON text
+(gerlib.serialize.dump_json(), kompaktne bez odsazeni) - kvuli
+viditelnosti v Property View bez "Show all" (PropertyPythonObject
+nema editor). execute() proto text nejdriv precte pres json.loads()
+(porad zadna zavislost na gerlib - jen stdlib json), az pak vola
+build_shape() na uz hotovem dictu.
+
+Zdroj vystupu (OutputName): JEDNA textova property ve formatu
+'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO') - citelna, editovatelna,
+da se vlozit odkudkoli. Pod kapotou se ale drzi skryta App::PropertyLink
+"Source" (viz gl3_props.add_hidden_link/parse_ref), synchronizovana s
+OutputName pres onChanged() - DUVOD: bez skutecneho Linku by FreeCAD
+nevedel o zavislosti Export->Program ve svem grafu, a poradi recompute
+by prestalo byt garantovane (hrozila by zastarala data po zmene Source
+objektu). onChanged() se vola SYNCHRONNE hned pri zmene OutputName
+(i programove, ne jen z GUI), takze Source je aktualni jeste pred tim,
+nez se vubec sestavi poradi pro dalsi recompute.
 
 Prevod Spline (S03, kubicky Hermitovsky splajn) na Part.Wire jde pres
 presnou identitu Hermite->Bezier (overeno numericky, viz
@@ -33,10 +51,11 @@ otevrene otazky v shrnuti projektu (nejednoznacne cislovani slozek).
 
 import sys
 import os
+import json
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from gl3fc.gl3_props import add_property
+from gl3fc.gl3_props import add_property, add_hidden_link, parse_ref
 
 try:
     import FreeCAD as App
@@ -289,30 +308,77 @@ class GL3Export(object):
         self.Type = "GL3Export"
 
         add_property(
-            obj, "App::PropertyLink", "Source", "GL3",
-            "GL3Program, ze ktereho se exportuje vystup",
-        )
-        add_property(
             obj, "App::PropertyString", "OutputName", "GL3",
-            "Jmeno vystupni property na Source (napr. 'S' nebo 'PO')",
+            "Odkaz na composite vystup GL3 objektu ve formatu "
+            "'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO')",
         )
+        # Skryty Link, drzeny synchronizovany s OutputName pres onChanged()
+        # (viz modulovy docstring) - NIKDY nenastavovat rucne, jen ke cteni.
+        add_hidden_link(
+            obj, "Source", "GL3",
+            "(interni) automaticky odvozeny odkaz na zdrojovy objekt z "
+            "OutputName - nemenit rucne, slouzi jen FreeCAD dependency "
+            "grafu pro spravne poradi recompute",
+        )
+        self._resync_source(obj)
+
+    def onChanged(self, obj, prop):
+        if prop == "OutputName":
+            self._resync_source(obj)
+
+    @staticmethod
+    def _resync_source(obj):
+        """Prepocita skryty Link 'Source' z aktualniho textu 'OutputName'."""
+        if not hasattr(obj, "Source"):
+            return  # jeste pred pridanim property (prvni radek __init__)
+        src_obj_name, _output_name = parse_ref(getattr(obj, "OutputName", "") or "")
+        new_source = None
+        if src_obj_name is not None and getattr(obj, "Document", None) is not None:
+            new_source = obj.Document.getObject(src_obj_name)
+        if getattr(obj, "Source", None) is not new_source:
+            obj.Source = new_source
 
     def execute(self, obj):
+        # Pojistka navic k onChanged() - napr. tesne po otevreni dokumentu,
+        # kdyby onChanged() z nejakeho duvodu jeste neproběhlo.
+        self._resync_source(obj)
+
+        ref = getattr(obj, "OutputName", "") or ""
+        src_obj_name, output_name = parse_ref(ref)
+        if src_obj_name is None:
+            raise ValueError(
+                "GL3Export '%s': OutputName musi byt ve formatu "
+                "'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO'), je: %r"
+                % (obj.Name, ref)
+            )
+
         source = getattr(obj, "Source", None)
         if source is None:
-            raise ValueError("GL3Export '%s': Source neni nastaven" % (obj.Name,))
-
-        output_name = getattr(obj, "OutputName", "")
-        if not output_name:
-            raise ValueError("GL3Export '%s': OutputName neni nastaven" % (obj.Name,))
+            raise ValueError(
+                "GL3Export '%s': objekt '%s' (z OutputName '%s') v dokumentu "
+                "neexistuje" % (obj.Name, src_obj_name, ref)
+            )
 
         if not hasattr(source, output_name):
             raise ValueError(
-                "GL3Export '%s': Source '%s' nema property '%s'"
-                % (obj.Name, source.Name, output_name)
+                "GL3Export '%s': zdroj '%s' nema property '%s' (OutputName '%s')"
+                % (obj.Name, source.Name, output_name, ref)
             )
 
-        slot = getattr(source, output_name)
+        raw = getattr(source, output_name)
+        if not isinstance(raw, str):
+            raise ValueError(
+                "GL3Export '%s': property '%s' na '%s' neni retezec (JSON text) - "
+                "exportovat lze jen composite vystupy GL3Programu (viz GL3 Out)"
+                % (obj.Name, output_name, source.Name)
+            )
+        try:
+            slot = json.loads(raw)
+        except ValueError as exc:
+            raise ValueError(
+                "GL3Export '%s': property '%s' na '%s' neni platny JSON: %s"
+                % (obj.Name, output_name, source.Name, exc)
+            )
         if not isinstance(slot, dict):
             raise ValueError(
                 "GL3Export '%s': property '%s' na '%s' neni composite (serializovany "
@@ -345,6 +411,7 @@ class GL3Export(object):
 
     def onDocumentRestored(self, obj):
         self.Type = "GL3Export"
+        self._resync_source(obj)
 
 
 class ViewProviderGL3Export(object):
@@ -366,12 +433,16 @@ class ViewProviderGL3Export(object):
 
 
 def create(doc, name, source, output_name):
-    """Pomocna funkce pro vytvoreni GL3Export objektu v danem dokumentu."""
+    """Pomocna funkce pro vytvoreni GL3Export objektu v danem dokumentu.
+
+    source/output_name zustavaji jako 2 argumenty (pohodlnejsi API pro
+    volajici, viz gl3_commands.CreateGL3ExportCommand) - uvnitr se ale
+    slozi do JEDNE textove reference 'source.Name.output_name' ulozene
+    do OutputName (viz modulovy docstring - duvod pro tenhle format)."""
     obj = doc.addObject("Part::FeaturePython", name)
     GL3Export(obj)
     if hasattr(obj, "ViewObject") and obj.ViewObject is not None:
         ViewProviderGL3Export(obj.ViewObject)
         obj.ViewObject.Visibility = True
-    obj.Source = source
-    obj.OutputName = output_name
+    obj.OutputName = "%s.%s" % (source.Name, output_name)
     return obj
