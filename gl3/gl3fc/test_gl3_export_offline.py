@@ -4,14 +4,14 @@ test_gl3_export_offline.py - overuje GL3Export.execute() (ne jen
 build_shape() jako test_export_offline.py) proti FAKE Source objektu.
 
 Krome puvodniho JSON-text parsovani (viz gl3_program.py PropertyString
-vystupy) tenhle test hlavne overuje novy format reference: OutputName je
+vystupy) tenhle test hlavne overuje novy format reference: Input je
 JEDNA textova property 'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO001.S'),
 pod kapotou drzena synchronizovana se skrytym Linkem "Source" pres
 onChanged() - viz gl3_props.py/gl3_export.py modulove docstringy.
 
 FakeExportObj proto (na rozdil od jednodussich testu jinde v projektu)
 simuluje realne FreeCAD chovani, kdy kazde nastaveni property
-(`obj.OutputName = ...`) automaticky zavola Proxy.onChanged(obj, name) -
+(`obj.Input = ...`) automaticky zavola Proxy.onChanged(obj, name) -
 presne to je mechanismus, ktery drzi skryty Link aktualni JESTE PRED
 recompute (viz gl3_props.py).
 """
@@ -104,7 +104,7 @@ class FakeExportObj(object):
         object.__setattr__(self, "Document", document)
         object.__setattr__(self, "Proxy", None)
         object.__setattr__(self, "Source", None)
-        object.__setattr__(self, "OutputName", None)
+        object.__setattr__(self, "Input", None)
         object.__setattr__(self, "Shape", None)
         object.__setattr__(self, "Placement", None)
         object.__setattr__(self, "ViewObject", None)
@@ -160,11 +160,11 @@ def main():
 
     obj = FakeExportObj("Export001", document=doc)
     exp = GL3Export(obj)
-    obj.OutputName = "TEHLO001.S"  # -> onChanged() hned vyresolvuje Source
+    obj.Input = "TEHLO001.S"  # -> onChanged() hned vyresolvuje Source
 
     assert obj.Source is source, (
         "Source se ma vyresolvovat AUTOMATICKY pres onChanged() hned pri "
-        "nastaveni OutputName, jeste pred execute()"
+        "nastaveni Input, jeste pred execute()"
     )
 
     exp.execute(obj)
@@ -181,7 +181,7 @@ def main():
 
     obj2 = FakeExportObj("Export002", document=doc2)
     exp2 = GL3Export(obj2)
-    obj2.OutputName = "PROG002.J"
+    obj2.Input = "PROG002.J"
 
     try:
         exp2.execute(obj2)
@@ -197,7 +197,7 @@ def main():
 
     obj3 = FakeExportObj("Export003", document=doc3)
     exp3 = GL3Export(obj3)
-    obj3.OutputName = "PROG003.S"
+    obj3.Input = "PROG003.S"
 
     try:
         exp3.execute(obj3)
@@ -212,7 +212,7 @@ def main():
 
     obj4 = FakeExportObj("Export004", document=doc4)
     exp4 = GL3Export(obj4)
-    obj4.OutputName = "PROG004.NEEXISTUJE"
+    obj4.Input = "PROG004.NEEXISTUJE"
 
     try:
         exp4.execute(obj4)
@@ -221,20 +221,20 @@ def main():
         assert "nema property" in str(e)
         print("execute() na neexistujici property: OK - jasna chyba (%s)" % e)
 
-    # --- 5) OutputName bez tecky (spatny format reference) ---
+    # --- 5) Input bez tecky (spatny format reference) ---
     doc5 = FakeDocument()
     obj5 = FakeExportObj("Export005", document=doc5)
     exp5 = GL3Export(obj5)
-    obj5.OutputName = "spatnyformat"
+    obj5.Input = "spatnyformat"
 
     try:
         exp5.execute(obj5)
         raise AssertionError("mel vyhodit ValueError - spatny format reference")
     except ValueError as e:
         assert "musi byt ve formatu" in str(e)
-        print("execute() se spatnym formatem OutputName: OK - jasna chyba (%s)" % e)
+        print("execute() se spatnym formatem Input: OK - jasna chyba (%s)" % e)
 
-    # --- 6) OutputName s indexem '(N)' na Array vystupu - uspesny pripad ---
+    # --- 6) Input s indexem '(N)' na Array vystupu - uspesny pripad ---
     doc7 = FakeDocument()
     source7 = doc7.register(FakeSource("TEHLO007"))
     source7.PO = json.dumps(
@@ -251,7 +251,7 @@ def main():
 
     obj7 = FakeExportObj("Export007", document=doc7)
     exp7 = GL3Export(obj7)
-    obj7.OutputName = "TEHLO007.PO(2)"  # 1 = prvni prvek -> (2) je stredni bod
+    obj7.Input = "TEHLO007.PO(2)"  # 1 = prvni prvek -> (2) je stredni bod
 
     exp7.execute(obj7)
     assert obj7.Shape is not None
@@ -260,7 +260,7 @@ def main():
     # --- 7) index mimo rozsah pole ---
     obj7b = FakeExportObj("Export007b", document=doc7)
     exp7b = GL3Export(obj7b)
-    obj7b.OutputName = "TEHLO007.PO(99)"
+    obj7b.Input = "TEHLO007.PO(99)"
 
     try:
         exp7b.execute(obj7b)
@@ -272,7 +272,7 @@ def main():
     # --- 8) index pouzity na vystup, ktery neni Array ---
     obj9 = FakeExportObj("Export009", document=doc7)
     exp9 = GL3Export(obj9)
-    obj9.OutputName = "TEHLO007.PO(1)"
+    obj9.Input = "TEHLO007.PO(1)"
     # nejdriv normalne (bez indexu) - jen se ujistit, ze PO(1) na Array funguje
     exp9.execute(obj9)
     assert obj9.Shape is not None
@@ -283,7 +283,7 @@ def main():
 
     obj9b = FakeExportObj("Export009b", document=doc9b)
     exp9b = GL3Export(obj9b)
-    obj9b.OutputName = "TEHLO009.S(1)"
+    obj9b.Input = "TEHLO009.S(1)"
 
     try:
         exp9b.execute(obj9b)
@@ -292,11 +292,11 @@ def main():
         assert "lze pouzit jen na Array" in str(e)
         print("execute() s indexem na ne-Array vystupu: OK - jasna chyba (%s)" % e)
 
-    # --- 9) OutputName odkazuje na objekt, ktery v dokumentu neexistuje ---
+    # --- 9) Input odkazuje na objekt, ktery v dokumentu neexistuje ---
     doc6 = FakeDocument()
     obj6 = FakeExportObj("Export006", document=doc6)
     exp6 = GL3Export(obj6)
-    obj6.OutputName = "NEEXISTUJICI.S"
+    obj6.Input = "NEEXISTUJICI.S"
 
     assert obj6.Source is None, "neexistujici objekt -> Source ma zustat None"
     try:

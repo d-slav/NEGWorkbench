@@ -43,7 +43,7 @@ z teto funkce, pokud ma jit jen o needitovatelny vypis.
 ---
 
 Reference format "JmenoObjektu.JmenoVystupu" nebo
-"JmenoObjektu.JmenoVystupu(Index)" (GL3Export.OutputName, GL3Program
+"JmenoObjektu.JmenoVystupu(Index)" (GL3Export.Input, GL3Program
 composite in: parametry) - viz parse_ref()/add_hidden_link(). Index v
 zavorce (1 = prvni prvek) vybere JEDEN prvek z Array vystupu (napr.
 'TEHLO002.PO(10)') - hodi se, kdyz vstup/export ocekava jednotlivy

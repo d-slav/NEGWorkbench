@@ -9,6 +9,7 @@ bude tenhle krok spolehlive fungovat (viz README.md).
 
 import os
 import sys
+import json
 
 _WB_DIR = os.path.dirname(__file__)
 _GL3_DIR = os.path.join(_WB_DIR, "gl3")
@@ -201,15 +202,53 @@ class CreateGL3ExportCommand(object):
 
         from gl3fc.gl3_export import create as create_export
 
+        index = self._maybe_ask_array_index(source, output_name)
+
         doc = source.Document
         name = _sanitize_name("%s_%s" % (source.Name, output_name), fallback="GL3Export")
 
-        obj = create_export(doc, name, source, output_name)
+        obj = create_export(doc, name, source, output_name, index=index)
         doc.recompute()
 
         Gui.Selection.clearSelection()
         Gui.Selection.addSelection(obj)
         return obj
+
+    @staticmethod
+    def _maybe_ask_array_index(source, output_name):
+        """Pokud je vybrany vystup typu Array, zepta se uzivatele, jestli
+        chce exportovat jen jeden jeho prvek (viz gl3_props.py - format
+        reference s indexem '(N)') - rovnou pri vytvareni, at neni nutne
+        Input dodatecne rucne prepisovat v Property View."""
+        try:
+            slot = json.loads(getattr(source, output_name))
+        except (ValueError, TypeError):
+            return None  # neplatny/prazdny JSON - necha se to spadnout az na execute()
+        if not (isinstance(slot, dict) and slot.get("type") == "Array"):
+            return None
+        items = slot.get("items", [])
+        if not items:
+            return None
+
+        widgets = _qtwidgets()
+        choice = widgets.QMessageBox.question(
+            Gui.getMainWindow(),
+            "Vyber prvku pole",
+            "Vystup '%s' je pole (%d prvku). Exportovat jen jeden konkretni "
+            "prvek misto cele pole?" % (output_name, len(items)),
+            widgets.QMessageBox.Yes | widgets.QMessageBox.No,
+            widgets.QMessageBox.No,
+        )
+        if choice != widgets.QMessageBox.Yes:
+            return None
+
+        index, ok = widgets.QInputDialog.getInt(
+            Gui.getMainWindow(),
+            "Index prvku",
+            "Cislo prvku (1 = prvni, max %d):" % len(items),
+            1, 1, len(items), 1,
+        )
+        return index if ok else None
 
     @staticmethod
     def _find_selected_program():

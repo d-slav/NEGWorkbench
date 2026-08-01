@@ -11,6 +11,7 @@ nespadne na hlouposti drive, nez se to zkusi naostro.
 import os
 import sys
 import types
+import json
 
 _HERE = os.path.dirname(__file__)
 sys.path.insert(0, _HERE)
@@ -263,10 +264,40 @@ def main():
     exp_obj = export_cmd.Activated()
     assert exp_obj is not None
     assert exp_obj.Source is prog_obj
-    assert exp_obj.OutputName == "%s.S" % prog_obj.Name
+    assert exp_obj.Input == "%s.S" % prog_obj.Name
     assert exp_obj.Proxy.Type == "GL3Export"
     assert exp_obj.Document is prog_obj.Document, "Export se ma vytvorit ve stejnem dokumentu jako Source"
     print("Activated() s vybranym vystupem 'S': OK - vytvoren GL3Export objekt '%s'" % exp_obj.Name)
+
+    # --- novy krok: pokud je vybrany vystup Array, ma se zeptat na index ---
+    prog_obj.PO = json.dumps(
+        {
+            "defined": True,
+            "type": "Array",
+            "items": [
+                {"defined": True, "type": "Point", "x": 0.0, "y": 0.0, "z": 0.0},
+                {"defined": True, "type": "Point", "x": 1.0, "y": 1.0, "z": 0.0},
+                {"defined": True, "type": "Point", "x": 2.0, "y": 2.0, "z": 0.0},
+            ],
+        }
+    )
+
+    export_cmd._ask_output_name = lambda outputs: "PO"
+    export_cmd._maybe_ask_array_index = lambda source, output_name: 2
+    exp_obj_idx = export_cmd.Activated()
+    assert exp_obj_idx is not None
+    assert exp_obj_idx.Input == "%s.PO(2)" % prog_obj.Name, (
+        "vybrany index se ma rovnou promitnout do Input jako '(N)' - bez nutnosti "
+        "to pak dodatecne rucne prepisovat"
+    )
+    print("Activated() s Array vystupem + zvolenym indexem 2: OK - Input = '%s'" % exp_obj_idx.Input)
+
+    # zamitnuti dialogu (uzivatel chce cele pole, ne jeden prvek) -> zadny index
+    export_cmd._maybe_ask_array_index = lambda source, output_name: None
+    exp_obj_noidx = export_cmd.Activated()
+    assert exp_obj_noidx is not None
+    assert exp_obj_noidx.Input == "%s.PO" % prog_obj.Name, "bez zvoleneho indexu se ma pouzit cele pole"
+    print("Activated() s Array vystupem bez zvoleneho indexu: OK - Input = '%s'" % exp_obj_noidx.Input)
 
     print()
     print("VSE OK - gl3_commands.CreateGL3ExportCommand funguje (offline, bez realneho FreeCADu).")

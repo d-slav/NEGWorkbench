@@ -9,7 +9,7 @@ Format reference: JEDNA App::PropertyString property (stejne jmeno jako
 parametr, napr. "P") drzici text 'JmenoObjektu.JmenoVystupu' (napr.
 'TEHLO001.PO'), pod kapotou skryty Link '<jmeno>_Link' synchronizovany
 pres onChanged() - viz gl3_props.py/gl3_program.py modulove docstringy.
-Stejny mechanismus jako GL3Export.OutputName/Source (viz
+Stejny mechanismus jako GL3Export.Input/Source (viz
 test_gl3_export_offline.py).
 """
 import sys

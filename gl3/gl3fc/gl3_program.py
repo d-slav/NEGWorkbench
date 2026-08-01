@@ -342,8 +342,24 @@ class ViewProviderGL3Program(object):
         doc = obj.Document
         children = []
         for candidate in doc.Objects:
-            proxy = getattr(candidate, "Proxy", None)
-            if getattr(proxy, "Type", None) != "GL3Export":
+            if candidate is obj:
+                continue
+            # Rozpoznani GL3Export kandidata pres jeho FC property (Source +
+            # Input), NE pres Proxy.Type. Proxy.Type je jen Python atribut
+            # nastaveny az v __init__()/onDocumentRestored() - po OTEVRENI
+            # ULOZENEHO DOKUMENTU neni zaruceno poradi, ve kterem FreeCAD
+            # zavola onDocumentRestored() na VSECHNY objekty vs. kdy zavola
+            # claimChildren() na tenhle ViewProvider (typicky se strom stavi
+            # hned pri nacteni). Pokud claimChildren() probehne DRIV, nez
+            # GL3Export kandidat stihne dostat svuj Proxy.Type (jeste None),
+            # export se po otevreni dokumentu objevi ve strome NA STEJNE
+            # UROVNI jako GL3Program, misto jako jeho potomek - presne
+            # pozorovany bug. FC property (Source, Input) jsou naproti tomu
+            # soucasti stavu SAMOTNEHO objektu (ulozene/obnovene primo z
+            # dokumentu), takze jsou spolehlive pritomne uz v okamziku, kdy
+            # se strom poprve stavi, bez ohledu na to, kdy se Python Proxy
+            # re-attachuje.
+            if not (hasattr(candidate, "Source") and hasattr(candidate, "Input")):
                 continue
             source = getattr(candidate, "Source", None)
             # Porovnani pres Name/Document, ne Python 'is' - FreeCAD muze pri

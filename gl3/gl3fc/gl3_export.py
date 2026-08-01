@@ -18,14 +18,14 @@ nema editor). execute() proto text nejdriv precte pres json.loads()
 (porad zadna zavislost na gerlib - jen stdlib json), az pak vola
 build_shape() na uz hotovem dictu.
 
-Zdroj vystupu (OutputName): JEDNA textova property ve formatu
+Zdroj vystupu (Input): JEDNA textova property ve formatu
 'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO') - citelna, editovatelna,
 da se vlozit odkudkoli. Pod kapotou se ale drzi skryta App::PropertyLink
 "Source" (viz gl3_props.add_hidden_link/parse_ref), synchronizovana s
-OutputName pres onChanged() - DUVOD: bez skutecneho Linku by FreeCAD
+Input pres onChanged() - DUVOD: bez skutecneho Linku by FreeCAD
 nevedel o zavislosti Export->Program ve svem grafu, a poradi recompute
 by prestalo byt garantovane (hrozila by zastarala data po zmene Source
-objektu). onChanged() se vola SYNCHRONNE hned pri zmene OutputName
+objektu). onChanged() se vola SYNCHRONNE hned pri zmene Input
 (i programove, ne jen z GUI), takze Source je aktualni jeste pred tim,
 nez se vubec sestavi poradi pro dalsi recompute.
 
@@ -308,31 +308,32 @@ class GL3Export(object):
         self.Type = "GL3Export"
 
         add_property(
-            obj, "App::PropertyString", "OutputName", "GL3",
-            "Odkaz na composite vystup GL3 objektu ve formatu "
-            "'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO'), volitelne s "
-            "indexem prvku pole '(N)' (1 = prvni), napr. 'TEHLO002.PO(1)'",
+            obj, "App::PropertyString", "Input", "GL3",
+            "VSTUP tohoto exportu: odkaz na composite vystup jineho GL3 "
+            "objektu ve formatu 'JmenoObjektu.JmenoVystupu' (napr. "
+            "'TEHLO002.PO'), volitelne s indexem prvku pole '(N)' "
+            "(1 = prvni), napr. 'TEHLO002.PO(1)'",
         )
-        # Skryty Link, drzeny synchronizovany s OutputName pres onChanged()
+        # Skryty Link, drzeny synchronizovany s Input pres onChanged()
         # (viz modulovy docstring) - NIKDY nenastavovat rucne, jen ke cteni.
         add_hidden_link(
             obj, "Source", "GL3",
             "(interni) automaticky odvozeny odkaz na zdrojovy objekt z "
-            "OutputName - nemenit rucne, slouzi jen FreeCAD dependency "
+            "Input - nemenit rucne, slouzi jen FreeCAD dependency "
             "grafu pro spravne poradi recompute",
         )
         self._resync_source(obj)
 
     def onChanged(self, obj, prop):
-        if prop == "OutputName":
+        if prop == "Input":
             self._resync_source(obj)
 
     @staticmethod
     def _resync_source(obj):
-        """Prepocita skryty Link 'Source' z aktualniho textu 'OutputName'."""
+        """Prepocita skryty Link 'Source' z aktualniho textu 'Input'."""
         if not hasattr(obj, "Source"):
             return  # jeste pred pridanim property (prvni radek __init__)
-        src_obj_name, _output_name, _index = parse_ref(getattr(obj, "OutputName", "") or "")
+        src_obj_name, _output_name, _index = parse_ref(getattr(obj, "Input", "") or "")
         new_source = None
         if src_obj_name is not None and getattr(obj, "Document", None) is not None:
             new_source = obj.Document.getObject(src_obj_name)
@@ -344,11 +345,11 @@ class GL3Export(object):
         # kdyby onChanged() z nejakeho duvodu jeste neproběhlo.
         self._resync_source(obj)
 
-        ref = getattr(obj, "OutputName", "") or ""
+        ref = getattr(obj, "Input", "") or ""
         src_obj_name, output_name, index = parse_ref(ref)
         if src_obj_name is None:
             raise ValueError(
-                "GL3Export '%s': OutputName musi byt ve formatu "
+                "GL3Export '%s': Input musi byt ve formatu "
                 "'JmenoObjektu.JmenoVystupu' nebo 'JmenoObjektu.JmenoVystupu(Index)' "
                 "(napr. 'TEHLO002.PO' nebo 'TEHLO002.PO(1)'), je: %r" % (obj.Name, ref)
             )
@@ -356,13 +357,13 @@ class GL3Export(object):
         source = getattr(obj, "Source", None)
         if source is None:
             raise ValueError(
-                "GL3Export '%s': objekt '%s' (z OutputName '%s') v dokumentu "
+                "GL3Export '%s': objekt '%s' (z Input '%s') v dokumentu "
                 "neexistuje" % (obj.Name, src_obj_name, ref)
             )
 
         if not hasattr(source, output_name):
             raise ValueError(
-                "GL3Export '%s': zdroj '%s' nema property '%s' (OutputName '%s')"
+                "GL3Export '%s': zdroj '%s' nema property '%s' (Input '%s')"
                 % (obj.Name, source.Name, output_name, ref)
             )
 
@@ -390,7 +391,7 @@ class GL3Export(object):
         if index is not None:
             if slot.get("type") != "Array":
                 raise ValueError(
-                    "GL3Export '%s': index '(%d)' v OutputName lze pouzit jen na "
+                    "GL3Export '%s': index '(%d)' v Input lze pouzit jen na "
                     "Array vystup - '%s' na '%s' je typu '%s'"
                     % (obj.Name, index, output_name, source.Name, slot.get("type"))
                 )
@@ -449,17 +450,21 @@ class ViewProviderGL3Export(object):
         return None
 
 
-def create(doc, name, source, output_name):
+def create(doc, name, source, output_name, index=None):
     """Pomocna funkce pro vytvoreni GL3Export objektu v danem dokumentu.
 
-    source/output_name zustavaji jako 2 argumenty (pohodlnejsi API pro
-    volajici, viz gl3_commands.CreateGL3ExportCommand) - uvnitr se ale
-    slozi do JEDNE textove reference 'source.Name.output_name' ulozene
-    do OutputName (viz modulovy docstring - duvod pro tenhle format)."""
+    source/output_name/index zustavaji jako oddelene argumenty (pohodlnejsi
+    API pro volajici, viz gl3_commands.CreateGL3ExportCommand) - uvnitr se
+    ale slozi do JEDNE textove reference 'source.Name.output_name' (+
+    volitelne '(index)') ulozene do Input (viz modulovy docstring - duvod
+    pro tenhle format)."""
     obj = doc.addObject("Part::FeaturePython", name)
     GL3Export(obj)
     if hasattr(obj, "ViewObject") and obj.ViewObject is not None:
         ViewProviderGL3Export(obj.ViewObject)
         obj.ViewObject.Visibility = True
-    obj.OutputName = "%s.%s" % (source.Name, output_name)
+    ref = "%s.%s" % (source.Name, output_name)
+    if index is not None:
+        ref = "%s(%d)" % (ref, index)
+    obj.Input = ref
     return obj
