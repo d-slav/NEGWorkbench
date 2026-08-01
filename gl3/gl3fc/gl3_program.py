@@ -85,16 +85,6 @@ class GL3Program(object):
         obj.Proxy = self
         self.Type = "GL3Program"
 
-        # Datova strana kaskadove viditelnosti - viz
-        # ViewProviderGL3Program.__init__ pro celkove vysvetleni. Bez
-        # tohohle by "Gui::ViewProviderGeoFeatureGroupExtensionPython" na
-        # ViewProvideru nemel co pouzit (potrebuje odpovidajici Group
-        # property na datovem objektu, kterou tahle extension prida).
-        try:
-            obj.addExtension("App::GeoFeatureGroupExtensionPython")
-        except AttributeError:
-            pass  # starsi FreeCAD bez teto extension
-
         add_property(
             obj,
             "App::PropertyFile",
@@ -337,19 +327,6 @@ class ViewProviderGL3Program(object):
 
     def __init__(self, vobj):
         vobj.Proxy = self
-        # Skutecna kaskadovita viditelnost jako u PartDesign::Body/Feature -
-        # ANI JEDNA strana druhe nic neprepisuje. GL3Program i GL3Export si
-        # KAZDY drzi svou vlastni Visibility beze zmeny; teprve FreeCAD
-        # SAM (diky teto extension) pri renderovani spocita efektivni
-        # viditelnost potomka jako (Program.Visible AND Export.Visible) -
-        # schovany Program tedy potomky ve 3D pohledu skryje bez ohledu na
-        # jejich vlastni flag, ale zapnuty Program NEODKRYJE potomka, ktery
-        # si uzivatel sam vypnul. Presne stejny mechanismus jako
-        # App::Part/PartDesign::Body pouziva pro sve Features.
-        try:
-            vobj.addExtension("Gui::ViewProviderGeoFeatureGroupExtensionPython")
-        except AttributeError:
-            pass  # starsi FreeCAD bez teto extension - kaskadova viditelnost nebude
 
     def getIcon(self):
         return icon_path("program.svg")
