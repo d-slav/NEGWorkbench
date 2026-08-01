@@ -36,6 +36,14 @@ commands and its CL-2 CNC postprocessor.
 ## Project layout
 
 ```
+Init.py                   - App-level entry point (no Gui) - registers
+                           gl3fc.gl3_library/gl3_program/gl3_export in
+                           sys.modules at FreeCAD startup, regardless of
+                           whether the NEG/GL3 workbench was ever
+                           activated (needed so opening a saved .FCStd
+                           file with GL3Library/GL3Program/GL3Export
+                           objects works before first activation - see
+                           gl3_wb_paths.py/InitGui.py docstrings)
 InitGui.py               - FreeCAD workbench entry point (Gui.Workbench,
                            toolbar/menu registration)
 gl3_commands.py           - Gui.Command definitions (currently: create a
@@ -141,6 +149,8 @@ python3 -m gl3fc.test_claim_children_offline    # GL3Export shows as GL3Program'
 python3 -m gl3fc.test_composite_input_offline   # composite in: params (e.g. HLOCUT.gl3 'P') - reference + shadow Link
 cd ..
 python3 test_gl3_commands_offline.py   # workbench commands (Library/Program/Export creation), mocked FreeCAD/FreeCADGui
+python3 test_init_no_file_offline.py    # Init.py registers gl3fc.* in sys.modules at startup, simulates real FreeCAD exec()
+python3 test_initgui_no_file_offline.py # InitGui.py survives real FreeCAD exec() (separate globals/locals)
 ```
 
 ## Acknowledgments
