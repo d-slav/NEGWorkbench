@@ -48,6 +48,15 @@ def _sanitize_name(text, fallback):
     return safe or fallback
 
 
+def _exec_dialog(dialog):
+    """Qt QDialog.exec() (PySide6/novejsi PySide2) vs. starsi .exec_()
+    (exec byl v Pythonu 2 rezervovane slovo, nektere starsi bindingy si
+    tenhle nazev drzely i po prechodu na Python 3) - zkusit postupne."""
+    if hasattr(dialog, "exec"):
+        return dialog.exec()
+    return dialog.exec_()
+
+
 class CreateGL3LibraryCommand(object):
     """Vytvori novy GL3Library objekt (viz gl3fc/gl3_library.py) v aktivnim
     dokumentu - pokud zadny neni otevreny, novy dokument se vytvori."""
@@ -231,21 +240,23 @@ class CreateGL3ExportCommand(object):
             return None
 
         widgets = _qtwidgets()
-        choice = widgets.QMessageBox.question(
-            Gui.getMainWindow(),
-            "Vyber prvku pole",
-            "Vystup '%s' je pole (%d prvku). Exportovat jen jeden konkretni "
-            "prvek misto cele pole?" % (output_name, len(items)),
-            widgets.QMessageBox.Yes | widgets.QMessageBox.No,
-            widgets.QMessageBox.No,
+        box = widgets.QMessageBox(Gui.getMainWindow())
+        box.setWindowTitle("Výběr prvku pole")
+        box.setText(
+            "Výstup '%s' je pole (%d prvků). Exportovat jen jeden prvek "
+            "místo celého pole?" % (output_name, len(items))
         )
-        if choice != widgets.QMessageBox.Yes:
+        btn_one = box.addButton("Jeden prvek", widgets.QMessageBox.YesRole)
+        btn_all = box.addButton("Celé pole", widgets.QMessageBox.NoRole)
+        box.setDefaultButton(btn_all)
+        _exec_dialog(box)
+        if box.clickedButton() is not btn_one:
             return None
 
         index, ok = widgets.QInputDialog.getInt(
             Gui.getMainWindow(),
             "Index prvku",
-            "Cislo prvku (1 = prvni, max %d):" % len(items),
+            "Číslo prvku (1 = první, max %d):" % len(items),
             1, 1, len(items), 1,
         )
         return index if ok else None
