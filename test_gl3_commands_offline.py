@@ -135,6 +135,10 @@ class FakeGui(object):
     def updateGui():
         pass
 
+    @staticmethod
+    def runCommand(name):
+        pass
+
 
 def main():
     sys.modules["FreeCAD"] = FakeApp()

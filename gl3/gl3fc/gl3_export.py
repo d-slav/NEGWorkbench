@@ -446,7 +446,7 @@ class ViewProviderGL3Export(object):
         vobj.Proxy = self
 
     def getIcon(self):
-        return icon_path("create_export.svg")
+        return icon_path("export.svg")
 
     def attach(self, vobj):
         self.ViewObject = vobj
@@ -476,6 +476,21 @@ def create(doc, name, source, output_name, index=None):
     if index is not None:
         ref = "%s(%d)" % (ref, index)
     obj.Input = ref
+
+    # Zaradit obj do Source.Group (App::GeoFeatureGroupExtension, viz
+    # GL3Program.__init__/ViewProviderGL3Program.__init__) - to je co
+    # FreeCADu umoznuje spocitat SKUTECNOU efektivni viditelnost
+    # (Program.Visible AND Export.Visible) BEZ TOHO, aby si tyhle 2
+    # property navzajem cokoliv prepisovaly (presne jako u
+    # PartDesign::Body/Feature). Nesouvisi s nasim vlastnim
+    # claimChildren() (ten resi jen razeni ve strome).
+    if hasattr(source, "Group"):
+        try:
+            current_group = list(source.Group)
+        except TypeError:
+            current_group = []
+        if obj not in current_group:
+            source.Group = current_group + [obj]
 
     # "touchnuti" Source (JEDNOU, tady, PRED prvnim doc.recompute() volanym
     # volajicim) zajisti, ze strom po tomhle recomputu spravne zobrazi

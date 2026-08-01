@@ -338,6 +338,26 @@ def main():
     assert export10.Input == "TEHLO010.PO"
     print("create(): OK - touchne Source presne jednou, pred vracenim noveho objektu")
 
+    # --- 11) create() zaradi novy Export do source.Group, POKUD source
+    # takovou property ma (App::GeoFeatureGroupExtension - viz
+    # gl3_program.py/ViewProviderGL3Program - skutecna kaskadova
+    # viditelnost jako u PartDesign::Body). Bez Group property (napr.
+    # starsi FreeCAD bez teto extension) se proste nic nestane - viz
+    # scenar 10 vyse, kde source10 zadnou Group property nema. ---
+    doc11 = FakeDocument()
+    source11 = doc11.register(FakeSource("TEHLO011"))
+    source11.Group = []
+    source11.PO = json.dumps({"defined": True, "type": "Array", "items": []})
+
+    export11 = create_export(doc11, "Export011", source11, "PO")
+    assert source11.Group == [export11], "create() ma zaradit novy Export do source.Group"
+    print("create(): OK - zaradi novy Export do source.Group (kdyz tam ta property je)")
+
+    # a podruhe - druhy export se ma pridat, ne prepsat/zduplikovat prvni
+    export11b = create_export(doc11, "Export011b", source11, "PO")
+    assert source11.Group == [export11, export11b]
+    print("create(): OK - druhy Export se prida do Group, prvni zustane")
+
     print()
     print("VSE OK - GL3Export.execute() spravne resolvuje 'Objekt.Vystup' referenci")
     print("(pres onChanged() synchronizovany skryty Link) a cte JSON text z vystupu.")

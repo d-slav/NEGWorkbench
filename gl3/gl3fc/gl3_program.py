@@ -85,6 +85,16 @@ class GL3Program(object):
         obj.Proxy = self
         self.Type = "GL3Program"
 
+        # Datova strana kaskadove viditelnosti - viz
+        # ViewProviderGL3Program.__init__ pro celkove vysvetleni. Bez
+        # tohohle by "Gui::ViewProviderGeoFeatureGroupExtensionPython" na
+        # ViewProvideru nemel co pouzit (potrebuje odpovidajici Group
+        # property na datovem objektu, kterou tahle extension prida).
+        try:
+            obj.addExtension("App::GeoFeatureGroupExtensionPython")
+        except AttributeError:
+            pass  # starsi FreeCAD bez teto extension
+
         add_property(
             obj,
             "App::PropertyFile",
@@ -327,6 +337,19 @@ class ViewProviderGL3Program(object):
 
     def __init__(self, vobj):
         vobj.Proxy = self
+        # Skutecna kaskadovita viditelnost jako u PartDesign::Body/Feature -
+        # ANI JEDNA strana druhe nic neprepisuje. GL3Program i GL3Export si
+        # KAZDY drzi svou vlastni Visibility beze zmeny; teprve FreeCAD
+        # SAM (diky teto extension) pri renderovani spocita efektivni
+        # viditelnost potomka jako (Program.Visible AND Export.Visible) -
+        # schovany Program tedy potomky ve 3D pohledu skryje bez ohledu na
+        # jejich vlastni flag, ale zapnuty Program NEODKRYJE potomka, ktery
+        # si uzivatel sam vypnul. Presne stejny mechanismus jako
+        # App::Part/PartDesign::Body pouziva pro sve Features.
+        try:
+            vobj.addExtension("Gui::ViewProviderGeoFeatureGroupExtensionPython")
+        except AttributeError:
+            pass  # starsi FreeCAD bez teto extension - kaskadova viditelnost nebude
 
     def getIcon(self):
         return icon_path("program.svg")
@@ -334,31 +357,6 @@ class ViewProviderGL3Program(object):
     def attach(self, vobj):
         self.ViewObject = vobj
         self.Object = vobj.Object
-
-    def onChanged(self, vobj, prop):
-        """Toto je onChanged() VIEW objektu (View properties jako
-        Visibility/ShapeColor/...), NE datoveho objektu (viz GL3Program.
-        onChanged() vyse pro Input/atd. - jiny mechanismus, jiny podpis).
-
-        Kdyz uzivatel schova GL3Program, kaskadove schovame i vsechny jeho
-        GL3Export potomky (claimChildren()) - i kdyz oni sami maji
-        Visibility=True. Bez tohohle by export zustal ve 3D pohledu
-        viditelny, i kdyz jeho zdrojovy program je schovany, coz pusobi
-        nekonzistentne (export je prece odvozeny ze Source).
-
-        POZOR: kaskaduje se jen SMEREM K SCHOVANI, nikdy automaticky zpet k
-        odkryti - kdyz uzivatel Program znovu zobrazi, export, ktery byl
-        kaskadove schovany, zustane schovany (dokud ho uzivatel neodkryje
-        rucne). Automaticke znovu-odkryti by mohlo prekvapive prepsat i
-        export, ktery si uzivatel schoval SAM, nezavisle na stavu Program."""
-        if prop != "Visibility":
-            return
-        if vobj.Visibility:
-            return
-        for child in self.claimChildren():
-            child_vobj = getattr(child, "ViewObject", None)
-            if child_vobj is not None:
-                child_vobj.Visibility = False
 
     def claimChildren(self):
         obj = self.Object

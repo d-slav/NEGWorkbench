@@ -225,6 +225,17 @@ class CreateGL3ExportCommand(object):
         # se ho pokusime vybrat, a polozka Program se tak neexpanduje.
         Gui.updateGui()
 
+        # Explicitne rozbalit polozku Program ve strome, at je hned videt
+        # novy Export jako jeho potomek (pouhy vyber noveho objektu strom
+        # sam o sobe nerozbali). Std_TreeExpand je standardni FreeCAD
+        # prikaz "rozbal vybrane polozky ve strome".
+        Gui.Selection.clearSelection()
+        Gui.Selection.addSelection(source)
+        try:
+            Gui.runCommand("Std_TreeExpand")
+        except Exception:
+            pass  # napr. headless/testovaci prostredi bez tohohle prikazu
+
         Gui.Selection.clearSelection()
         Gui.Selection.addSelection(obj)
         return obj
