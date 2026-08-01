@@ -219,6 +219,12 @@ class CreateGL3ExportCommand(object):
         obj = create_export(doc, name, source, output_name, index=index)
         doc.recompute()
 
+        # Zpracovat cekajici Gui udalosti (vc. prekresleni stromu s novym
+        # claimChildren() vysledkem) PRED vyberem noveho objektu - jinak se
+        # muze stat, ze strom jeste nema Export zarazeny pod Program, kdyz
+        # se ho pokusime vybrat, a polozka Program se tak neexpanduje.
+        Gui.updateGui()
+
         Gui.Selection.clearSelection()
         Gui.Selection.addSelection(obj)
         return obj

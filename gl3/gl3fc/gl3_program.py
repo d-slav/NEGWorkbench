@@ -125,16 +125,14 @@ class GL3Program(object):
 
         self._store_outputs(obj, subdef, result)
 
-        # Znovu-nastaveni Visibility AZ TADY (po existenci realneho obsahu) -
-        # v realnem FreeCADu se ukazalo, ze nastaveni Visibility=True hned
-        # pri vytvoreni objektu (pred prvnim execute(), kdyz jeste nic
-        # neexistuje) nemusi spravne prorazit do zobrazeni; objekt zustane
-        # opticky neviditelny, dokud se dokument neulozi a znovu nenacte.
-        # Opakovane nastaveni AZ PO existenci obsahu tenhle stav spolehlive
-        # opravuje.
-        vobj = getattr(obj, "ViewObject", None)
-        if vobj is not None:
-            vobj.Visibility = True
+        # POZOR: zde uz NENASTAVUJEME vobj.Visibility = True (drive se tu
+        # opakovane nastavovalo na kazdem execute(), z duvodu "objekt
+        # zustava opticky neviditelny, dokud se dokument neulozi a znovu
+        # nenacte" - ale tim se pri kazdem recomputu prepsalo i rucni
+        # schovani objektu uzivatelem, coz je skutecny bug. Visibility se
+        # nastavuje jen JEDNOU, pri vytvoreni - viz create() nize.
+        # GL3Program navic nema zadny Shape/3D obsah, takze puvodni
+        # "opticky neviditelny" problem se ho ani netykal).
 
     def onChanged(self, obj, prop):
         link_name = self._shadow_link_name(prop)
@@ -331,11 +329,36 @@ class ViewProviderGL3Program(object):
         vobj.Proxy = self
 
     def getIcon(self):
-        return icon_path("create_program.svg")
+        return icon_path("program.svg")
 
     def attach(self, vobj):
         self.ViewObject = vobj
         self.Object = vobj.Object
+
+    def onChanged(self, vobj, prop):
+        """Toto je onChanged() VIEW objektu (View properties jako
+        Visibility/ShapeColor/...), NE datoveho objektu (viz GL3Program.
+        onChanged() vyse pro Input/atd. - jiny mechanismus, jiny podpis).
+
+        Kdyz uzivatel schova GL3Program, kaskadove schovame i vsechny jeho
+        GL3Export potomky (claimChildren()) - i kdyz oni sami maji
+        Visibility=True. Bez tohohle by export zustal ve 3D pohledu
+        viditelny, i kdyz jeho zdrojovy program je schovany, coz pusobi
+        nekonzistentne (export je prece odvozeny ze Source).
+
+        POZOR: kaskaduje se jen SMEREM K SCHOVANI, nikdy automaticky zpet k
+        odkryti - kdyz uzivatel Program znovu zobrazi, export, ktery byl
+        kaskadove schovany, zustane schovany (dokud ho uzivatel neodkryje
+        rucne). Automaticke znovu-odkryti by mohlo prekvapive prepsat i
+        export, ktery si uzivatel schoval SAM, nezavisle na stavu Program."""
+        if prop != "Visibility":
+            return
+        if vobj.Visibility:
+            return
+        for child in self.claimChildren():
+            child_vobj = getattr(child, "ViewObject", None)
+            if child_vobj is not None:
+                child_vobj.Visibility = False
 
     def claimChildren(self):
         obj = self.Object

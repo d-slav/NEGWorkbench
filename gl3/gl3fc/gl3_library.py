@@ -93,7 +93,7 @@ class ViewProviderGL3Library(object):
         vobj.Proxy = self
 
     def getIcon(self):
-        return icon_path("create_library.svg")
+        return icon_path("library.svg")
 
     def attach(self, vobj):
         self.ViewObject = vobj

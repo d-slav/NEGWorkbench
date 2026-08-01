@@ -324,6 +324,15 @@ class GL3Export(object):
         )
         self._resync_source(obj)
 
+        # Placement je 100% odvozeny ze Source (viz execute() nize) - kazdy
+        # recompute ho prepise, takze rucni editace v Property View by se
+        # tise ztratila pri dalsim recomputu. Radeji skryt (misto jen
+        # ReadOnly), at neni zdanlive editovatelny bez efektu.
+        try:
+            obj.setPropertyStatus("Placement", "Hidden")
+        except AttributeError:
+            pass
+
     def onChanged(self, obj, prop):
         if prop == "Input":
             self._resync_source(obj)
@@ -410,22 +419,22 @@ class GL3Export(object):
         # GL3 objektu vyrobi skutecny nativni objekt s realnym Placement").
         obj.Placement = source.Placement
 
-        # Viz gl3_program.py - stejny duvod, opakovane nastaveni Visibility
-        # AZ PO existenci Shape spolehlive opravuje "opticky neviditelny
-        # dokud se soubor neulozi a znovu nenacte".
-        vobj = getattr(obj, "ViewObject", None)
-        if vobj is not None:
-            vobj.Visibility = True
-
-        # "touchnuti" Source zajisti, ze FreeCAD pri pristim recompute
-        # znovu vyhodnoti claimChildren() na Source (GL3Program) - jinak se
-        # strom nemusi dozvedet, ze ma tenhle Export objekt zobrazit jako
-        # sveho potomka, protoze zadna vlastnost SAMOTNEHO Source se
-        # vytvorenim/zmenou Exportu jinak nezmeni.
-        try:
-            source.touch()
-        except AttributeError:
-            pass
+        # POZOR: zde uz NENASTAVUJEME vobj.Visibility = True ani
+        # nevolame source.touch() - obojí puvodne resilo drobne kosmeticke
+        # problemy (neviditelny Shape po prvnim vytvoreni / strom
+        # nezobrazujici noveho potomka), ale za cenu 2 realnych bugu:
+        # 1) Kazdy recompute prepisoval Visibility na True, i kdyz si
+        #    uzivatel objekt rucne schoval (nebo skryl cely Program -
+        #    viz ViewProviderGL3Program.onChanged nize) - Visibility se
+        #    tedy nastavuje jen JEDNOU, pri vytvoreni (viz create()).
+        # 2) source.touch() volany TADY (uvnitr execute() teto Export
+        #    instance, tedy UPROSTRED prave probihajiciho recompute) znovu
+        #    oznacil Source (GL3Program) jako touched PO TOM, co uz v tomhle
+        #    pruchodu byl hotovy - FreeCAD po dokonceni recompute() hlasi
+        #    "Unnamed#<Name> still touched after recompute", protoze
+        #    nedojde k dalsimu prepoctu, ktery by touched flag zase smazal.
+        #    Presunuto do create() (zavolano PRED prvnim doc.recompute()),
+        #    kde se to vyresi jako soucast te same, jeste neprobehle davky.
 
     def onDocumentRestored(self, obj):
         self.Type = "GL3Export"
@@ -467,4 +476,17 @@ def create(doc, name, source, output_name, index=None):
     if index is not None:
         ref = "%s(%d)" % (ref, index)
     obj.Input = ref
+
+    # "touchnuti" Source (JEDNOU, tady, PRED prvnim doc.recompute() volanym
+    # volajicim) zajisti, ze strom po tomhle recomputu spravne zobrazi
+    # novy Export jako potomka Source (viz ViewProviderGL3Program.
+    # claimChildren()) - Source se timhle zaradi do SAME recompute davky
+    # (misto aby to delal execute() teto Export instance UPROSTRED
+    # recomputu, coz FreeCAD hlasilo jako "still touched after recompute" -
+    # viz komentar v execute() vyse).
+    try:
+        source.touch()
+    except AttributeError:
+        pass
+
     return obj

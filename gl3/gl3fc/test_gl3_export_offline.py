@@ -64,7 +64,7 @@ fake_part.Wire = lambda edges: ("Wire", edges)
 sys.modules["FreeCAD"] = fake_freecad
 sys.modules["Part"] = fake_part
 
-from gl3fc.gl3_export import GL3Export  # noqa: E402
+from gl3fc.gl3_export import GL3Export, create as create_export  # noqa: E402
 
 
 class FakeDocument(object):
@@ -72,6 +72,7 @@ class FakeDocument(object):
 
     def __init__(self):
         self._objects = {}
+        self._counter = 0
 
     def register(self, obj):
         self._objects[obj.Name] = obj
@@ -79,6 +80,11 @@ class FakeDocument(object):
 
     def getObject(self, name):
         return self._objects.get(name)
+
+    def addObject(self, type_name, name):
+        self._counter += 1
+        obj = FakeExportObj("%s%03d" % (name, self._counter), document=self)
+        return self.register(obj)
 
 
 class FakeSource(object):
@@ -108,6 +114,7 @@ class FakeExportObj(object):
         object.__setattr__(self, "Shape", None)
         object.__setattr__(self, "Placement", None)
         object.__setattr__(self, "ViewObject", None)
+        object.__setattr__(self, "_status_calls", {})
 
     def addProperty(self, type_name, name, group=None, doc=None):
         if not hasattr(self, name):
@@ -115,7 +122,7 @@ class FakeExportObj(object):
         return self
 
     def setPropertyStatus(self, name, status):
-        pass
+        self._status_calls.setdefault(name, []).append(status)
 
     def __setattr__(self, name, value):
         object.__setattr__(self, name, value)
@@ -160,6 +167,10 @@ def main():
 
     obj = FakeExportObj("Export001", document=doc)
     exp = GL3Export(obj)
+    assert obj._status_calls.get("Placement") == ["Hidden"], (
+        "Placement je 100% odvozeny ze Source (execute() ho pokazde prepise) - "
+        "ma byt skryty, at nepusobi zdanlive editovatelne"
+    )
     obj.Input = "TEHLO001.S"  # -> onChanged() hned vyresolvuje Source
 
     assert obj.Source is source, (
@@ -170,9 +181,14 @@ def main():
     exp.execute(obj)
     assert obj.Shape is not None
     assert obj.Placement == "PLACEMENT_STUB", "Export ma prevzit Placement ze Source 1:1"
-    assert source._touched, "execute() ma zavolat source.touch() (kvuli claimChildren refresh)"
+    assert not source._touched, (
+        "execute() uz NEMA volat source.touch() - to se presunulo do create() "
+        "(zavolane JEDNOU pred prvnim recomputem), aby FreeCAD nehlasil "
+        "'still touched after recompute' (Source touchnuty UPROSTRED "
+        "prave probihajiciho recompute)"
+    )
     print("execute() s platnym JSON textem: OK - Source vyresolven, Shape vytvoren, "
-          "Placement/touch() v poradku")
+          "Placement v poradku (a zadne 'still touched' - touch() se nevola tady)")
 
     # --- 2) property neni retezec (napr. nekdo omylem napoji scalar out) ---
     doc2 = FakeDocument()
@@ -305,6 +321,22 @@ def main():
     except ValueError as e:
         assert "neexistuje" in str(e)
         print("execute() s neexistujicim zdrojovym objektem: OK - jasna chyba (%s)" % e)
+
+    # --- 10) create() (ne execute()) je to, co ma touchnout Source - JEDNOU,
+    # driv, nez volajici stihne zavolat prvni doc.recompute() (viz komentar
+    # v gl3_export.create()) ---
+    doc10 = FakeDocument()
+    source10 = doc10.register(FakeSource("TEHLO010"))
+    source10.PO = json.dumps(
+        {"defined": True, "type": "Array", "items": [
+            {"defined": True, "type": "Point", "x": 0.0, "y": 0.0, "z": 0.0},
+        ]}
+    )
+    assert not source10._touched
+    export10 = create_export(doc10, "Export010", source10, "PO")
+    assert source10._touched, "create() ma touchnout Source JEDNOU, pred prvnim recomputem"
+    assert export10.Input == "TEHLO010.PO"
+    print("create(): OK - touchne Source presne jednou, pred vracenim noveho objektu")
 
     print()
     print("VSE OK - GL3Export.execute() spravne resolvuje 'Objekt.Vystup' referenci")
