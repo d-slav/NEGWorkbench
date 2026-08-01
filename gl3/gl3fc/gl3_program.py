@@ -63,7 +63,7 @@ from gl3_interpreter import Interpreter
 from gl3_ops import classify
 from gerlib.serialize import dump_json, load_json
 from gl3fc.gl3_registry import Gl3FileRegistry
-from gl3fc.gl3_props import add_property, add_hidden_link, parse_ref
+from gl3fc.gl3_props import add_property, add_hidden_link, parse_ref, icon_path
 
 try:
     import FreeCAD as App
@@ -316,7 +316,7 @@ class GL3Program(object):
 
 
 class ViewProviderGL3Program(object):
-    """Minimalni ViewProvider - zatim jen zakladni chovani, bez vlastni ikony.
+    """Minimalni ViewProvider - vlastni ikona (viz getIcon()) + claimChildren.
 
     claimChildren() zaridi, ze GL3Export objekty (viz gl3fc/gl3_export.py),
     ktere na tento GL3Program odkazuji pres svoji property 'Source', se ve
@@ -331,7 +331,7 @@ class ViewProviderGL3Program(object):
         vobj.Proxy = self
 
     def getIcon(self):
-        return None
+        return icon_path("create_program.svg")
 
     def attach(self, vobj):
         self.ViewObject = vobj

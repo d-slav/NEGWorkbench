@@ -55,7 +55,7 @@ import json
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from gl3fc.gl3_props import add_property, add_hidden_link, parse_ref
+from gl3fc.gl3_props import add_property, add_hidden_link, parse_ref, icon_path
 
 try:
     import FreeCAD as App
@@ -437,7 +437,7 @@ class ViewProviderGL3Export(object):
         vobj.Proxy = self
 
     def getIcon(self):
-        return None
+        return icon_path("create_export.svg")
 
     def attach(self, vobj):
         self.ViewObject = vobj

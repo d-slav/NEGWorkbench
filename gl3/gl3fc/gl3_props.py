@@ -62,6 +62,7 @@ se vola SYNCHRONNE hned pri zmene property (i programove, ne jen z
 GUI), tedy jeste PRED tim, nez se vubec sestavi poradi pro dalsi
 recompute - zadne zpozdeni o cyklus."""
 
+import os
 import re
 
 _REF_RE = re.compile(r"^(?P<obj>[^.()]+)\.(?P<prop>[^.()]+)(?:\((?P<index>\d+)\))?$")
@@ -116,6 +117,17 @@ def add_hidden_link(obj, name, group, doc):
         except AttributeError:
             pass
     return obj
+
+
+def icon_path(filename):
+    """Absolutni cesta k <doplnek>/Resources/icons/<filename> - pro
+    ViewProvider.getIcon(), at se ve stromu zobrazuji stejne ikony jako
+    v toolbaru/menu (viz gl3_commands.py), misto vychozi FreeCAD ikony.
+    FreeCAD's getIcon() bezne akceptuje primo cestu k souboru na disku
+    (svg/png), zadna registrace jako Qt resource neni potreba."""
+    # tenhle soubor: <doplnek>/gl3/gl3fc/gl3_props.py
+    addon_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    return os.path.join(addon_dir, "Resources", "icons", filename)
 
 
 def add_property(obj, type_name, name, group, doc, read_only=False):

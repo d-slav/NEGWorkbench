@@ -35,7 +35,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from gl3fc.gl3_registry import Gl3FileRegistry
-from gl3fc.gl3_props import add_property
+from gl3fc.gl3_props import add_property, icon_path
 
 
 def _default_examples_dir():
@@ -84,10 +84,33 @@ class GL3Library(object):
         self.Type = "GL3Library"
 
 
+class ViewProviderGL3Library(object):
+    """Minimalni ViewProvider - jedina vlastni veci je ikona ve stromu
+    (viz getIcon()), stejna jako v toolbaru/menu. GL3Library nenese
+    zadnou geometrii, takze zadne dalsi View chovani neresi."""
+
+    def __init__(self, vobj):
+        vobj.Proxy = self
+
+    def getIcon(self):
+        return icon_path("create_library.svg")
+
+    def attach(self, vobj):
+        self.ViewObject = vobj
+        self.Object = vobj.Object
+
+    def __getstate__(self):
+        return None
+
+    def __setstate__(self, state):
+        return None
+
+
 def create(doc, name="GL3Library"):
     """Pomocna funkce pro vytvoreni GL3Library objektu v danem dokumentu."""
     obj = doc.addObject("App::FeaturePython", name)
     GL3Library(obj)
-    if getattr(obj, "ViewObject", None) is not None:
+    if hasattr(obj, "ViewObject") and obj.ViewObject is not None:
+        ViewProviderGL3Library(obj.ViewObject)
         obj.ViewObject.Visibility = True
     return obj
