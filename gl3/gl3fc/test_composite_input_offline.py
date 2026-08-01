@@ -167,6 +167,37 @@ def main():
         assert "neni retezec" in str(e)
         print("_resolve_composite_input() s ne-retezcovou property: OK - jasna chyba (%s)" % e)
 
+    # --- 7) index '(N)' na Array vystupu - uspesny pripad (1 = prvni prvek) ---
+    hlocut.P = "TEHLO001.PO(1)"
+    value = proxy._resolve_composite_input(hlocut, "P")
+    assert not isinstance(value, list), "s indexem se ma vratit JEDEN prvek, ne cele pole"
+    assert value.x == 0.0 and value.y == 0.0, "PO(1) = prvni bod (0.0, 0.0)"
+    print("_resolve_composite_input() s indexem 'PO(1)': OK - vraci jeden Point (%r, %r)" % (value.x, value.y))
+
+    hlocut.P = "TEHLO001.PO(2)"
+    value = proxy._resolve_composite_input(hlocut, "P")
+    assert value.x == 1.0 and value.y == 2.0, "PO(2) = druhy bod (1.0, 2.0)"
+    print("_resolve_composite_input() s indexem 'PO(2)': OK - vraci jeden Point (%r, %r)" % (value.x, value.y))
+
+    # --- 8) index mimo rozsah pole ---
+    hlocut.P = "TEHLO001.PO(99)"
+    try:
+        proxy._resolve_composite_input(hlocut, "P")
+        raise AssertionError("mel vyhodit ValueError - index mimo rozsah")
+    except ValueError as e:
+        assert "mimo rozsah" in str(e)
+        print("_resolve_composite_input() s indexem mimo rozsah: OK - jasna chyba (%s)" % e)
+
+    # --- 9) index pouzity na vystup, ktery neni Array ---
+    source.PT = json.dumps({"defined": True, "type": "Point", "x": 3.0, "y": 4.0, "z": 0.0})
+    hlocut.P = "TEHLO001.PT(1)"
+    try:
+        proxy._resolve_composite_input(hlocut, "P")
+        raise AssertionError("mel vyhodit ValueError - index na ne-Array vystupu")
+    except ValueError as e:
+        assert "lze pouzit jen na Array" in str(e)
+        print("_resolve_composite_input() s indexem na ne-Array vystupu: OK - jasna chyba (%s)" % e)
+
     print()
     print("VSE OK - composite 'in:' parametry (napr. HLOCUT.gl3 'P') se nyni spravne")
     print("vytvareji jako textova reference + skryty synchronizovany Link.")

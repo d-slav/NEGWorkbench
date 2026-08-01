@@ -62,7 +62,7 @@ TYPE_PREFIX_INFO = {
     "I": ("scalar", "App::PropertyInteger"),
     "J": ("scalar", "App::PropertyInteger"),
     "K": ("scalar", "App::PropertyInteger"),
-    "B": ("string", "App::PropertyFileIncluded"),
+    "B": ("string", "App::PropertyFile"),
     # 2D
     "P": ("composite", None),   # bod 2D
     "V": ("composite", None),   # vektor 2D

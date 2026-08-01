@@ -7,8 +7,13 @@ vystupni property jsou k dispozici Export modulu.
 Vstupy/vystupy se generuji AUTOMATICKY z SUBRO hlavicky vlastniho
 .GL3 souboru (in:/out: anotace - viz gl3_lang.parse_subro_header):
   - skalarni/textove in: -> bezna nativni FC property (App::PropertyFloat/
-    Integer/PropertyFileIncluded - viz gl3_ops.classify), edituje se v
-    beznem Property editoru, pripadne navazatelna na FC Expression.
+    Integer/PropertyFile - viz gl3_ops.classify), edituje se v beznem
+    Property editoru, pripadne navazatelna na FC Expression.
+    (POZOR: textove "B"-prefixove in: parametry - napr. BJM - pouzivaji
+    App::PropertyFile, NE App::PropertyFileIncluded - ten by soubor
+    zkopiroval/vlozil primo do .FCStd dokumentu a pri cteni pouzival
+    docasnou rozbalenou kopii v temp adresari FreeCADu, misto aby
+    pouzil vybrany soubor primo - byval to bug, opraveno.)
   - composite in: -> JEDNA App::PropertyString property (stejne jmeno
     jako parametr, napr. "P") drzici referenci ve formatu
     'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO') na composite vystup
@@ -147,7 +152,7 @@ class GL3Program(object):
         if not hasattr(obj, link_name):
             return
         ref = getattr(obj, param_name, "") or ""
-        src_obj_name, _output_name = parse_ref(ref)
+        src_obj_name, _output_name, _index = parse_ref(ref)
         new_source = None
         if src_obj_name is not None and getattr(obj, "Document", None) is not None:
             new_source = obj.Document.getObject(src_obj_name)
@@ -166,7 +171,9 @@ class GL3Program(object):
                     group = "GL3 In"
                     doc = (
                         "GL3 in: %s - odkaz na composite vystup jineho GL3 objektu, "
-                        "format 'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO')" % name
+                        "format 'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO'), "
+                        "volitelne s indexem prvku pole '(N)' (1 = prvni), napr. "
+                        "'TEHLO002.PO(1)'" % name
                     )
                     add_property(obj, "App::PropertyString", name, group, doc)
                     add_hidden_link(
@@ -204,11 +211,12 @@ class GL3Program(object):
 
     def _resolve_composite_input(self, obj, name):
         ref = getattr(obj, name, "") or ""
-        src_obj_name, output_name = parse_ref(ref)
+        src_obj_name, output_name, index = parse_ref(ref)
         if src_obj_name is None:
             raise ValueError(
                 "GL3Program '%s': vstup '%s' musi byt ve formatu "
-                "'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO'), je: %r"
+                "'JmenoObjektu.JmenoVystupu' nebo 'JmenoObjektu.JmenoVystupu(Index)' "
+                "(napr. 'TEHLO002.PO' nebo 'TEHLO002.PO(1)'), je: %r"
                 % (obj.Name, name, ref)
             )
 
@@ -237,12 +245,33 @@ class GL3Program(object):
                 % (obj.Name, output_name, source.Name, name)
             )
         try:
-            return load_json(raw)
+            value = load_json(raw)
         except ValueError as exc:
             raise ValueError(
                 "GL3Program '%s': property '%s' na '%s' neni platny JSON (vstup '%s'): %s"
                 % (obj.Name, output_name, source.Name, name, exc)
             )
+
+        if index is not None:
+            # deserialize() vraci "Array" jako obycejny Python list (viz
+            # gerlib/serialize.py) - index (1 = prvni prvek) vybere jeden
+            # jeho prvek misto cele pole, napr. kdyz composite in: ocekava
+            # jeden Point, ale zdrojovy vystup je cele pole bodu.
+            if not isinstance(value, list):
+                raise ValueError(
+                    "GL3Program '%s': index '(%d)' u vstupu '%s' lze pouzit jen "
+                    "na Array vystup - '%s' na '%s' neni pole"
+                    % (obj.Name, index, name, output_name, source.Name)
+                )
+            if not (1 <= index <= len(value)):
+                raise ValueError(
+                    "GL3Program '%s': index %d mimo rozsah u vstupu '%s' - '%s' "
+                    "na '%s' ma %d prvku (index je od 1 = prvni prvek)"
+                    % (obj.Name, index, name, output_name, source.Name, len(value))
+                )
+            value = value[index - 1]
+
+        return value
 
     # -----------------------------------------------------------------
     # Registry pro CALL (lenivy, pres pripadnou Library)

@@ -234,7 +234,65 @@ def main():
         assert "musi byt ve formatu" in str(e)
         print("execute() se spatnym formatem OutputName: OK - jasna chyba (%s)" % e)
 
-    # --- 6) OutputName odkazuje na objekt, ktery v dokumentu neexistuje ---
+    # --- 6) OutputName s indexem '(N)' na Array vystupu - uspesny pripad ---
+    doc7 = FakeDocument()
+    source7 = doc7.register(FakeSource("TEHLO007"))
+    source7.PO = json.dumps(
+        {
+            "defined": True,
+            "type": "Array",
+            "items": [
+                {"defined": True, "type": "Point", "x": 0.0, "y": 0.0, "z": 0.0},
+                {"defined": True, "type": "Point", "x": 5.0, "y": 6.0, "z": 0.0},
+                {"defined": True, "type": "Point", "x": 9.0, "y": 9.0, "z": 0.0},
+            ],
+        }
+    )
+
+    obj7 = FakeExportObj("Export007", document=doc7)
+    exp7 = GL3Export(obj7)
+    obj7.OutputName = "TEHLO007.PO(2)"  # 1 = prvni prvek -> (2) je stredni bod
+
+    exp7.execute(obj7)
+    assert obj7.Shape is not None
+    print("execute() s indexem 'PO(2)' na Array vystupu: OK - Shape z 2. prvku vytvoren")
+
+    # --- 7) index mimo rozsah pole ---
+    obj7b = FakeExportObj("Export007b", document=doc7)
+    exp7b = GL3Export(obj7b)
+    obj7b.OutputName = "TEHLO007.PO(99)"
+
+    try:
+        exp7b.execute(obj7b)
+        raise AssertionError("mel vyhodit ValueError - index mimo rozsah")
+    except ValueError as e:
+        assert "mimo rozsah" in str(e)
+        print("execute() s indexem mimo rozsah: OK - jasna chyba (%s)" % e)
+
+    # --- 8) index pouzity na vystup, ktery neni Array ---
+    obj9 = FakeExportObj("Export009", document=doc7)
+    exp9 = GL3Export(obj9)
+    obj9.OutputName = "TEHLO007.PO(1)"
+    # nejdriv normalne (bez indexu) - jen se ujistit, ze PO(1) na Array funguje
+    exp9.execute(obj9)
+    assert obj9.Shape is not None
+
+    doc9b = FakeDocument()
+    source9b = doc9b.register(FakeSource("TEHLO009"))
+    source9b.S = _valid_spline_json()  # Spline, ne Array
+
+    obj9b = FakeExportObj("Export009b", document=doc9b)
+    exp9b = GL3Export(obj9b)
+    obj9b.OutputName = "TEHLO009.S(1)"
+
+    try:
+        exp9b.execute(obj9b)
+        raise AssertionError("mel vyhodit ValueError - index na ne-Array vystupu")
+    except ValueError as e:
+        assert "lze pouzit jen na Array" in str(e)
+        print("execute() s indexem na ne-Array vystupu: OK - jasna chyba (%s)" % e)
+
+    # --- 9) OutputName odkazuje na objekt, ktery v dokumentu neexistuje ---
     doc6 = FakeDocument()
     obj6 = FakeExportObj("Export006", document=doc6)
     exp6 = GL3Export(obj6)

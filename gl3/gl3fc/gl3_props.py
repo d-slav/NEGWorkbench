@@ -42,8 +42,14 @@ z teto funkce, pokud ma jit jen o needitovatelny vypis.
 
 ---
 
-Reference format "JmenoObjektu.JmenoVystupu" (GL3Export.OutputName,
-GL3Program composite in: parametry) - viz parse_ref()/add_hidden_link().
+Reference format "JmenoObjektu.JmenoVystupu" nebo
+"JmenoObjektu.JmenoVystupu(Index)" (GL3Export.OutputName, GL3Program
+composite in: parametry) - viz parse_ref()/add_hidden_link(). Index v
+zavorce (1 = prvni prvek) vybere JEDEN prvek z Array vystupu (napr.
+'TEHLO002.PO(10)') - hodi se, kdyz vstup/export ocekava jednotlivy
+composite prvek (napr. Point), ale zdrojovy vystup je cele pole. Bez
+zavorky se pouzije cely vystup tak, jak je (Array i jinak).
+
 Uzivatel vidi a edituje JEDNU textovou property (citelna, da se vlozit
 odkudkoli). Pod kapotou se ale drzi SKUTECNA App::PropertyLink na
 vyresolvovany objekt - DUVOD: FreeCAD si poradi recompute (kdo se ma
@@ -56,18 +62,33 @@ se vola SYNCHRONNE hned pri zmene property (i programove, ne jen z
 GUI), tedy jeste PRED tim, nez se vubec sestavi poradi pro dalsi
 recompute - zadne zpozdeni o cyklus."""
 
+import re
+
+_REF_RE = re.compile(r"^(?P<obj>[^.()]+)\.(?P<prop>[^.()]+)(?:\((?P<index>\d+)\))?$")
+
 
 def parse_ref(text):
-    """'JmenoObjektu.JmenoVystupu' -> (jmeno_objektu, jmeno_vystupu), oba
-    ostripovane. Vraci (None, None) pro prazdny retezec, chybejici tecku,
-    nebo prazdnou cast po ostripovani."""
-    if not text or "." not in text:
-        return None, None
-    obj_name, _, prop_name = text.partition(".")
-    obj_name, prop_name = obj_name.strip(), prop_name.strip()
+    """'JmenoObjektu.JmenoVystupu' nebo 'JmenoObjektu.JmenoVystupu(Index)'
+    -> (jmeno_objektu, jmeno_vystupu, index), kde index je bud kladne
+    cele cislo (1 = prvni prvek, tak jak ho zada uzivatel - odecteni na
+    0-based index si dela az volajici) nebo None, pokud zavorka nebyla
+    v textu vubec pouzita.
+
+    Vraci (None, None, None) pro prazdny retezec nebo cokoliv, co
+    neodpovida ocekavanemu formatu (chybejici tecka, prazdne jmeno
+    objektu/vystupu po ostripovani, neplatny obsah zavorky - ...)."""
+    if not text:
+        return None, None, None
+    m = _REF_RE.match(text.strip())
+    if not m:
+        return None, None, None
+    obj_name = m.group("obj").strip()
+    prop_name = m.group("prop").strip()
     if not obj_name or not prop_name:
-        return None, None
-    return obj_name, prop_name
+        return None, None, None
+    index_text = m.group("index")
+    index = int(index_text) if index_text is not None else None
+    return obj_name, prop_name, index
 
 
 def add_hidden_link(obj, name, group, doc):

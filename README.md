@@ -143,6 +143,7 @@ python3 -m gerlib.test_serialize       # serialization round-trip
 python3 -m gerlib.test_s01             # S01 (chordal) vs S03 (uniform) on real profile data
 python3 -m gl3fc.test_offline          # GL3Library/GL3Program, mocked FreeCAD
 python3 -m gl3fc.test_props_offline    # add_property() Hidden/ReadOnly status wiring
+python3 -m gl3fc.test_parse_ref_offline # parse_ref() incl. array-index '(N)' syntax
 python3 -m gl3fc.test_export_offline   # GL3Export dispatch + Bezier math (build_shape only)
 python3 -m gl3fc.test_gl3_export_offline    # GL3Export.execute() end-to-end ('Objekt.Vystup' reference + JSON parsing)
 python3 -m gl3fc.test_claim_children_offline    # GL3Export shows as GL3Program's tree child, incl. document-restore ordering race

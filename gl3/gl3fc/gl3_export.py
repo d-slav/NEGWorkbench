@@ -310,7 +310,8 @@ class GL3Export(object):
         add_property(
             obj, "App::PropertyString", "OutputName", "GL3",
             "Odkaz na composite vystup GL3 objektu ve formatu "
-            "'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO')",
+            "'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO'), volitelne s "
+            "indexem prvku pole '(N)' (1 = prvni), napr. 'TEHLO002.PO(1)'",
         )
         # Skryty Link, drzeny synchronizovany s OutputName pres onChanged()
         # (viz modulovy docstring) - NIKDY nenastavovat rucne, jen ke cteni.
@@ -331,7 +332,7 @@ class GL3Export(object):
         """Prepocita skryty Link 'Source' z aktualniho textu 'OutputName'."""
         if not hasattr(obj, "Source"):
             return  # jeste pred pridanim property (prvni radek __init__)
-        src_obj_name, _output_name = parse_ref(getattr(obj, "OutputName", "") or "")
+        src_obj_name, _output_name, _index = parse_ref(getattr(obj, "OutputName", "") or "")
         new_source = None
         if src_obj_name is not None and getattr(obj, "Document", None) is not None:
             new_source = obj.Document.getObject(src_obj_name)
@@ -344,12 +345,12 @@ class GL3Export(object):
         self._resync_source(obj)
 
         ref = getattr(obj, "OutputName", "") or ""
-        src_obj_name, output_name = parse_ref(ref)
+        src_obj_name, output_name, index = parse_ref(ref)
         if src_obj_name is None:
             raise ValueError(
                 "GL3Export '%s': OutputName musi byt ve formatu "
-                "'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO'), je: %r"
-                % (obj.Name, ref)
+                "'JmenoObjektu.JmenoVystupu' nebo 'JmenoObjektu.JmenoVystupu(Index)' "
+                "(napr. 'TEHLO002.PO' nebo 'TEHLO002.PO(1)'), je: %r" % (obj.Name, ref)
             )
 
         source = getattr(obj, "Source", None)
@@ -385,6 +386,22 @@ class GL3Export(object):
                 "slot) - exportovat lze jen composite vystupy GL3Programu"
                 % (obj.Name, output_name, source.Name)
             )
+
+        if index is not None:
+            if slot.get("type") != "Array":
+                raise ValueError(
+                    "GL3Export '%s': index '(%d)' v OutputName lze pouzit jen na "
+                    "Array vystup - '%s' na '%s' je typu '%s'"
+                    % (obj.Name, index, output_name, source.Name, slot.get("type"))
+                )
+            items = slot.get("items", [])
+            if not (1 <= index <= len(items)):
+                raise ValueError(
+                    "GL3Export '%s': index %d mimo rozsah - '%s' na '%s' ma %d "
+                    "prvku (index je od 1 = prvni prvek)"
+                    % (obj.Name, index, output_name, source.Name, len(items))
+                )
+            slot = items[index - 1]
 
         obj.Shape = build_shape(slot)
         # Realny Placement - GL3Program nese svuj lokalni souradny system,
