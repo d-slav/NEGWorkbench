@@ -29,6 +29,7 @@ _EXAMPLES_DIR = os.path.join(_HERE, "..", "examples")
 class FakeDocument(object):
     def __init__(self):
         self._objects = {}
+        self.recompute_calls = 0
 
     def register(self, obj):
         self._objects[obj.Name] = obj
@@ -36,6 +37,9 @@ class FakeDocument(object):
 
     def getObject(self, name):
         return self._objects.get(name)
+
+    def recompute(self):
+        self.recompute_calls += 1
 
 
 _TYPE_DEFAULTS = {
@@ -59,15 +63,20 @@ class FakeObj(object):
         object.__setattr__(self, "Proxy", None)
         object.__setattr__(self, "ViewObject", None)
         object.__setattr__(self, "_prop_types", {})
+        object.__setattr__(self, "_prop_groups", {})
 
     def addProperty(self, type_name, name, group=None, doc=None):
         if not hasattr(self, name):
             setattr(self, name, _TYPE_DEFAULTS.get(type_name))
         self._prop_types[name] = type_name
+        self._prop_groups[name] = group
         return self
 
     def setPropertyStatus(self, name, status):
         pass
+
+    def getGroupOfProperty(self, name):
+        return self._prop_groups.get(name)
 
     def __setattr__(self, name, value):
         object.__setattr__(self, name, value)
@@ -197,6 +206,33 @@ def main():
     except ValueError as e:
         assert "lze pouzit jen na Array" in str(e)
         print("_resolve_composite_input() s indexem na ne-Array vystupu: OK - jasna chyba (%s)" % e)
+
+    # --- 10) zmena vstupu (SourceFile/Library/GL3 In) rovnou spusti
+    # Document.recompute() - uzivatel nemusi po kazde zmene parametru
+    # rucne kliknout Refresh ---
+    calls_before = doc.recompute_calls
+    hlocut.DHLOUB = 12.5  # bezny skalarni "GL3 In" parametr
+    assert doc.recompute_calls == calls_before + 1, (
+        "zmena GL3 In property (DHLOUB) ma rovnou spustit Document.recompute()"
+    )
+    print("auto-recompute pri zmene GL3 In property (DHLOUB): OK")
+
+    calls_before = doc.recompute_calls
+    hlocut.SourceFile = "/neco/jineho.gl3"
+    assert doc.recompute_calls == calls_before + 1, (
+        "zmena SourceFile ma rovnou spustit Document.recompute()"
+    )
+    print("auto-recompute pri zmene SourceFile: OK")
+
+    # zmena vystupni (GL3 Out) property NEMA spustit recompute (ta se
+    # prece pocita AZ VYSLEDKEM recomputu, ne pricinou dalsiho)
+    hlocut.addProperty("App::PropertyString", "SO", "GL3 Out", "vystup")
+    calls_before = doc.recompute_calls
+    hlocut.SO = json.dumps({"defined": False})
+    assert doc.recompute_calls == calls_before, (
+        "zmena GL3 Out property NEMA spoustet dalsi recompute (jen vysledek, ne pricina)"
+    )
+    print("zadny auto-recompute pri zmene GL3 Out property: OK")
 
     print()
     print("VSE OK - composite 'in:' parametry (napr. HLOCUT.gl3 'P') se nyni spravne")

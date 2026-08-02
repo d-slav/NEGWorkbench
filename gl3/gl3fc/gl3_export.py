@@ -336,6 +336,13 @@ class GL3Export(object):
     def onChanged(self, obj, prop):
         if prop == "Input":
             self._resync_source(obj)
+            # Zmena vstupu ma rovnou spustit prepocet - jinak by uzivatel
+            # musel po kazde zmene Input rucne kliknout Refresh (viz
+            # stejny duvod v gl3_program.py GL3Program.onChanged()).
+            try:
+                obj.Document.recompute()
+            except AttributeError:
+                pass  # napr. objekt jeste neni plne pripojeny k dokumentu
 
     @staticmethod
     def _resync_source(obj):

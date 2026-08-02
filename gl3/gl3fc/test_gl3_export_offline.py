@@ -73,6 +73,7 @@ class FakeDocument(object):
     def __init__(self):
         self._objects = {}
         self._counter = 0
+        self.recompute_calls = 0
 
     def register(self, obj):
         self._objects[obj.Name] = obj
@@ -80,6 +81,9 @@ class FakeDocument(object):
 
     def getObject(self, name):
         return self._objects.get(name)
+
+    def recompute(self):
+        self.recompute_calls += 1
 
     def addObject(self, type_name, name):
         self._counter += 1

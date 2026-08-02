@@ -330,3 +330,56 @@ class CreateGL3ExportCommand(object):
 
 
 Gui.addCommand("NEG_CreateExport", CreateGL3ExportCommand())
+
+
+class ReloadGL3ProgramCommand(object):
+    """Prinuti vybrany GL3Program objekt znovu nacist a rozparsovat svuj
+    SourceFile a projit _sync_properties() - i kdyz FreeCAD sam o sobe
+    nema duvod si myslet, ze je objekt "touched" (zmena SOUBORU NA DISKU
+    mimo FreeCAD, napr. pridani noveho in:/out: parametru do SUBRO
+    hlavicky, se property SourceFile samotne netyka - jeji HODNOTA
+    (cesta) zustava stejna, takze FreeCAD zadnou zmenu nezaznamena a
+    execute() by se bez tohohle znovu nespustilo).
+
+    Bez tohohle prikazu je jedina cesta, jak donutit FreeCAD znovu
+    zavolat execute() po rucni editaci .GL3 souboru, rucni "Mark to
+    recompute" (pravym tlacitkem na objekt ve strome) + Refresh - tohle
+    je jen pohodlnejsi zkratka presne pro GL3Program."""
+
+    def GetResources(self):
+        return {
+            "Pixmap": os.path.join(_ICON_DIR, "program.svg"),
+            "MenuText": QT_TRANSLATE_NOOP("NEG_ReloadProgram", "Reload GL3 Program"),
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "NEG_ReloadProgram",
+                "Forces the selected GL3Program to re-read its SourceFile and "
+                "re-sync in/out properties - use after editing the .GL3 file "
+                "on disk (e.g. adding a new parameter) without needing to "
+                "delete and recreate the object.",
+            ),
+        }
+
+    def Activated(self):
+        sel = Gui.Selection.getSelection()
+        programs = [
+            o
+            for o in sel
+            if getattr(getattr(o, "Proxy", None), "Type", None) == "GL3Program"
+        ]
+        if len(programs) != 1:
+            App.Console.PrintError(
+                "NEG_ReloadProgram: vyber v Model strome prave jeden GL3Program "
+                "objekt (aktualne vybrano: %d).\n" % len(programs)
+            )
+            return None
+
+        obj = programs[0]
+        obj.touch()
+        obj.Document.recompute()
+        return obj
+
+    def IsActive(self):
+        return True
+
+
+Gui.addCommand("NEG_ReloadProgram", ReloadGL3ProgramCommand())

@@ -139,6 +139,26 @@ class GL3Program(object):
         if hasattr(obj, link_name):
             self._resync_composite_link(obj, prop)
 
+        # Auto-recompute: zmena VSTUPU (SourceFile/Library/GL3 In - vc.
+        # composite in: textove reference) ma rovnou spustit prepocet
+        # tohoto objektu (a tim padem i navazanych GL3Export, ktere na
+        # nem zavisi) - jinak by uzivatel musel po kazde zmene parametru
+        # rucne kliknout Refresh. Skryte "_Link" shadow property (viz
+        # vyse) vynechavame - to je interni bookkeeping, ne uzivatelska
+        # zmena, a uz se vyresilo pri resyncu radek vyse.
+        if prop.endswith("_Link"):
+            return
+        try:
+            group = obj.getGroupOfProperty(prop)
+        except AttributeError:
+            return
+        if group not in ("GL3", "GL3 In"):
+            return
+        try:
+            obj.Document.recompute()
+        except AttributeError:
+            pass  # napr. objekt jeste neni plne pripojeny k dokumentu
+
     @staticmethod
     def _shadow_link_name(param_name):
         return "%s_Link" % param_name

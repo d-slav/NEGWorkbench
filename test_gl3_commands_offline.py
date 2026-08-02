@@ -37,6 +37,7 @@ class FakeObj(object):
         self.Document = None
         self._prop_types = {}
         self._prop_groups = {}
+        self._touched = False
 
     def addProperty(self, type_name, name, group=None, doc=None):
         if not hasattr(self, name):
@@ -68,11 +69,15 @@ class FakeObj(object):
     def getTypeIdOfProperty(self, name):
         return self._prop_types.get(name)
 
+    def touch(self):
+        self._touched = True
+
 
 class FakeDocument(object):
     def __init__(self):
         self.Objects = []
         self._counter = 0
+        self.recompute_calls = 0
 
     def addObject(self, type_name, name):
         self._counter += 1
@@ -82,7 +87,7 @@ class FakeDocument(object):
         return obj
 
     def recompute(self):
-        pass
+        self.recompute_calls += 1
 
     def getObject(self, name):
         for obj in self.Objects:
@@ -309,6 +314,42 @@ def main():
 
     print()
     print("VSE OK - gl3_commands.CreateGL3ExportCommand funguje (offline, bez realneho FreeCADu).")
+
+    print()
+    print("--- ReloadGL3ProgramCommand ---")
+
+    reload_cmd = gl3_commands.ReloadGL3ProgramCommand()
+    res = reload_cmd.GetResources()
+    assert "Pixmap" in res and os.path.isfile(res["Pixmap"])
+    assert "MenuText" in res and "ToolTip" in res
+    print("GetResources(): OK (ikona nalezena na disku)")
+    assert reload_cmd.IsActive() is True
+
+    # nic neni vybrano -> jasna chyba, zadny objekt
+    FakeSelection._selection = []
+    assert reload_cmd.Activated() is None
+    print("Activated() bez vyberu: OK - nic se nestalo")
+
+    # vybran objekt, ktery neni GL3Program -> stejne tak
+    FakeSelection._selection = [obj]  # obj = GL3Library z testu vyse
+    assert reload_cmd.Activated() is None
+    print("Activated() s vyberem GL3Library (ne GL3Program): OK - nic se nestalo")
+
+    # vybran GL3Program -> touch() + Document.recompute()
+    prog_obj._touched = False  # reset (prog_obj uz mohl byt touchnuty drivejsimi testy vyse)
+    calls_before = prog_obj.Document.recompute_calls
+    FakeSelection._selection = [prog_obj]
+    result = reload_cmd.Activated()
+    assert result is prog_obj
+    assert prog_obj._touched is True, "Reload ma zavolat obj.touch()"
+    assert prog_obj.Document.recompute_calls == calls_before + 1, (
+        "Reload ma zavolat Document.recompute() - donuti tim execute() znovu "
+        "precist SourceFile a doplnit pripadny novy parametr"
+    )
+    print("Activated() s vybranym GL3Program: OK - touch() + Document.recompute() zavolany")
+
+    print()
+    print("VSE OK - gl3_commands.ReloadGL3ProgramCommand funguje (offline, bez realneho FreeCADu).")
 
 
 if __name__ == "__main__":

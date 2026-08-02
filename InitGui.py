@@ -95,7 +95,10 @@ class NEGWorkbench(Gui.Workbench):
 
         import gl3_commands  # noqa: F401 - registruje Gui.Command objekty
 
-        self.command_list = ["NEG_CreateLibrary", "NEG_CreateProgram", "NEG_CreateExport"]
+        self.command_list = [
+            "NEG_CreateLibrary", "NEG_CreateProgram", "NEG_CreateExport",
+            "NEG_ReloadProgram",
+        ]
         # Kontext "Workbench" je FreeCAD konvence pro appendMenu/appendToolbar
         # nazvy (viz Translating_an_external_workbench) - jednotlivé
         # prikazy maji svuj vlastni kontext (jmeno prikazu), viz
