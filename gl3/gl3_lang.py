@@ -582,7 +582,7 @@ def _parse_one(line, cursor):
         action_stmt = _parse_one(action_text.strip(), cursor)
         return IfShort("IF" + kind, parse_condition(cond_text), action_stmt)
 
-    known_commands = ("SCALE",)
+    known_commands = ("SCALE", "DCOOS3", "TRA23")
     for cmd in known_commands:
         if line.startswith(cmd + ","):
             rest = line[len(cmd) + 1:]

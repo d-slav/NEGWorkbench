@@ -27,6 +27,7 @@ from gl3_ops import (
     OPERATIONS, COMMANDS, Point, Curve, classify, NotYetImplemented,
     ARRAY_REF_OPS, builtin_constants,
 )
+from gerlib import define_coord_system3, transform3
 from gl3_analysis import get_param_directions, _is_identifier
 
 
@@ -77,6 +78,12 @@ class Interpreter:
         self.io_base_dir = io_base_dir
         self.io_channels = {}  # {0/1/2: {"file": fh, "path": str}} - nastaveno IDEV
         self._directions_cache = {}
+        # Souradnicove soustavy definovane DCOOS3 (viz gerlib.dcoos3) -
+        # {1..10: CoordSystem3}. Sdilene pres cely beh (vc. vnorenych CALL -
+        # jeden Interpreter = jeden beh hlavniho SUBRO), ale IZOLOVANE per
+        # beh - novy Interpreter() (= novy GL3Program.execute()) zacina
+        # vzdy s prazdnou sadou.
+        self.coordinate_systems = {}
 
     # ------------------------------------------------------------------
     # verejne API
@@ -339,7 +346,122 @@ class Interpreter:
                 result = fn(self, source_ref[k], factor)
                 self._set_indexed(target_array, target_start + k + 1, result)
             return
+
+        if stmt.name == "DCOOS3":
+            self._exec_dcoos3(stmt, env)
+            return
+
+        if stmt.name == "TRA23":
+            self._exec_tra23(stmt, env)
+            return
+
         raise KeyError("Neznamy prikaz '%s'" % stmt.name)
+
+    def _exec_dcoos3(self, stmt, env):
+        """DCOOS3,vi,vg1,vg2,vg3 - definice prostorove souradnicove
+        soustavy c. vi (1..10), viz gerlib.dcoos3.define_coord_system3()
+        pro vyznam vg1(pocatek)/vg2(smer x')/vg3(napoveda pro y')."""
+        if len(stmt.args) != 4:
+            raise SyntaxError(
+                "DCOOS3 ocekava presne 4 argumenty (vi,vg1,vg2,vg3), dostal %d"
+                % len(stmt.args)
+            )
+        vi_node, vg1_node, vg2_node, vg3_node = stmt.args
+
+        vi = int(round(self.eval_expr(vi_node, env)))
+        if not (1 <= vi <= 10):
+            raise ValueError(
+                "DCOOS3: cislo souradnicove soustavy musi byt v rozsahu "
+                "1..10, je %d" % vi
+            )
+
+        origin = self.eval_expr(vg1_node, env)
+        x_ref = self.eval_expr(vg2_node, env)
+        y_ref = self.eval_expr(vg3_node, env)
+
+        self.coordinate_systems[vi] = define_coord_system3(origin, x_ref, y_ref)
+
+    def _exec_tra23(self, stmt, env):
+        """TRA23,pg1,pg2,vi1,vi2 - transformace z roviny do prostoru pomoci
+        souradnicove soustavy vi2 (definovane driv prikazem DCOOS3).
+
+        Rozliseni pole (P(1),N -> Q(1), Fortran konvence jako SCALE/E01)
+        vs. jednotlivy objekt (cela Spline S -> T, vi1 se v tomhle
+        pripade netyka - viz specifikace 'Plati pouze pro pole') se
+        dela AZ ZA BEHU podle skutecne hodnoty pg2 (list, nebo ne),
+        protoze GL3 jazyk sam typ staticky nerozlisuje."""
+        if len(stmt.args) != 4:
+            raise SyntaxError(
+                "TRA23 ocekava presne 4 argumenty (pg1,pg2,vi1,vi2), dostal %d"
+                % len(stmt.args)
+            )
+        target_node, source_node, count_node, coord_id_node = stmt.args
+
+        if not isinstance(target_node, Var):
+            raise SyntaxError(
+                "TRA23 ocekava jako 1. argument jmeno pole/promenne (pripadne indexovane)"
+            )
+        if not isinstance(source_node, Var):
+            raise SyntaxError(
+                "TRA23 ocekava jako 2. argument jmeno pole/promenne (pripadne indexovane)"
+            )
+
+        coord_id = int(round(self.eval_expr(coord_id_node, env)))
+        coord_system = self.coordinate_systems.get(coord_id)
+        if coord_system is None:
+            raise ValueError(
+                "TRA23: souradnicova soustava c. %d nebyla definovana "
+                "(DCOOS3)" % coord_id
+            )
+
+        if source_node.name not in env:
+            raise NameError(
+                "Promenna '%s' nebyla pred pouzitim nastavena" % (source_node.name,)
+            )
+        source_value = env[source_node.name]
+
+        if isinstance(source_value, list):
+            # Pole (napr. P(1),N -> Q(1)) - stejna smycka jako SCALE.
+            count = int(round(self.eval_expr(count_node, env)))
+            source_ref = self._eval_array_ref(source_node, env)
+
+            if target_node.name not in env:
+                raise NameError(
+                    "Pole '%s' nebylo deklarovano (DIMEN) pred zapisem"
+                    % (target_node.name,)
+                )
+            target_array = env[target_node.name]
+            if not isinstance(target_array, list):
+                raise TypeError("TRA23: cil '%s' neni pole" % (target_node.name,))
+
+            target_start = (
+                0 if target_node.index is None
+                else int(round(self.eval_expr(target_node.index, env))) - 1
+            )
+            for k in range(count):
+                if k >= len(source_ref) or source_ref[k] is None:
+                    raise ValueError("TRA23: zdrojovy prvek c. %d neni definovan" % (k + 1))
+                result = transform3(source_ref[k], coord_system)
+                self._set_indexed(target_array, target_start + k + 1, result)
+            return
+
+        # Jednotlivy objekt (napr. cela Spline S -> T) - vi1 (count) se
+        # netyka, viz specifikace "Plati pouze pro pole".
+        if source_value is None:
+            raise ValueError(
+                "TRA23: zdrojova promenna '%s' neni definovana" % (source_node.name,)
+            )
+        result = transform3(source_value, coord_system)
+        if target_node.index is None:
+            env[target_node.name] = result
+        else:
+            if target_node.name not in env:
+                raise NameError(
+                    "Pole '%s' nebylo deklarovano (DIMEN) pred zapisem"
+                    % (target_node.name,)
+                )
+            idx = int(round(self.eval_expr(target_node.index, env)))
+            self._set_indexed(env[target_node.name], idx, result)
 
     def _exec_call(self, stmt, env):
         if stmt.name not in self.registry:

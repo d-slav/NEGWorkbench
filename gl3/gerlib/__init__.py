@@ -52,6 +52,8 @@ from .s03 import make_spline
 from .s01 import make_spline as make_spline1
 
 from .scale import scale
+from .dcoos3 import CoordSystem3, define_coord_system3
+from .tra23 import transform3, transform_point3, transform_vector3, transform_spline3
 
 __all__ = [
     "Point", "Vector", "Line", "Circle", "Plane", "Curve", "Spline",
@@ -66,4 +68,6 @@ __all__ = [
     "tangent_point", "tangent_point_from_line", "tangent_line",
     "make_spline", "make_spline1",
     "scale",
+    "CoordSystem3", "define_coord_system3",
+    "transform3", "transform_point3", "transform_vector3", "transform_spline3",
 ]
