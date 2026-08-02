@@ -27,7 +27,7 @@ nezavisle na tom, jestli vg2/vg3 byly uz normalizovane).
 """
 import math
 
-from .types import Point, Vector, Line
+from gerlib.types import Point, Vector, Line
 
 
 class CoordSystem3(object):

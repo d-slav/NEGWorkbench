@@ -122,6 +122,31 @@ END
     assert 5 not in interp6b.coordinate_systems
     print("Souradnicove soustavy: OK - izolovane mezi ruznymi behy (novy Interpreter())")
 
+    # --- 7) Q00/U00 pouzite primo v GL3 zdroji (misto builtin konstant) -
+    # definice souradnicove soustavy pomoci bodu/vektoru sestavenych za
+    # behu z cisel, ne z predpripravenych konstant Q0/UX/UY. ---
+    src_q00_u00 = """
+SUBRO/TQ00U00/in:P(1),out:Q(1)
+DIMEN,Q(1)
+QC=Q00>10.0,20.0,30.0
+UEX=U00>1.0,0.0,0.0
+UEY=U00>0.0,1.0,0.0
+DCOOS3,4,QC,UEX,UEY
+TRA23,Q(1),P(1),1,4
+RETSUB
+END
+"""
+    subdef7 = parse_program(src_q00_u00)
+    interp7 = Interpreter()
+    env7 = interp7.run(subdef7, {"P": [Point(5.0, 3.0, 0.0)]})
+    q7 = env7["Q"]
+    # origin (10,20,30) + 5*ex(1,0,0) + 3*ey(0,1,0) = (15, 23, 30)
+    _assert_close(q7[0].x, 15.0, "Q00/U00 v GL3 zdroji - Q(1).x")
+    _assert_close(q7[0].y, 23.0, "Q00/U00 v GL3 zdroji - Q(1).y")
+    _assert_close(q7[0].z, 30.0, "Q00/U00 v GL3 zdroji - Q(1).z")
+    print("Q00/U00 pouzite primo v GL3 zdroji (QC/UEX/UEY sestavene z cisel): OK - Q(1) = (%r, %r, %r)"
+          % (q7[0].x, q7[0].y, q7[0].z))
+
     print()
     print("VSE OK - DCOOS3/TRA23 funguji na urovni skutecneho GL3 zdrojoveho textu.")
 

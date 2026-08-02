@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-test_dcoos3_tra23.py - overuje gerlib.dcoos3/tra23 (cista geometrie,
+test_dcoos3_tra23.py - overuje geplib.dcoos3/tra23 (cista geometrie,
 zadna zavislost na GL3 interpretru ani FreeCADu).
 """
 import math
@@ -9,11 +9,12 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from gerlib import (
-    Point, Vector, Line,
-    define_coord_system3, transform_point3, transform_vector3, transform_spline3,
-)
+from gerlib import Point, Vector, Line
 from gerlib.types import Spline
+from geplib import (
+    define_coord_system3, transform_point3, transform_vector3, transform_spline3,
+    make_point3, make_vector3,
+)
 
 
 def _assert_close(a, b, msg, eps=1e-9):
@@ -124,8 +125,15 @@ def main():
     assert world_spline.closed is False
     print("transform_spline3(): OK - transformuje body+tecny, zachova metadata (opcode/param./closed)")
 
+    # --- 8) Q00/U00 - bod/vektor tremi souradnicemi/slozkami ---
+    q = make_point3(1.5, -2.0, 3.25)
+    _assert_point_close(q, 1.5, -2.0, 3.25, "make_point3() (Q00)")
+    u = make_vector3(0.0, 1.0, 0.0)
+    _assert_point_close(u, 0.0, 1.0, 0.0, "make_vector3() (U00)")
+    print("make_point3()/make_vector3() (Q00/U00): OK")
+
     print()
-    print("VSE OK - DCOOS3/TRA23 geometrie (gerlib.dcoos3/gerlib.tra23) je spravna.")
+    print("VSE OK - DCOOS3/TRA23 geometrie (geplib.dcoos3/geplib.tra23) je spravna.")
 
 
 if __name__ == "__main__":

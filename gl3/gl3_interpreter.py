@@ -27,7 +27,7 @@ from gl3_ops import (
     OPERATIONS, COMMANDS, Point, Curve, classify, NotYetImplemented,
     ARRAY_REF_OPS, builtin_constants,
 )
-from gerlib import define_coord_system3, transform3
+from geplib import define_coord_system3, transform3
 from gl3_analysis import get_param_directions, _is_identifier
 
 

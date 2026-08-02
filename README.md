@@ -56,7 +56,13 @@ gl3/
     gl3_analysis.py      - in:/out: parameter direction analysis
     gerlib/             - standalone 2D/3D geometry library (no GL-3/FreeCAD
                           dependency), one file per operation, named after
-                          the original GL-3 opcode
+                          the original GL-3 opcode (ported from Fortran
+                          where source is available)
+    geplib/             - spatial (3D) GL-3 commands with no original
+                          Fortran source available (DCOOS3, TRA23, Q00,
+                          U00, ...), implemented directly from the
+                          language specification; uses gerlib.types
+                          (Point/Vector/...) for the underlying geometry
     gl3fc/               - FreeCAD integration layer:
         gl3_library.py   - GL3Library: search paths for called subroutines
         gl3_program.py   - GL3Program: FeaturePython object running one
@@ -141,7 +147,7 @@ cd gl3
 python3 gl3_test.py                    # interpreter regression tests
 python3 -m gerlib.test_serialize       # serialization round-trip
 python3 -m gerlib.test_s01             # S01 (chordal) vs S03 (uniform) on real profile data
-python3 test_dcoos3_tra23.py           # DCOOS3/TRA23 pure geometry (gerlib only)
+python3 test_dcoos3_tra23.py           # DCOOS3/TRA23/Q00/U00 pure geometry (geplib)
 python3 test_dcoos3_tra23_interpreter.py # DCOOS3/TRA23 on real GL3 source (parse_program + Interpreter.run())
 python3 -m gl3fc.test_offline          # GL3Library/GL3Program, mocked FreeCAD
 python3 -m gl3fc.test_props_offline    # add_property() Hidden/ReadOnly status wiring

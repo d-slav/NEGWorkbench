@@ -34,6 +34,10 @@ from gerlib import (
     make_spline1 as _gerlib_make_spline1,
     builtin_constants as _gerlib_builtin_constants,
 )
+from geplib import (
+    make_point3 as _geplib_make_point3,
+    make_vector3 as _geplib_make_vector3,
+)
 
 
 def builtin_constants():
@@ -218,6 +222,16 @@ def _op_s03(points_ref, k, *rest):
     return _gerlib_make_spline(points_ref, k, v1, vk, n)
 
 
+def _op_q00(d1, d2, d3):
+    """Q00: QM=Q00>D1,D2,D3 - bod tremi souradnicemi, viz geplib.q00."""
+    return _geplib_make_point3(d1, d2, d3)
+
+
+def _op_u00(d1, d2, d3):
+    """U00: UM=U00>D1,D2,D3 - vektor tremi slozkami, viz geplib.u00."""
+    return _geplib_make_vector3(d1, d2, d3)
+
+
 # Opcody, ktere v puvodnim Fortranu ocekavaji "adresu prvniho prvku pole"
 # (zapis 'P(1),N' = precti N prvku pole P pocinaje P(1)) - interpret jim
 # proto misto jednoho vyhodnoceneho bodu preda cele podpole (viz
@@ -280,6 +294,10 @@ OPERATIONS = {
     "E01": _op_e01,
     "E45": _stub("E45", "diskretizace krivky na retezec s danou presnosti / vyrez segmentu"),
     "NPO": _stub("NPO", "pocet bodu krivky/retezce"),
+
+    # --- prostorove (3D) - viz geplib ---
+    "Q00": _op_q00,
+    "U00": _op_u00,
 
     # --- ostatni ---
     "ABS": lambda x: abs(x),  # obycejna absolutni hodnota - neni potreba Fortran

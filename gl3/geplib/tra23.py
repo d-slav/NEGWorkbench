@@ -14,7 +14,7 @@ jazykove specifikace prikazu (viz zadani uzivatele):
           _exec_tra23 v gl3_interpreter.py: rozliseni pole/jednotlivy
           objekt se dela za behu podle skutecne hodnoty pg2, ne staticky).
     vi2 = cislo souradnicove soustavy definovane driv prikazem DCOOS3
-          (viz gerlib.dcoos3).
+          (viz geplib.dcoos3).
 
 Podporovane typove dvojice (viz tabulka v zadani uzivatele) - ZATIM jen
 to, co je momentalne potreba, dalsi pribudou stejnym zpusobem, az budou
@@ -29,7 +29,7 @@ proto proste: bod_zakladni = origin + x*ex + y*ey + z*ez. Smerove
 veliciny (tecny vektory krivky) se transformuji BEZ pocatku (jen
 rotace): vektor_zakladni = x*ex + y*ey + z*ez.
 """
-from .types import Point, Vector, Spline
+from gerlib.types import Point, Vector, Spline
 
 
 def transform_point3(point, coord_system):
