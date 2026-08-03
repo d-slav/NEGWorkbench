@@ -181,7 +181,9 @@ class GL3Program(object):
     # Synchronizace property podle SUBRO hlavicky
     # -----------------------------------------------------------------
     def _sync_properties(self, obj, subdef):
+        current_names = set()
         for name, _size, direction in subdef.params:
+            current_names.add(name)
             kind, native_type = classify(name)
 
             if direction == "in":
@@ -194,8 +196,10 @@ class GL3Program(object):
                         "'TEHLO002.PO(1)'" % name
                     )
                     add_property(obj, "App::PropertyString", name, group, doc)
+                    link_name = self._shadow_link_name(name)
+                    current_names.add(link_name)
                     add_hidden_link(
-                        obj, self._shadow_link_name(name), group,
+                        obj, link_name, group,
                         "(interni) automaticky odvozeny odkaz pro vstup '%s' - "
                         "nemenit rucne, slouzi jen FreeCAD dependency grafu pro "
                         "spravne poradi recompute" % name,
@@ -211,6 +215,33 @@ class GL3Program(object):
                     native_type = "App::PropertyString"
 
             add_property(obj, native_type, name, group, doc, read_only=(direction == "out"))
+
+        self._remove_stale_properties(obj, current_names)
+
+    @staticmethod
+    def _remove_stale_properties(obj, current_names):
+        """Odstrani GL3 In/Out property (vc. shadow '_Link'), ktere uz
+        nejsou v aktualni SUBRO hlavicce - reaguje na SMAZANI parametru
+        ze zdrojoveho .GL3 souboru (viz "Reload GL3 Program"). Property
+        skupiny "GL3" (SourceFile, Library) se nikdy neodstranuji - ty
+        nejsou odvozene z hlavicky."""
+        try:
+            properties = list(obj.PropertiesList)
+        except AttributeError:
+            return
+        for name in properties:
+            if name in current_names:
+                continue
+            try:
+                group = obj.getGroupOfProperty(name)
+            except AttributeError:
+                continue
+            if group not in ("GL3 In", "GL3 Out"):
+                continue
+            try:
+                obj.removeProperty(name)
+            except AttributeError:
+                pass
 
     # -----------------------------------------------------------------
     # Vstupy pro Interpreter.run()

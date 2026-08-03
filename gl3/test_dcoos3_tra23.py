@@ -10,10 +10,10 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 
 from gerlib import Point, Vector, Line
-from gerlib.types import Spline
+from gerlib.types import Spline, Curve
 from geplib import (
     define_coord_system3, transform_point3, transform_vector3, transform_spline3,
-    make_point3, make_vector3,
+    transform_curve3, make_point3, make_vector3,
 )
 
 
@@ -131,6 +131,28 @@ def main():
     u = make_vector3(0.0, 1.0, 0.0)
     _assert_point_close(u, 0.0, 1.0, 0.0, "make_vector3() (U00)")
     print("make_point3()/make_vector3() (Q00/U00): OK")
+
+    # --- 9) transform_curve3 (E->H) - retezec (Curve) ---
+    cs9 = define_coord_system3(
+        Point(10.0, 20.0, 30.0), Vector(0.0, 1.0, 0.0), Vector(-1.0, 1.0, 0.0)
+    )  # stejna otocena soustava jako scenar 5
+    plane_curve = Curve(
+        points=[Point(0.0, 0.0, 0.0), Point(5.0, 3.0, 0.0)],
+        closed=False,
+        indices=[1, 2],
+        is_end=[False, True],
+        eps=0.001,
+    )
+    world_curve = transform_curve3(plane_curve, cs9)
+    assert isinstance(world_curve, Curve)
+    _assert_point_close(world_curve.points[0], 10.0, 20.0, 30.0, "retezec bod 0 (origin)")
+    # bod (5,3,0) transformovan uz overen ve scenari 5 na (7,25,30)
+    _assert_point_close(world_curve.points[1], 7.0, 25.0, 30.0, "retezec bod 1")
+    assert world_curve.closed is False
+    assert world_curve.indices == [1, 2]
+    assert world_curve.is_end == [False, True]
+    _assert_close(world_curve.eps, 0.001, "eps se nemeni (cista rotace+posun, zadne meritko)")
+    print("transform_curve3() (E->H): OK - transformuje body, zachova topologii (indices/is_end/eps)")
 
     print()
     print("VSE OK - DCOOS3/TRA23 geometrie (geplib.dcoos3/geplib.tra23) je spravna.")

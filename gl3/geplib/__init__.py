@@ -21,12 +21,15 @@ Pouziti:
 """
 
 from .dcoos3 import CoordSystem3, define_coord_system3
-from .tra23 import transform3, transform_point3, transform_vector3, transform_spline3
+from .tra23 import (
+    transform3, transform_point3, transform_vector3, transform_spline3, transform_curve3,
+)
 from .q00 import make_point3
 from .u00 import make_vector3
 
 __all__ = [
     "CoordSystem3", "define_coord_system3",
     "transform3", "transform_point3", "transform_vector3", "transform_spline3",
+    "transform_curve3",
     "make_point3", "make_vector3",
 ]

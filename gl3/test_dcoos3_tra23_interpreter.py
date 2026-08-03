@@ -9,7 +9,7 @@ import math
 from gl3_lang import parse_program
 from gl3_interpreter import Interpreter
 from gerlib import Point, Vector
-from gerlib.types import Spline
+from gerlib.types import Spline, Curve
 
 
 def _assert_close(a, b, msg, eps=1e-9):
@@ -146,6 +146,30 @@ END
     _assert_close(q7[0].z, 30.0, "Q00/U00 v GL3 zdroji - Q(1).z")
     print("Q00/U00 pouzite primo v GL3 zdroji (QC/UEX/UEY sestavene z cisel): OK - Q(1) = (%r, %r, %r)"
           % (q7[0].x, q7[0].y, q7[0].z))
+
+    # --- 8) retezec E -> H (jednotlivy objekt, jako S->T) ---
+    src_chain = """
+SUBRO/TTRA23E/in:E,out:H
+DCOOS3,3,Q0,UX,UY
+TRA23,H,E,0,3
+RETSUB
+END
+"""
+    subdef8 = parse_program(src_chain)
+    interp8 = Interpreter()
+    plane_chain = Curve(
+        points=[Point(0.0, 0.0, 0.0), Point(2.0, 1.0, 0.0)],
+        closed=False,
+        indices=[1, 2],
+        is_end=[False, True],
+        eps=0.001,
+    )
+    env8 = interp8.run(subdef8, {"E": plane_chain})
+    h = env8["H"]
+    assert isinstance(h, Curve)
+    _assert_close(h.points[1].x, 2.0, "H bod 1 x"); _assert_close(h.points[1].y, 1.0, "H bod 1 y")
+    assert h.closed is False and h.indices == [1, 2] and h.is_end == [False, True]
+    print("DCOOS3+TRA23 (retezec E->H, identicka soustava): OK - topologie zachovana")
 
     print()
     print("VSE OK - DCOOS3/TRA23 funguji na urovni skutecneho GL3 zdrojoveho textu.")

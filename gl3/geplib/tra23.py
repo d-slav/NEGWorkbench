@@ -21,6 +21,7 @@ to, co je momentalne potreba, dalsi pribudou stejnym zpusobem, az budou
 potreba:
     P -> Q   (bod)
     S -> T   (krivka)
+    E -> H   (retezec - diskretizovana krivka, viz gerlib.types.Curve)
 
 Rovinny bod/krivka (P/S) nese souradnice (x, y[, z=0 - Point/Vector v
 gerlib nesou z vzdy, pro 2D objekty nepouzite]) jako MISTNI souradnice
@@ -29,7 +30,7 @@ proto proste: bod_zakladni = origin + x*ex + y*ey + z*ez. Smerove
 veliciny (tecny vektory krivky) se transformuji BEZ pocatku (jen
 rotace): vektor_zakladni = x*ex + y*ey + z*ez.
 """
-from gerlib.types import Point, Vector, Spline
+from gerlib.types import Point, Vector, Spline, Curve
 
 
 def transform_point3(point, coord_system):
@@ -78,16 +79,34 @@ def transform_spline3(spline, coord_system):
     )
 
 
+def transform_curve3(curve, coord_system):
+    """Retezec (Curve - diskretizovana krivka, viz E01/gerlib.types.Curve)
+    - transformuje vsechny body. closed/indices/is_end/eps se prenasi
+    beze zmeny (indices/is_end/closed popisuji topologii retezce, eps je
+    delkova tolerance - nase transformace je cista rotace+posun, zadne
+    meritko, takze tolerance zustava platna beze zmeny)."""
+    points = [transform_point3(p, coord_system) for p in curve.points]
+    return Curve(
+        points,
+        closed=curve.closed,
+        indices=list(curve.indices),
+        is_end=list(curve.is_end),
+        eps=curve.eps,
+    )
+
+
 def transform3(value, coord_system):
     """Dispatch podle skutecneho gerlib typu hodnoty (GL3 prefix - P vs.
-    Q, S vs. T - uz interpret vyresil pri cteni/zapisu promenne; tady
-    rozhoduje jen skutecny Python typ). Rozsirit, az pribudou dalsi
-    dvojice z tabulky (V->U, L->M, C->G, E->H)."""
+    Q, S vs. T, E vs. H - uz interpret vyresil pri cteni/zapisu
+    promenne; tady rozhoduje jen skutecny Python typ). Rozsirit, az
+    pribudou dalsi dvojice z tabulky (V->U, L->M, C->G)."""
     if isinstance(value, Point):
         return transform_point3(value, coord_system)
     if isinstance(value, Spline):
         return transform_spline3(value, coord_system)
+    if isinstance(value, Curve):
+        return transform_curve3(value, coord_system)
     raise TypeError(
         "TRA23: transformace typu '%s' zatim neni podporovana (jen bod "
-        "P->Q a krivka S->T)" % (type(value).__name__,)
+        "P->Q, krivka S->T a retezec E->H)" % (type(value).__name__,)
     )

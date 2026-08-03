@@ -78,6 +78,17 @@ class FakeObj(object):
     def getGroupOfProperty(self, name):
         return self._prop_groups.get(name)
 
+    @property
+    def PropertiesList(self):
+        return list(self._prop_types.keys())
+
+    def removeProperty(self, name):
+        if hasattr(self, name):
+            object.__delattr__(self, name)
+        self._prop_types.pop(name, None)
+        self._prop_groups.pop(name, None)
+        return True
+
     def __setattr__(self, name, value):
         object.__setattr__(self, name, value)
         proxy = object.__getattribute__(self, "Proxy")
@@ -233,6 +244,34 @@ def main():
         "zmena GL3 Out property NEMA spoustet dalsi recompute (jen vysledek, ne pricina)"
     )
     print("zadny auto-recompute pri zmene GL3 Out property: OK")
+
+    # --- 11) parametr ODEBRANY ze SUBRO hlavicky se ma odstranit i z
+    # objektu (drive zustaval "viset" navzdy, i po smazani z .GL3
+    # souboru a rucnim "Reload GL3 Program") ---
+    src_with_extra = (
+        "SUBRO/TSTALE/in:I,in:P(2),in:DHLOUB,in:DSIRKA,in:DEXTRA,out:SO\r\n"
+        "*\r\nSO=S03>P(1),I\r\nRETSUB\r\nEND\r\n"
+    )
+    subdef_extra = parse_program(src_with_extra)
+    proxy._sync_properties(hlocut, subdef_extra)
+    assert "DEXTRA" in hlocut._prop_types, "DEXTRA se mela pridat (docasne, simuluje puvodni SUBRO verzi)"
+
+    # "uzivatel odebral DEXTRA ze zdrojoveho souboru" - dalsi _sync_properties()
+    # (napr. pres "Reload GL3 Program") uz dostane HLAVICKU BEZ DEXTRA:
+    proxy._sync_properties(hlocut, subdef)  # puvodni HLOCUT hlavicka (bez DEXTRA)
+    assert "DEXTRA" not in hlocut._prop_types, (
+        "DEXTRA uz neni v SUBRO hlavicce - _sync_properties() ho mela odstranit"
+    )
+    assert not hasattr(hlocut, "DEXTRA"), "i samotny atribut DEXTRA ma zmizet"
+    # ostatni parametry (vc. P a jeho shadow P_Link) zustavaji beze zmeny
+    assert "P" in hlocut._prop_types and "P_Link" in hlocut._prop_types
+    assert "I" in hlocut._prop_types and "DHLOUB" in hlocut._prop_types
+    print("Odebrany parametr (DEXTRA) se spravne odstrani z objektu pri dalsim _sync_properties(): OK")
+
+    # property skupiny "GL3" (SourceFile/Library) se NIKDY neodstranuji,
+    # i kdyz nejsou soucasti "current_names" (nejsou to SUBRO parametry)
+    assert "SourceFile" in hlocut._prop_types and "Library" in hlocut._prop_types
+    print("Property skupiny 'GL3' (SourceFile/Library) zustavaji zachovany: OK")
 
     print()
     print("VSE OK - composite 'in:' parametry (napr. HLOCUT.gl3 'P') se nyni spravne")

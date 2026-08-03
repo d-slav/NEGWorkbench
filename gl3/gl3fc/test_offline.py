@@ -40,12 +40,31 @@ class FakeObj(object):
         self.Proxy = None
         self.ViewObject = None
         self._prop_types = {}
+        self._prop_groups = {}
 
     def addProperty(self, type_name, name, group=None, doc=None):
         if not hasattr(self, name):
             setattr(self, name, _TYPE_DEFAULTS.get(type_name))
         self._prop_types[name] = type_name
+        self._prop_groups[name] = group
         return self
+
+    def removeProperty(self, name):
+        if hasattr(self, name):
+            delattr(self, name)
+        self._prop_types.pop(name, None)
+        self._prop_groups.pop(name, None)
+        return True
+
+    @property
+    def PropertiesList(self):
+        return list(self._prop_types.keys())
+
+    def getGroupOfProperty(self, name):
+        return self._prop_groups.get(name)
+
+    def getTypeIdOfProperty(self, name):
+        return self._prop_types.get(name)
 
 
 def main():

@@ -69,6 +69,13 @@ class FakeObj(object):
     def getTypeIdOfProperty(self, name):
         return self._prop_types.get(name)
 
+    def removeProperty(self, name):
+        if hasattr(self, name):
+            delattr(self, name)
+        self._prop_types.pop(name, None)
+        self._prop_groups.pop(name, None)
+        return True
+
     def touch(self):
         self._touched = True
 
