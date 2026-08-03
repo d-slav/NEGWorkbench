@@ -36,12 +36,14 @@ from .d10 import point_point
 from .d11 import point_line
 from .d20 import vector_magnitude
 from .d30 import get_component
+from .d31 import index_parameter
 from .d40 import triangle_area
 from .d41 import triangle_area_from_lines
 from .d42 import triangle_area_signed
 from .d43 import circle_area
 
 from .p10 import offset_point
+from .p13 import interpolate_point
 from .p20 import line_intersection
 
 from .e01 import make_chain, tangent_point_on_chain
@@ -59,9 +61,9 @@ __all__ = [
     "unit_vector", "polar_angle_deg", "angle_between_deg",
     "is_zero_vector", "solve_tridiagonal", "tangent_vectors", "tangent_vectors_chordal",
     "sum_or_diff", "product_or_quotient",
-    "point_point", "point_line", "vector_magnitude", "get_component",
+    "point_point", "point_line", "vector_magnitude", "get_component", "index_parameter",
     "triangle_area", "triangle_area_signed", "triangle_area_from_lines", "circle_area",
-    "offset_point", "line_intersection",
+    "offset_point", "interpolate_point", "line_intersection",
     "make_chain", "tangent_point_on_chain",
     "tangent_point", "tangent_point_from_line", "tangent_line",
     "make_spline", "make_spline1",

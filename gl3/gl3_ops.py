@@ -29,7 +29,9 @@ from gerlib import (
     triangle_area, triangle_area_signed, triangle_area_from_lines, circle_area,
     scale as _gerlib_scale,
     get_component as _gerlib_get_component,
+    index_parameter as _gerlib_index_parameter,
     offset_point as _gerlib_offset_point,
+    interpolate_point as _gerlib_interpolate_point,
     make_spline as _gerlib_make_spline,
     make_spline1 as _gerlib_make_spline1,
     builtin_constants as _gerlib_builtin_constants,
@@ -189,6 +191,11 @@ def _op_d30(pg, k):
     return _gerlib_get_component(pg, k)
 
 
+def _op_d31(curve_or_spline, point):
+    """D31: DM=D31>E,P / DM=D31>S,P - indexparametr bodu na retezci/krivce."""
+    return _gerlib_index_parameter(curve_or_spline, point)
+
+
 def _op_p20(line1, line2):
     """P20 (interne P120): prusecik dvou primek."""
     return line_intersection(line1, line2)
@@ -202,6 +209,11 @@ def _op_d41(line1, line2, line3):
 def _op_p10(point, dx, dy):
     """P10 (interne P110): bod posunuty o prirustky (dx, dy)."""
     return _gerlib_offset_point(point, dx, dy)
+
+
+def _op_p13(p1, p2, t):
+    """P13 (interne P113): bod deli usecku v danem pomeru t (0..1)."""
+    return _gerlib_interpolate_point(p1, p2, t)
 
 
 def _op_s01(points_ref, k, *rest):
@@ -259,6 +271,7 @@ OPERATIONS = {
     "D20": _op_d20,
     "D27": _stub("D27", "delka kruhoveho oblouku - potrebuje jeste A512.FOR (D627.FOR ho vola)"),
     "D30": _op_d30,
+    "D31": _op_d31,
     "D40": _op_d40,
     "D41": _op_d41,
     "D42": _op_d42,
@@ -267,7 +280,7 @@ OPERATIONS = {
 
     # --- body ---
     "P10": _op_p10,
-    "P13": _stub("P13", "vazeny prumer/stred dvou bodu s parametrem 0..1"),
+    "P13": _op_p13,
     "P22": _stub("P22", "N-ty prusecik primky s krivkou"),
     "P42": _stub("P42", "nejblizsi/projekcni bod na krivce v danem segmentu"),
     "P44": _stub("P44", "odpovidajici bod na jine krivce (projekce?)"),
