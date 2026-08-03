@@ -27,6 +27,9 @@ from gerlib import (
     point_point, point_line, vector_magnitude,
     line_intersection,
     line_through_point as _gerlib_line_through_point,
+    copy_point as _gerlib_copy_point,
+    copy_circle as _gerlib_copy_circle,
+    circle_center as _gerlib_circle_center,
     triangle_area, triangle_area_signed, triangle_area_from_lines, circle_area,
     scale as _gerlib_scale,
     get_component as _gerlib_get_component,
@@ -148,6 +151,21 @@ def _op_l46(line, curve, k):
 def _op_l02(point, direction):
     """L02: LM=L02>P,V - viz gerlib.line_through_point (L302.FOR)."""
     return _gerlib_line_through_point(point, direction)
+
+
+def _op_p49(point):
+    """P49: PM=P49>>P< - viz gerlib.copy_point (hodnotova kopie bodu)."""
+    return _gerlib_copy_point(point)
+
+
+def _op_c49(circle):
+    """C49: CM=C49>>C< - viz gerlib.copy_circle (hodnotova kopie kruznice)."""
+    return _gerlib_copy_circle(circle)
+
+
+def _op_p47(circle):
+    """P47: PM=P47>C - viz gerlib.circle_center (stred kruznice)."""
+    return _gerlib_circle_center(circle)
 
 
 def _op_d01(x1, x2, k):
@@ -290,9 +308,9 @@ OPERATIONS = {
     "P22": _stub("P22", "N-ty prusecik primky s krivkou"),
     "P42": _stub("P42", "nejblizsi/projekcni bod na krivce v danem segmentu"),
     "P44": _stub("P44", "odpovidajici bod na jine krivce (projekce?)"),
-    "P47": _stub("P47", "stred kruznice"),
+    "P47": _op_p47,
     "P48": _stub("P48", "N-ty bod krivky/retezce podle indexu"),
-    "P49": _stub("P49", "kopie hodnoty bodu (viz vysvetleni uzivatele - ekvivalent prirazeni)"),
+    "P49": _op_p49,
     "P85": _op_p85,
     "P86": _op_p86,
 
@@ -305,7 +323,7 @@ OPERATIONS = {
 
     # --- kruznice ---
     "C02": _stub("C02", "kruznice danymi 3 body"),
-    "C49": _stub("C49", "kopie hodnoty kruznice (ekvivalent P49, jen pro kruznici)"),
+    "C49": _op_c49,
 
     # --- krivky / retezce ---
     "S01": _op_s01,
