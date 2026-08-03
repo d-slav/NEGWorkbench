@@ -23,6 +23,7 @@ from .types import Point, Vector, Line, Circle, Plane, Curve, Spline
 from .constants import builtin_constants
 
 from .v220 import unit_vector
+from .v221 import canonical_unit_vector
 from .a521 import polar_angle_deg
 from .a510 import angle_between_deg
 from .vnorm import is_zero_vector
@@ -45,6 +46,7 @@ from .d43 import circle_area
 from .p10 import offset_point
 from .p13 import interpolate_point
 from .p20 import line_intersection
+from .l02 import line_through_point
 
 from .e01 import make_chain, tangent_point_on_chain
 from .p85 import tangent_point
@@ -58,12 +60,12 @@ from .scale import scale
 __all__ = [
     "Point", "Vector", "Line", "Circle", "Plane", "Curve", "Spline",
     "builtin_constants",
-    "unit_vector", "polar_angle_deg", "angle_between_deg",
+    "unit_vector", "canonical_unit_vector", "polar_angle_deg", "angle_between_deg",
     "is_zero_vector", "solve_tridiagonal", "tangent_vectors", "tangent_vectors_chordal",
     "sum_or_diff", "product_or_quotient",
     "point_point", "point_line", "vector_magnitude", "get_component", "index_parameter",
     "triangle_area", "triangle_area_signed", "triangle_area_from_lines", "circle_area",
-    "offset_point", "interpolate_point", "line_intersection",
+    "offset_point", "interpolate_point", "line_intersection", "line_through_point",
     "make_chain", "tangent_point_on_chain",
     "tangent_point", "tangent_point_from_line", "tangent_line",
     "make_spline", "make_spline1",

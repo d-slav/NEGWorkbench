@@ -26,6 +26,7 @@ from gerlib import (
     sum_or_diff, product_or_quotient,
     point_point, point_line, vector_magnitude,
     line_intersection,
+    line_through_point as _gerlib_line_through_point,
     triangle_area, triangle_area_signed, triangle_area_from_lines, circle_area,
     scale as _gerlib_scale,
     get_component as _gerlib_get_component,
@@ -142,6 +143,11 @@ def _op_p86(line, curve, k):
 def _op_l46(line, curve, k):
     """L46: LM=L46>L,E,K - viz gerlib.tangent_line."""
     return tangent_line(line, curve, k)
+
+
+def _op_l02(point, direction):
+    """L02: LM=L02>P,V - viz gerlib.line_through_point (L302.FOR)."""
+    return _gerlib_line_through_point(point, direction)
 
 
 def _op_d01(x1, x2, k):
@@ -291,7 +297,7 @@ OPERATIONS = {
     "P86": _op_p86,
 
     # --- primky ---
-    "L02": _stub("L02", "primka bodem ve smeru vektoru"),
+    "L02": _op_l02,
     "L20": _stub("L20", "rovnobezna primka posunuta o danou vzdalenost"),
     "L45": _stub("L45", "primka kolma na neco (?) - pouzito pri vypoctu delky tetivy"),
     "L46": _op_l46,
