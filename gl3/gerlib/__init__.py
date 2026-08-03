@@ -50,6 +50,8 @@ from .l02 import line_through_point
 from .p49 import copy_point
 from .c49 import copy_circle
 from .p47 import circle_center
+from .l343 import perpendicular_bisector
+from .c02 import circle_from_3_points
 
 from .e01 import make_chain, tangent_point_on_chain
 from .p85 import tangent_point
@@ -70,6 +72,7 @@ __all__ = [
     "triangle_area", "triangle_area_signed", "triangle_area_from_lines", "circle_area",
     "offset_point", "interpolate_point", "line_intersection", "line_through_point",
     "copy_point", "copy_circle", "circle_center",
+    "perpendicular_bisector", "circle_from_3_points",
     "make_chain", "tangent_point_on_chain",
     "tangent_point", "tangent_point_from_line", "tangent_line",
     "make_spline", "make_spline1",

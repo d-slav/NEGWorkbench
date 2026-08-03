@@ -30,6 +30,7 @@ from gerlib import (
     copy_point as _gerlib_copy_point,
     copy_circle as _gerlib_copy_circle,
     circle_center as _gerlib_circle_center,
+    circle_from_3_points as _gerlib_circle_from_3_points,
     triangle_area, triangle_area_signed, triangle_area_from_lines, circle_area,
     scale as _gerlib_scale,
     get_component as _gerlib_get_component,
@@ -166,6 +167,11 @@ def _op_c49(circle):
 def _op_p47(circle):
     """P47: PM=P47>C - viz gerlib.circle_center (stred kruznice)."""
     return _gerlib_circle_center(circle)
+
+
+def _op_c02(p1, p2, p3):
+    """C02: CM=C02>>P1,P2,P3< - viz gerlib.circle_from_3_points (C402.FOR)."""
+    return _gerlib_circle_from_3_points(p1, p2, p3)
 
 
 def _op_d01(x1, x2, k):
@@ -322,7 +328,7 @@ OPERATIONS = {
     "P20": _op_p20,  # prusecik dvou primek - vraci bod, ale nazev je P20 (viz uzivatelovo vysvetleni P20->P120)
 
     # --- kruznice ---
-    "C02": _stub("C02", "kruznice danymi 3 body"),
+    "C02": _op_c02,
     "C49": _op_c49,
 
     # --- krivky / retezce ---
