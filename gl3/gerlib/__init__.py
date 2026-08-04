@@ -52,6 +52,8 @@ from .c49 import copy_circle
 from .p47 import circle_center
 from .l343 import perpendicular_bisector
 from .c02 import circle_from_3_points
+from .v230 import perpendicular_vector
+from .l20 import parallel_line
 
 from .e01 import make_chain, tangent_point_on_chain
 from .p85 import tangent_point
@@ -73,6 +75,7 @@ __all__ = [
     "offset_point", "interpolate_point", "line_intersection", "line_through_point",
     "copy_point", "copy_circle", "circle_center",
     "perpendicular_bisector", "circle_from_3_points",
+    "perpendicular_vector", "parallel_line",
     "make_chain", "tangent_point_on_chain",
     "tangent_point", "tangent_point_from_line", "tangent_line",
     "make_spline", "make_spline1",

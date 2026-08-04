@@ -31,6 +31,7 @@ from gerlib import (
     copy_circle as _gerlib_copy_circle,
     circle_center as _gerlib_circle_center,
     circle_from_3_points as _gerlib_circle_from_3_points,
+    parallel_line as _gerlib_parallel_line,
     triangle_area, triangle_area_signed, triangle_area_from_lines, circle_area,
     scale as _gerlib_scale,
     get_component as _gerlib_get_component,
@@ -172,6 +173,11 @@ def _op_p47(circle):
 def _op_c02(p1, p2, p3):
     """C02: CM=C02>>P1,P2,P3< - viz gerlib.circle_from_3_points (C402.FOR)."""
     return _gerlib_circle_from_3_points(p1, p2, p3)
+
+
+def _op_l20(line, distance, k=0):
+    """L20: LM=L20>>L,D[,K]< - viz gerlib.parallel_line (L320.FOR)."""
+    return _gerlib_parallel_line(line, distance, k)
 
 
 def _op_d01(x1, x2, k):
@@ -322,7 +328,7 @@ OPERATIONS = {
 
     # --- primky ---
     "L02": _op_l02,
-    "L20": _stub("L20", "rovnobezna primka posunuta o danou vzdalenost"),
+    "L20": _op_l20,
     "L45": _stub("L45", "primka kolma na neco (?) - pouzito pri vypoctu delky tetivy"),
     "L46": _op_l46,
     "P20": _op_p20,  # prusecik dvou primek - vraci bod, ale nazev je P20 (viz uzivatelovo vysvetleni P20->P120)
