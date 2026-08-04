@@ -32,6 +32,8 @@ from gerlib import (
     circle_center as _gerlib_circle_center,
     circle_from_3_points as _gerlib_circle_from_3_points,
     parallel_line as _gerlib_parallel_line,
+    point_count as _gerlib_point_count,
+    curve_node as _gerlib_curve_node,
     triangle_area, triangle_area_signed, triangle_area_from_lines, circle_area,
     scale as _gerlib_scale,
     get_component as _gerlib_get_component,
@@ -180,6 +182,16 @@ def _op_l20(line, distance, k=0):
     return _gerlib_parallel_line(line, distance, k)
 
 
+def _op_npo(curve_or_chain):
+    """NPO: pi=NPO>vg(S,E,T,H) - viz gerlib.point_count."""
+    return _gerlib_point_count(curve_or_chain)
+
+
+def _op_p48(curve_or_chain, k):
+    """P48: PM=P48>pg,K< - viz gerlib.curve_node (P48/P48E/P48S)."""
+    return _gerlib_curve_node(curve_or_chain, int(round(k)))
+
+
 def _op_d01(x1, x2, k):
     """D01 (interne D601): soucet/rozdil dvou skalaru."""
     return sum_or_diff(x1, x2, int(round(k)))
@@ -321,7 +333,7 @@ OPERATIONS = {
     "P42": _stub("P42", "nejblizsi/projekcni bod na krivce v danem segmentu"),
     "P44": _stub("P44", "odpovidajici bod na jine krivce (projekce?)"),
     "P47": _op_p47,
-    "P48": _stub("P48", "N-ty bod krivky/retezce podle indexu"),
+    "P48": _op_p48,
     "P49": _op_p49,
     "P85": _op_p85,
     "P86": _op_p86,
@@ -342,7 +354,7 @@ OPERATIONS = {
     "S03": _op_s03,
     "E01": _op_e01,
     "E45": _stub("E45", "diskretizace krivky na retezec s danou presnosti / vyrez segmentu"),
-    "NPO": _stub("NPO", "pocet bodu krivky/retezce"),
+    "NPO": _op_npo,
 
     # --- prostorove (3D) - viz geplib ---
     "Q00": _op_q00,

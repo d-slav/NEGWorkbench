@@ -54,6 +54,8 @@ from .l343 import perpendicular_bisector
 from .c02 import circle_from_3_points
 from .v230 import perpendicular_vector
 from .l20 import parallel_line
+from .npo import point_count
+from .p48 import chain_node, spline_node, curve_node
 
 from .e01 import make_chain, tangent_point_on_chain
 from .p85 import tangent_point
@@ -76,6 +78,7 @@ __all__ = [
     "copy_point", "copy_circle", "circle_center",
     "perpendicular_bisector", "circle_from_3_points",
     "perpendicular_vector", "parallel_line",
+    "point_count", "chain_node", "spline_node", "curve_node",
     "make_chain", "tangent_point_on_chain",
     "tangent_point", "tangent_point_from_line", "tangent_line",
     "make_spline", "make_spline1",
