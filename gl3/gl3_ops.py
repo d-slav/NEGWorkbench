@@ -35,6 +35,7 @@ from gerlib import (
     point_count as _gerlib_point_count,
     curve_node as _gerlib_curve_node,
     nearest_point as _gerlib_nearest_point,
+    radius_of_curvature as _gerlib_radius_of_curvature,
     triangle_area, triangle_area_signed, triangle_area_from_lines, circle_area,
     scale as _gerlib_scale,
     get_component as _gerlib_get_component,
@@ -198,6 +199,11 @@ def _op_p42(point, spline, k):
     return _gerlib_nearest_point(spline, point, k)
 
 
+def _op_d50(spline, point):
+    """D50: DM=D50>S,P< - viz gerlib.radius_of_curvature (RKSEG.FOR, bez GLPAT)."""
+    return _gerlib_radius_of_curvature(spline, point)
+
+
 def _op_d01(x1, x2, k):
     """D01 (interne D601): soucet/rozdil dvou skalaru."""
     return sum_or_diff(x1, x2, int(round(k)))
@@ -330,7 +336,7 @@ OPERATIONS = {
     "D41": _op_d41,
     "D42": _op_d42,
     "D43": _op_d43,
-    "D50": _stub("D50", "kolma vzdalenost bodu od osy/primky (?) - pouzito pro hledani napr. hrany"),
+    "D50": _op_d50,
 
     # --- body ---
     "P10": _op_p10,

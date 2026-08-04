@@ -60,6 +60,8 @@ from .glkoe import segment_coefficients
 from .glfun import evaluate as evaluate_segment
 from .glply import polynomial_roots, real_roots_in_range
 from .p42 import foot_points, nearest_point
+from .rkseg import curvature_radius_at
+from .d50 import nearest_point_on_curve, radius_of_curvature
 
 from .e01 import make_chain, tangent_point_on_chain
 from .p85 import tangent_point
@@ -85,6 +87,7 @@ __all__ = [
     "point_count", "chain_node", "spline_node", "curve_node",
     "segment_coefficients", "evaluate_segment", "polynomial_roots",
     "real_roots_in_range", "foot_points", "nearest_point",
+    "curvature_radius_at", "nearest_point_on_curve", "radius_of_curvature",
     "make_chain", "tangent_point_on_chain",
     "tangent_point", "tangent_point_from_line", "tangent_line",
     "make_spline", "make_spline1",
