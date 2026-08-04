@@ -56,6 +56,10 @@ from .v230 import perpendicular_vector
 from .l20 import parallel_line
 from .npo import point_count
 from .p48 import chain_node, spline_node, curve_node
+from .glkoe import segment_coefficients
+from .glfun import evaluate as evaluate_segment
+from .glply import polynomial_roots, real_roots_in_range
+from .p42 import foot_points, nearest_point
 
 from .e01 import make_chain, tangent_point_on_chain
 from .p85 import tangent_point
@@ -79,6 +83,8 @@ __all__ = [
     "perpendicular_bisector", "circle_from_3_points",
     "perpendicular_vector", "parallel_line",
     "point_count", "chain_node", "spline_node", "curve_node",
+    "segment_coefficients", "evaluate_segment", "polynomial_roots",
+    "real_roots_in_range", "foot_points", "nearest_point",
     "make_chain", "tangent_point_on_chain",
     "tangent_point", "tangent_point_from_line", "tangent_line",
     "make_spline", "make_spline1",

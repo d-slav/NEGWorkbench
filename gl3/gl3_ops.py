@@ -34,6 +34,7 @@ from gerlib import (
     parallel_line as _gerlib_parallel_line,
     point_count as _gerlib_point_count,
     curve_node as _gerlib_curve_node,
+    nearest_point as _gerlib_nearest_point,
     triangle_area, triangle_area_signed, triangle_area_from_lines, circle_area,
     scale as _gerlib_scale,
     get_component as _gerlib_get_component,
@@ -192,6 +193,11 @@ def _op_p48(curve_or_chain, k):
     return _gerlib_curve_node(curve_or_chain, int(round(k)))
 
 
+def _op_p42(point, spline, k):
+    """P42: PM=P42>P,S,K< - viz gerlib.nearest_point (paty kolmic na krivku)."""
+    return _gerlib_nearest_point(spline, point, k)
+
+
 def _op_d01(x1, x2, k):
     """D01 (interne D601): soucet/rozdil dvou skalaru."""
     return sum_or_diff(x1, x2, int(round(k)))
@@ -330,7 +336,7 @@ OPERATIONS = {
     "P10": _op_p10,
     "P13": _op_p13,
     "P22": _stub("P22", "N-ty prusecik primky s krivkou"),
-    "P42": _stub("P42", "nejblizsi/projekcni bod na krivce v danem segmentu"),
+    "P42": _op_p42,
     "P44": _stub("P44", "odpovidajici bod na jine krivce (projekce?)"),
     "P47": _op_p47,
     "P48": _op_p48,
