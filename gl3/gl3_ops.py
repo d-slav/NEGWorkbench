@@ -36,6 +36,7 @@ from gerlib import (
     curve_node as _gerlib_curve_node,
     nearest_point as _gerlib_nearest_point,
     radius_of_curvature as _gerlib_radius_of_curvature,
+    line_curve_intersection as _gerlib_line_curve_intersection,
     triangle_area, triangle_area_signed, triangle_area_from_lines, circle_area,
     scale as _gerlib_scale,
     get_component as _gerlib_get_component,
@@ -204,6 +205,11 @@ def _op_d50(spline, point):
     return _gerlib_radius_of_curvature(spline, point)
 
 
+def _op_p22(line, spline, k):
+    """P22: PM=P22>L,S,K< - viz gerlib.line_curve_intersection (GLPRU.FOR)."""
+    return _gerlib_line_curve_intersection(spline, line, k)
+
+
 def _op_d01(x1, x2, k):
     """D01 (interne D601): soucet/rozdil dvou skalaru."""
     return sum_or_diff(x1, x2, int(round(k)))
@@ -341,7 +347,7 @@ OPERATIONS = {
     # --- body ---
     "P10": _op_p10,
     "P13": _op_p13,
-    "P22": _stub("P22", "N-ty prusecik primky s krivkou"),
+    "P22": _op_p22,
     "P42": _op_p42,
     "P44": _stub("P44", "odpovidajici bod na jine krivce (projekce?)"),
     "P47": _op_p47,
