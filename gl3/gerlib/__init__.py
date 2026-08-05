@@ -65,6 +65,8 @@ from .d50 import nearest_point_on_curve, radius_of_curvature
 from .glpru import implicit_line, line_curve_intersections
 from .p22 import intersection as line_curve_intersection
 from .l45 import tangent_line_parallel
+from .accur import set_accuracy, get_accuracy, reset_accuracy
+from .e45 import discretize
 
 from .e01 import make_chain, tangent_point_on_chain
 from .p85 import tangent_point
@@ -93,6 +95,7 @@ __all__ = [
     "curvature_radius_at", "nearest_point_on_curve", "radius_of_curvature",
     "implicit_line", "line_curve_intersections", "line_curve_intersection",
     "tangent_line_parallel",
+    "set_accuracy", "get_accuracy", "reset_accuracy", "discretize",
     "make_chain", "tangent_point_on_chain",
     "tangent_point", "tangent_point_from_line", "tangent_line",
     "make_spline", "make_spline1",

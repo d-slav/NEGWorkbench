@@ -29,6 +29,7 @@ from gl3_ops import (
 )
 from geplib import define_coord_system3, transform3
 from gl3_analysis import get_param_directions, _is_identifier
+import gerlib.accur as _gerlib_accur
 
 
 # ---------------------------------------------------------------------------
@@ -84,6 +85,10 @@ class Interpreter:
         # beh - novy Interpreter() (= novy GL3Program.execute()) zacina
         # vzdy s prazdnou sadou.
         self.coordinate_systems = {}
+        # ACCUR (presnost pro E45/H45/H96) - izolovana na tento beh:
+        # kazdy novy Interpreter zacina na vychozich 0.01, predchozi
+        # beh/test ji nemuze ovlivnit (viz gerlib.accur).
+        _gerlib_accur.reset_accuracy()
 
     # ------------------------------------------------------------------
     # verejne API
@@ -179,10 +184,16 @@ class Interpreter:
                 raise NameError("Promenna '%s' nebyla pred pouzitim nastavena" % (node.name,))
             value = env[node.name]
             if not isinstance(value, list):
-                raise TypeError(
-                    "'%s' se pouziva jako pole bodu (P(1),N), ale neni to pole"
-                    % (node.name,)
-                )
+                if node.index is not None:
+                    raise TypeError(
+                        "'%s' se pouziva jako pole bodu (P(1),N) s indexem, ale "
+                        "neni to pole" % (node.name,)
+                    )
+                # Fortranovska konvence: i "obycejnou" (nepolovou) promennou
+                # lze adresovat jako pole o jednom prvku (scalar-as-array-of-1)
+                # - typicky SCALE volany na jediny objekt (ne pole), napr.
+                # "SCALE,S,SP,1000/DH,1" kde SP je jeden Spline.
+                return [value]
             if node.index is None:
                 return value
             idx = int(round(self.eval_expr(node.index, env)))
@@ -332,19 +343,27 @@ class Interpreter:
                 0 if target_node.index is None
                 else int(round(self.eval_expr(target_node.index, env))) - 1
             )
-            if target_node.name not in env:
-                raise NameError(
-                    "Pole '%s' nebylo deklarovano (DIMEN) pred zapisem" % target_node.name
-                )
-            target_array = env[target_node.name]
-            if not isinstance(target_array, list):
-                raise TypeError("SCALE: cil '%s' neni pole" % target_node.name)
+            target_array = env.get(target_node.name)
+            if isinstance(target_array, list):
+                for k in range(count):
+                    if k >= len(source_ref) or source_ref[k] is None:
+                        raise ValueError("SCALE: zdrojovy prvek c. %d neni definovan" % (k + 1))
+                    result = fn(self, source_ref[k], factor)
+                    self._set_indexed(target_array, target_start + k + 1, result)
+                return
 
-            for k in range(count):
-                if k >= len(source_ref) or source_ref[k] is None:
-                    raise ValueError("SCALE: zdrojovy prvek c. %d neni definovan" % (k + 1))
-                result = fn(self, source_ref[k], factor)
-                self._set_indexed(target_array, target_start + k + 1, result)
+            # Cil neni (zatim) pole - Fortranovska konvence dovoluje zapsat
+            # i do "obycejne" promenne, pokud jde jen o JEDEN (neindexovany)
+            # vysledek, typicky "SCALE,S,SP,1000/DH,1" kde S ma vzniknout
+            # jako novy skalar (Spline), ne prvek pole.
+            if target_node.index is not None or count != 1:
+                raise TypeError(
+                    "SCALE: cil '%s' neni pole (DIMEN) - takhle lze zapsat "
+                    "jen jeden neindexovany vysledek" % target_node.name
+                )
+            if not source_ref or source_ref[0] is None:
+                raise ValueError("SCALE: zdrojovy prvek c. 1 neni definovan")
+            env[target_node.name] = fn(self, source_ref[0], factor)
             return
 
         if stmt.name == "DCOOS3":
@@ -353,6 +372,16 @@ class Interpreter:
 
         if stmt.name == "TRA23":
             self._exec_tra23(stmt, env)
+            return
+
+        if stmt.name == "ACCUR":
+            # ACCUR[,vr] - nastavi globalni presnost pro E45/H45/H96
+            # (viz gerlib.accur). Bez argumentu = reset na vychozich 0.01.
+            value = self.eval_expr(stmt.args[0], env) if stmt.args else None
+            fn = self.commands.get("ACCUR")
+            if fn is None:
+                raise KeyError("Prikaz 'ACCUR' neni v registru COMMANDS")
+            fn(self, value)
             return
 
         raise KeyError("Neznamy prikaz '%s'" % stmt.name)

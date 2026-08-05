@@ -38,6 +38,8 @@ from gerlib import (
     radius_of_curvature as _gerlib_radius_of_curvature,
     line_curve_intersection as _gerlib_line_curve_intersection,
     tangent_line_parallel as _gerlib_tangent_line_parallel,
+    discretize as _gerlib_discretize,
+    set_accuracy as _gerlib_set_accuracy,
     triangle_area, triangle_area_signed, triangle_area_from_lines, circle_area,
     scale as _gerlib_scale,
     get_component as _gerlib_get_component,
@@ -216,6 +218,11 @@ def _op_l45(direction_vec, curve, k=1):
     return _gerlib_tangent_line_parallel(direction_vec, curve, k)
 
 
+def _op_e45(spline, p1=None, p2=None):
+    """E45: EM=E45>S[,[P1][,P2]]< - viz gerlib.discretize."""
+    return _gerlib_discretize(spline, p1, p2)
+
+
 def _op_d01(x1, x2, k):
     """D01 (interne D601): soucet/rozdil dvou skalaru."""
     return sum_or_diff(x1, x2, int(round(k)))
@@ -377,7 +384,7 @@ OPERATIONS = {
     "S01": _op_s01,
     "S03": _op_s03,
     "E01": _op_e01,
-    "E45": _stub("E45", "diskretizace krivky na retezec s danou presnosti / vyrez segmentu"),
+    "E45": _op_e45,
     "NPO": _op_npo,
 
     # --- prostorove (3D) - viz geplib ---
@@ -402,6 +409,14 @@ def cmd_scale(interpreter, source_value, factor):
     return _gerlib_scale(source_value, factor)
 
 
+def cmd_accur(interpreter, value=None):
+    """ACCUR[,vr] - nastavi globalni presnost aproximace krivek pro
+    E45 (a pozdeji H45/H96) - viz gerlib.accur. value=None odpovida
+    holemu prikazu ACCUR (reset na vychozich 0.01)."""
+    _gerlib_set_accuracy(value)
+
+
 COMMANDS = {
     "SCALE": cmd_scale,
+    "ACCUR": cmd_accur,
 }

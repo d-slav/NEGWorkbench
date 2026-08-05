@@ -22,12 +22,16 @@ ji 1:1:
                            kruznici zadnou specialni vetev.
   E (retezec/Curve)     - vsechny body i EPS (tolerance) se skaluji,
                            topologie (closed/indices/is_end) se nemeni.
+  S (Hermitova krivka/Spline) - body i tecny (tangents/segment_tangents)
+                           se skaluji stejnym faktorem - Hermitova kubika
+                           je v P0,P1,T0,T1 linearni, takze
+                           C_scaled(t) = factor*C(t) presne.
 
-3D typy (Q/U/R/M/G) a krivky S/T/H zatim nemame jako Python typy - pro ne
-vyhazujeme jasnou chybu.
+3D typy (Q/U/R/M/G) a prostorove krivky T/H zatim nemame jako Python
+typy - pro ne vyhazujeme jasnou chybu.
 """
 
-from .types import Point, Vector, Line, Circle, Curve
+from .types import Point, Vector, Line, Circle, Curve, Spline
 
 
 def scale(obj, factor):
@@ -63,6 +67,23 @@ def scale(obj, factor):
             indices=list(obj.indices),
             is_end=list(obj.is_end),
             eps=obj.eps * factor,
+        )
+
+    if isinstance(obj, Spline):
+        new_points = [Point(p.x * factor, p.y * factor, p.z * factor) for p in obj.points]
+        new_tangents = [Vector(t.x * factor, t.y * factor, t.z * factor) for t in obj.tangents]
+        new_segment_tangents = None
+        if obj.segment_tangents is not None:
+            new_segment_tangents = [
+                (
+                    Vector(t0.x * factor, t0.y * factor, t0.z * factor),
+                    Vector(t1.x * factor, t1.y * factor, t1.z * factor),
+                )
+                for (t0, t1) in obj.segment_tangents
+            ]
+        return Spline(
+            new_points, new_tangents, closed=obj.closed, opcode=obj.opcode,
+            parametrization=obj.parametrization, segment_tangents=new_segment_tangents,
         )
 
     raise TypeError(

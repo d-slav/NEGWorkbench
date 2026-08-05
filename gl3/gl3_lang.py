@@ -590,6 +590,12 @@ def _parse_one(line, cursor):
             args = [parse_expr_text(a) for a in arg_texts]
             return CommandStmt(cmd, args)
 
+    if line == "ACCUR" or line.startswith("ACCUR,"):
+        rest = line[len("ACCUR"):]
+        rest = rest[1:] if rest.startswith(",") else ""
+        args = [parse_expr_text(rest)] if rest else []
+        return CommandStmt("ACCUR", args)
+
     if line == "IDEV" or line.startswith("IDEV,"):
         rest = line[len("IDEV"):]
         rest = rest[1:] if rest.startswith(",") else ""

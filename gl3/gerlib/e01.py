@@ -28,12 +28,14 @@ from .a521 import polar_angle_deg
 from .a510 import angle_between_deg
 
 
-def make_chain(points, n=None):
+def make_chain(points, n=None, eps=0.0):
     """E01: 2D retezec (Curve) z pole bodu.
 
     points - posloupnost bodu (Point); pokud je delsi nez N, pouziji se
              jen prvnich N.
     n      - pocet bodu k pouziti; None = pouzij vsechny 'points'.
+    eps    - tolerance ulozena spolu s krivkou (E01.FOR vzdy 0.0; E45
+             sem uklada pouzitou hodnotu ACCUR - viz e45.py).
     """
     n_int = int(round(n)) if n is not None else len(points)
     if n_int < 2:
@@ -63,7 +65,7 @@ def make_chain(points, n=None):
             indices.append(i + 1)
             is_end.append(False)
 
-    return Curve(list(pts), closed=closed, indices=indices, is_end=is_end, eps=0.0)
+    return Curve(list(pts), closed=closed, indices=indices, is_end=is_end, eps=eps)
 
 
 def tangent_point_on_chain(dir_xy, curve, k):
