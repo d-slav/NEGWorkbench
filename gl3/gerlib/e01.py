@@ -86,10 +86,10 @@ def tangent_point_on_chain(dir_xy, curve, k):
     xx, yy = unit_vector(*dir_xy)
     pts = curve.points
     n = len(pts)
-    if n < 3:
+    if n < 2:
         raise ValueError(
-            "retezec ma jen %d bod(y) - pro hledani tecneho bodu jsou "
-            "potreba aspon 3" % (n,)
+            "retezec ma jen %d bod(y) - pro hledani tecneho bodu je "
+            "potreba aspon 2 (jedna hrana)" % (n,)
         )
 
     xx1, yy1 = pts[0].x, pts[0].y

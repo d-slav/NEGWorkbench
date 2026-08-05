@@ -37,6 +37,7 @@ from gerlib import (
     nearest_point as _gerlib_nearest_point,
     radius_of_curvature as _gerlib_radius_of_curvature,
     line_curve_intersection as _gerlib_line_curve_intersection,
+    tangent_line_parallel as _gerlib_tangent_line_parallel,
     triangle_area, triangle_area_signed, triangle_area_from_lines, circle_area,
     scale as _gerlib_scale,
     get_component as _gerlib_get_component,
@@ -210,6 +211,11 @@ def _op_p22(line, spline, k):
     return _gerlib_line_curve_intersection(spline, line, k)
 
 
+def _op_l45(direction_vec, curve, k=1):
+    """L45: LM=L45>V,E,K< - viz gerlib.tangent_line_parallel (P85 + V221)."""
+    return _gerlib_tangent_line_parallel(direction_vec, curve, k)
+
+
 def _op_d01(x1, x2, k):
     """D01 (interne D601): soucet/rozdil dvou skalaru."""
     return sum_or_diff(x1, x2, int(round(k)))
@@ -359,7 +365,7 @@ OPERATIONS = {
     # --- primky ---
     "L02": _op_l02,
     "L20": _op_l20,
-    "L45": _stub("L45", "primka kolma na neco (?) - pouzito pri vypoctu delky tetivy"),
+    "L45": _op_l45,
     "L46": _op_l46,
     "P20": _op_p20,  # prusecik dvou primek - vraci bod, ale nazev je P20 (viz uzivatelovo vysvetleni P20->P120)
 
