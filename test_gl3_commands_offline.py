@@ -173,14 +173,14 @@ def main():
 
     import gl3fc.gl3_library as gl3_library_mod
 
-    expected_default = gl3_library_mod._default_examples_dir()
-    assert obj.SearchPaths == [expected_default], (
+    expected_default = [d for d in gl3_library_mod._default_search_dirs() if os.path.isdir(d)]
+    assert obj.SearchPaths == expected_default, (
         "SearchPaths se ma po vytvoreni inicializovat na vychozi "
-        "adresar gl3/examples dodavany s doplnkem, misto: %r" % (obj.SearchPaths,)
+        "adresare gl3sys/gl3examples dodavane s doplnkem, misto: %r" % (obj.SearchPaths,)
     )
     assert obj.Proxy.Type == "GL3Library"
     print(
-        "Activated(): OK - vytvoren GL3Library objekt '%s' s vychozi cestou %s"
+        "Activated(): OK - vytvoren GL3Library objekt '%s' s vychozimi cestami %s"
         % (obj.Name, expected_default)
     )
 
@@ -194,7 +194,7 @@ def main():
     print("GetResources(): OK (ikona nalezena na disku)")
     assert prog_cmd.IsActive() is True
 
-    examples_dir = os.path.join(_HERE, "gl3", "examples")
+    examples_dir = os.path.join(_HERE, "gl3examples")
     tehlo_path = os.path.join(examples_dir, "TEHLO.GL3")
     assert os.path.isfile(tehlo_path), "ocekavany priklad TEHLO.GL3 nenalezen"
 

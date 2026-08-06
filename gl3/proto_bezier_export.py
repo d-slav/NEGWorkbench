@@ -14,15 +14,21 @@ vektory T_i, T_{i+1} (parametrizace t na [0,1]):
 Overeni: H(t) (primy vypocet Hermitovske baze) vs Bezier(t) (Bernsteinova
 baze z B0..B3) musi byt bodove totozne pro kazdy segment a kazde t.
 """
+import os
 import sys
-sys.path.insert(0, ".")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from gl3_lang import parse_program
 from gl3_interpreter import Interpreter
 
+_ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+GL3SYS_DIR = os.path.join(_ROOT_DIR, "gl3sys")
+GL3EXAMPLES_DIR = os.path.join(_ROOT_DIR, "gl3examples")
+GL3DATA_DIR = os.path.join(_ROOT_DIR, "gl3data")
 
-def load(name):
-    with open("examples/%s" % name, "r", encoding="utf-8", errors="replace") as f:
+
+def load(directory, name):
+    with open(os.path.join(directory, name), "r", encoding="utf-8", errors="replace") as f:
         return parse_program(f.read())
 
 
@@ -52,10 +58,10 @@ def bezier_point(b0, b1, b2, b3, t):
 
 
 def main():
-    tehlo = load("TEHLO.GL3")
-    hlo = load("HLO.GL3")
+    tehlo = load(GL3EXAMPLES_DIR, "TEHLO.GL3")
+    hlo = load(GL3SYS_DIR, "HLO.GL3")
     interp = Interpreter(registry={"TEHLO": tehlo, "HLO": hlo})
-    result = interp.run(tehlo, inputs={"BJM": "examples/E374.TXT", "DH": 15.2})
+    result = interp.run(tehlo, inputs={"BJM": os.path.join(GL3DATA_DIR, "E374.TXT"), "DH": 15.2})
     spline = result["S"]
 
     pts = spline.points

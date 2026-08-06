@@ -49,6 +49,16 @@ InitGui.py               - FreeCAD workbench entry point (Gui.Workbench,
 gl3_commands.py           - Gui.Command definitions (currently: create a
                            GL3Library object)
 Resources/icons/          - workbench + command icons
+gl3data/                   - data files used by example/system programs
+                           (airfoil coordinate files etc., e.g. E374.TXT)
+gl3examples/               - sample .GL3 programs demonstrating usage
+                           (TEHLO, E374 - call into gl3sys/ subroutines)
+gl3sys/                    - "system" .GL3 subroutines (HLO, SCARA,
+                           HLOCUT) - the reusable library routines,
+                           as opposed to demo programs
+gl3test/                   - internal .GL3 test programs for the Python
+                           regression suite (TEST1, XPROC, IOTEST) -
+                           not meant for everyday FreeCAD use
 gl3/
     gl3_lang.py         - lexer, parser, AST for GL-3
     gl3_interpreter.py  - interpreter (Environment, CALL, I/O channels, ...)
@@ -71,7 +81,6 @@ gl3/
         gl3_export.py    - GL3Export: converts a GL3Program's composite
                           output into native FreeCAD geometry (Part::Shape)
                           with a real Placement
-    examples/            - sample .GL3 programs used as regression tests
 docs/
     cs/                  - original Czech design notes (development diary)
 ```

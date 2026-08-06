@@ -23,7 +23,7 @@ from gl3fc.gl3_program import GL3Program
 
 
 _HERE = os.path.dirname(__file__)
-_EXAMPLES_DIR = os.path.join(_HERE, "..", "examples")
+_GL3SYS_DIR = os.path.join(_HERE, "..", "..", "gl3sys")
 
 
 class FakeDocument(object):
@@ -110,7 +110,7 @@ def _valid_point_array_json():
 
 
 def main():
-    with open(os.path.join(_EXAMPLES_DIR, "HLOCUT.gl3"), "r", encoding="utf-8", errors="replace") as f:
+    with open(os.path.join(_GL3SYS_DIR, "HLOCUT.gl3"), "r", encoding="utf-8", errors="replace") as f:
         subdef = parse_program(f.read())
 
     assert subdef.name == "HLOCUT"

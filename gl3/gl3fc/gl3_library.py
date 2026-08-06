@@ -38,12 +38,20 @@ from gl3fc.gl3_registry import Gl3FileRegistry
 from gl3fc.gl3_props import add_property, icon_path
 
 
-def _default_examples_dir():
-    """Adresar <doplnek>/gl3/examples - dodavany primo s doplnkem, obsahuje
-    ukazkova SUBRO (HLO.GL3 aj.) pouzita i v test_offline.py/gl3_test.py."""
+def _default_search_dirs():
+    """Vychozi adresare pro hledani CALL-ovatelnych SUBRO:
+    <doplnek>/gl3sys      - systemove GL3 subrutiny (HLO, SCARA, HLOCUT...)
+    <doplnek>/gl3examples - ukazkove programy (TEHLO, E374...), ktere
+                            systemove subrutiny samy volaji.
+    gl3test/ (interni testovaci programy pro Python regresni sadu) se
+    zamerne NEnabizi jako vychozi - nejsou urcene pro bezne pouziti ve
+    FreeCADu."""
     # tenhle soubor: <doplnek>/gl3/gl3fc/gl3_library.py
     addon_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    return os.path.join(addon_dir, "gl3", "examples")
+    return [
+        os.path.join(addon_dir, "gl3sys"),
+        os.path.join(addon_dir, "gl3examples"),
+    ]
 
 
 class GL3Library(object):
@@ -62,9 +70,9 @@ class GL3Library(object):
         if obj.SearchPaths is None:
             obj.SearchPaths = []
         if not obj.SearchPaths:
-            default_dir = _default_examples_dir()
-            if os.path.isdir(default_dir):
-                obj.SearchPaths = [default_dir]
+            default_dirs = [d for d in _default_search_dirs() if os.path.isdir(d)]
+            if default_dirs:
+                obj.SearchPaths = default_dirs
 
     def add_path(self, obj, path):
         entries = list(obj.SearchPaths or [])
