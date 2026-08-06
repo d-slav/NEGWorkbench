@@ -109,15 +109,34 @@ class FakeConsole(object):
         sys.stderr.write(msg)
 
 
+class FakeParam(object):
+    """Stub za App.ParamGet(...) navratovy objekt - jen in-memory
+    slovnik, ale se stejnym rozhranim (GetString/SetString) jako
+    skutecny FreeCAD parametr."""
+    def __init__(self):
+        self._values = {}
+
+    def GetString(self, name, default=""):
+        return self._values.get(name, default)
+
+    def SetString(self, name, value):
+        self._values[name] = value
+
+
 class FakeApp(object):
     ActiveDocument = None
     Console = FakeConsole()
+    _param = FakeParam()
 
     @staticmethod
     def newDocument():
         doc = FakeDocument()
         FakeApp.ActiveDocument = doc
         return doc
+
+    @staticmethod
+    def ParamGet(path):
+        return FakeApp._param
 
 
 class FakeSelection(object):
@@ -213,6 +232,19 @@ def main():
         "s jedinou GL3Library v dokumentu se ma automaticky pripojit jako Library"
     )
     print("Activated(): OK - vytvoren GL3Program objekt '%s' ze souboru %s" % (prog_obj.Name, tehlo_path))
+
+    # --- zapamatovani posledniho adresare (bez Qt - primo funkce, ktere
+    # _ask_source_file pouziva; QFileDialog samotny se testovat nema smysl) ---
+    assert gl3_commands._get_last_source_dir() == "", "pred prvnim pouzitim nic nezapamatovano"
+    gl3_commands._set_last_source_dir(examples_dir)
+    assert gl3_commands._get_last_source_dir() == examples_dir, (
+        "po _set_last_source_dir() se ma _get_last_source_dir() vratit se stejnou hodnotou"
+    )
+    gl3_commands._set_last_source_dir(None)  # zruseny dialog -> nic se neprepise
+    assert gl3_commands._get_last_source_dir() == examples_dir, (
+        "_set_last_source_dir(None/'') nesmi prepsat drive zapamatovanou hodnotu"
+    )
+    print("_get_last_source_dir()/_set_last_source_dir(): OK - hodnota prezije pres FakeApp.ParamGet")
 
     # zruseni dialogu (uzivatel dal Cancel) -> zadny objekt se nevytvori
     prog_cmd._ask_source_file = lambda: None

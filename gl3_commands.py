@@ -57,6 +57,28 @@ def _exec_dialog(dialog):
     return dialog.exec_()
 
 
+def _last_dir_param():
+    """FreeCAD parametr pro zapamatovani posledne pouziteho adresare pri
+    vyberu .GL3 souboru - na rozdil od App::PropertyPath na objektu
+    (ta by platila jen pro TENHLE konkretni objekt) prezije zavreni
+    FreeCADu a sdili se napric vsemi vytvorenymi GL3Program objekty."""
+    return App.ParamGet("User parameter:BaseApp/Preferences/Mod/NEGWorkbench")
+
+
+def _get_last_source_dir():
+    """Naposledy pouzity adresar pro vyber .GL3 souboru (prazdny retezec,
+    pokud jeste zadny nebyl vybran - QFileDialog to bere jako 'vychozi
+    adresar OS')."""
+    return _last_dir_param().GetString("LastGL3SourceDir", "")
+
+
+def _set_last_source_dir(directory):
+    """Zapamatuje 'directory' jako vychozi pro pristi vyber .GL3 souboru.
+    Prazdny/None vstup se ignoruje (napr. kdyz uzivatel dialog zrusil)."""
+    if directory:
+        _last_dir_param().SetString("LastGL3SourceDir", directory)
+
+
 class CreateGL3LibraryCommand(object):
     """Vytvori novy GL3Library objekt (viz gl3fc/gl3_library.py) v aktivnim
     dokumentu - pokud zadny neni otevreny, novy dokument se vytvori."""
@@ -140,9 +162,11 @@ class CreateGL3ProgramCommand(object):
         path, _selected_filter = widgets.QFileDialog.getOpenFileName(
             Gui.getMainWindow(),
             "Vyber .GL3 soubor (hlavni SUBRO programu)",
-            "",
+            _get_last_source_dir(),
             "GL3 soubory (*.GL3 *.gl3);;Vsechny soubory (*)",
         )
+        if path:
+            _set_last_source_dir(os.path.dirname(path))
         return path or None
 
     @staticmethod
