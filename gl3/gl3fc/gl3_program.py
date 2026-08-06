@@ -17,9 +17,15 @@ Vstupy/vystupy se generuji AUTOMATICKY z SUBRO hlavicky vlastniho
   - composite in: -> JEDNA App::PropertyString property (stejne jmeno
     jako parametr, napr. "P") drzici referenci ve formatu
     'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO') na composite vystup
-    JINEHO GL3 objektu (typicky GL3Program) - citelna, editovatelna, da
-    se vlozit odkudkoli. Pod kapotou se drzi skryta App::PropertyLink
-    "<jmeno>_Link" (viz gl3_props.add_hidden_link/parse_ref),
+    JINEHO GL3 objektu (typicky GL3Program), NEBO primo na seznam bodu
+    z bezne FreeCAD geometrie, napr. 'Wire001.Points' (Draft BSpline/
+    Wire - App::PropertyVectorList). Druhy pripad se pozna podle toho,
+    ze cilova property neni retezec (JSON), ale seznam objektu s x/y/z
+    (viz _looks_like_vector_list) - zadna diskretizace/aproximace, body
+    se prevedou primo tak, jak je uzivatel v modelu umistil. Citelna,
+    editovatelna, da se vlozit odkudkoli. Pod kapotou se drzi skryta
+    App::PropertyLink "<jmeno>_Link" (viz gl3_props.add_hidden_link/
+    parse_ref),
     synchronizovana pres onChanged() - DUVOD: bez skutecneho Linku by
     FreeCAD nevedel o zavislosti mezi temito dvema objekty ve svem grafu,
     a poradi recompute by prestalo byt garantovane. onChanged() se vola
@@ -62,6 +68,7 @@ from gl3_lang import parse_program
 from gl3_interpreter import Interpreter
 from gl3_ops import classify
 from gerlib.serialize import dump_json, load_json
+from gerlib.types import Point
 from gl3fc.gl3_registry import Gl3FileRegistry
 from gl3fc.gl3_props import add_property, add_hidden_link, parse_ref, icon_path
 
@@ -76,6 +83,16 @@ def _log_warning(msg):
         App.Console.PrintWarning(msg + "\n")
     else:
         print("WARNING:", msg)
+
+
+def _looks_like_vector_list(raw):
+    """True, kdyz 'raw' vypada jako seznam FreeCAD Vector objektu (napr.
+    Draft BSpline/Wire '.Points' - App::PropertyVectorList): kazdy prvek
+    ma x/y/z atributy. Prazdny seznam se NEpovazuje za seznam bodu
+    (nejednoznacne vuci JSON ceste - radsi jasna chyba nez tiche [])."""
+    if not isinstance(raw, (list, tuple)) or len(raw) == 0:
+        return False
+    return all(hasattr(v, "x") and hasattr(v, "y") and hasattr(v, "z") for v in raw)
 
 
 class GL3Program(object):
@@ -190,9 +207,11 @@ class GL3Program(object):
                 if kind == "composite":
                     group = "GL3 In"
                     doc = (
-                        "GL3 in: %s - odkaz na composite vystup jineho GL3 objektu, "
-                        "format 'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO'), "
-                        "volitelne s indexem prvku pole '(N)' (1 = prvni), napr. "
+                        "GL3 in: %s - odkaz na composite vystup jineho GL3 objektu "
+                        "NEBO na seznam bodu z FreeCAD geometrie (napr. Draft "
+                        "BSpline/Wire '.Points'), format 'JmenoObjektu.JmenoVystupu' "
+                        "(napr. 'TEHLO002.PO' nebo 'Wire001.Points'), volitelne s "
+                        "indexem prvku pole '(N)' (1 = prvni), napr. "
                         "'TEHLO002.PO(1)'" % name
                     )
                     add_property(obj, "App::PropertyString", name, group, doc)
@@ -287,18 +306,27 @@ class GL3Program(object):
             )
 
         raw = getattr(source, output_name)
-        if not isinstance(raw, str):
+        if isinstance(raw, str):
+            try:
+                value = load_json(raw)
+            except ValueError as exc:
+                raise ValueError(
+                    "GL3Program '%s': property '%s' na '%s' neni platny JSON (vstup '%s'): %s"
+                    % (obj.Name, output_name, source.Name, name, exc)
+                )
+        elif _looks_like_vector_list(raw):
+            # Nekomponovany vstup rovnou z FreeCAD geometrie - typicky
+            # Draft BSpline/Wire '.Points' (App::PropertyVectorList).
+            # Zadny GL3 JSON tady neni - jen prime prevedeni bodu, ktere
+            # uzivatel v modelu skutecne umistil. Zachovava se presnost
+            # (zadna diskretizace/aproximace) - viz modulovy docstring.
+            value = [Point(v.x, v.y, v.z) for v in raw]
+        else:
             raise ValueError(
-                "GL3Program '%s': property '%s' na '%s' neni retezec (JSON text) - "
-                "vstup '%s' ocekava composite vystup jineho GL3 objektu"
+                "GL3Program '%s': property '%s' na '%s' neni ani JSON text "
+                "(composite vystup jineho GL3 objektu), ani seznam bodu "
+                "(napr. Draft BSpline/Wire '.Points') - vstup '%s' nelze rozresit"
                 % (obj.Name, output_name, source.Name, name)
-            )
-        try:
-            value = load_json(raw)
-        except ValueError as exc:
-            raise ValueError(
-                "GL3Program '%s': property '%s' na '%s' neni platny JSON (vstup '%s'): %s"
-                % (obj.Name, output_name, source.Name, name, exc)
             )
 
         if index is not None:

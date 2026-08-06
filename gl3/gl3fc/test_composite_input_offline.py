@@ -177,15 +177,15 @@ def main():
         assert "nema property" in str(e)
         print("_resolve_composite_input() s neexistujici property: OK - jasna chyba (%s)" % e)
 
-    # --- 6) chybovy stav: odkazovana property neni retezec ---
+    # --- 6) chybovy stav: odkazovana property neni ani JSON, ani seznam bodu ---
     source.J = 42
     hlocut.P = "TEHLO001.J"
     try:
         proxy._resolve_composite_input(hlocut, "P")
-        raise AssertionError("mel vyhodit ValueError - property neni retezec")
+        raise AssertionError("mel vyhodit ValueError - property neni pouzitelna")
     except ValueError as e:
-        assert "neni retezec" in str(e)
-        print("_resolve_composite_input() s ne-retezcovou property: OK - jasna chyba (%s)" % e)
+        assert "neni ani JSON text" in str(e)
+        print("_resolve_composite_input() s nepouzitelnou property: OK - jasna chyba (%s)" % e)
 
     # --- 7) index '(N)' na Array vystupu - uspesny pripad (1 = prvni prvek) ---
     hlocut.P = "TEHLO001.PO(1)"
@@ -217,6 +217,42 @@ def main():
     except ValueError as e:
         assert "lze pouzit jen na Array" in str(e)
         print("_resolve_composite_input() s indexem na ne-Array vystupu: OK - jasna chyba (%s)" % e)
+
+    # --- 9b) NOVE: vstup primo z FreeCAD geometrie (napr. Draft
+    # BSpline/Wire '.Points' - App::PropertyVectorList), ne z jineho
+    # GL3 objektu - zadny JSON, jen seznam objektu s x/y/z ---
+    class _FakeVector(object):
+        def __init__(self, x, y, z):
+            self.x, self.y, self.z = x, y, z
+
+    wire = FakeObj("Wire001", document=doc)
+    doc.register(wire)
+    wire.addProperty("App::PropertyString", "Dummy", "Draft", "jen aby mel neco")
+    wire.Points = [_FakeVector(1.5, 2.5, 0.0), _FakeVector(3.5, 4.5, 0.0), _FakeVector(5.5, 6.5, 0.0)]
+
+    hlocut.P = "Wire001.Points"
+    value = proxy._resolve_composite_input(hlocut, "P")
+    assert isinstance(value, list) and len(value) == 3, "Wire001.Points ma dat seznam 3 bodu"
+    assert value[0].x == 1.5 and value[0].y == 2.5, "prvni bod se prevedl beze zmeny (zadna aproximace)"
+    assert value[2].x == 5.5 and value[2].y == 6.5, "posledni bod se prevedl beze zmeny"
+    print("_resolve_composite_input() s 'Wire001.Points' (Draft BSpline): OK - primy prevod bez JSON")
+
+    # index funguje stejne jako u GL3 JSON vystupu
+    hlocut.P = "Wire001.Points(2)"
+    value = proxy._resolve_composite_input(hlocut, "P")
+    assert not isinstance(value, list) and value.x == 3.5 and value.y == 4.5
+    print("_resolve_composite_input() s 'Wire001.Points(2)': OK - jeden Point (%r, %r)" % (value.x, value.y))
+
+    # prazdny seznam bodu se NEMA tise akceptovat jako "seznam bodu" -
+    # spadne do stejne chybove vetve jako jiny nepouzitelny typ
+    wire.Points = []
+    hlocut.P = "Wire001.Points"
+    try:
+        proxy._resolve_composite_input(hlocut, "P")
+        raise AssertionError("mel vyhodit ValueError - prazdny seznam bodu")
+    except ValueError as e:
+        assert "neni ani JSON text" in str(e)
+        print("_resolve_composite_input() s prazdnym Points: OK - jasna chyba (%s)" % e)
 
     # --- 10) zmena vstupu (SourceFile/Library/GL3 In) rovnou spusti
     # Document.recompute() - uzivatel nemusi po kazde zmene parametru
