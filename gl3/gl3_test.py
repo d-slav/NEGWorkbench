@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 gl3_test.py - rychla kontrola bez FreeCADu:
-  1. zparsuje TEST1/XPROC (gl3test), SCARA/HLO/HLOCUT (gl3sys),
-     TEHLO/E374 (gl3examples)
+  1. zparsuje TEST1/XPROC/SCARA/HLO/TEHLO - vsechny z gl3test/ (vlastni
+     fixture kopie, NE "zive" gl3sys/gl3examples/gl3data adresare, ktere
+     jsou plne v rezii uzivatele - viz konverzace)
   2. ukaze odvozene smery parametru (in/out)
-  3. spusti TEHLO -> SCARA retez na realnych datech (gl3data/E374.TXT)
+  3. spusti TEHLO -> SCARA retez na realnych datech (gl3test/E374.TXT)
      a overi, ze cely retez dobehne az do konce (viz historie projektu -
      SCARA byla puvodni motivace pro cely tenhle projekt)
 """
@@ -15,10 +16,7 @@ from gl3_analysis import get_param_directions
 from gl3_interpreter import Interpreter
 
 _ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-GL3SYS_DIR = os.path.join(_ROOT_DIR, "gl3sys")
-GL3EXAMPLES_DIR = os.path.join(_ROOT_DIR, "gl3examples")
 GL3TEST_DIR = os.path.join(_ROOT_DIR, "gl3test")
-GL3DATA_DIR = os.path.join(_ROOT_DIR, "gl3data")
 
 
 def load(directory, name):
@@ -29,9 +27,9 @@ def load(directory, name):
 def main():
     test1 = load(GL3TEST_DIR, "TEST1.GL3")
     xproc = load(GL3TEST_DIR, "XPROC.GL3")
-    scara = load(GL3SYS_DIR, "SCARA.GL3")
-    hlo = load(GL3SYS_DIR, "HLO.GL3")
-    tehlo = load(GL3EXAMPLES_DIR, "TEHLO.GL3")
+    scara = load(GL3TEST_DIR, "SCARA.GL3")
+    hlo = load(GL3TEST_DIR, "HLO.GL3")
+    tehlo = load(GL3TEST_DIR, "TEHLO.GL3")
 
     registry = {"TEST1": test1, "XPROC": xproc, "SCARA": scara, "TEHLO": tehlo, "HLO": hlo}
 
@@ -43,7 +41,7 @@ def main():
 
     print()
     print("=== Spousteni TEHLO ===")
-    result = interp.run(tehlo, inputs={"BJM": os.path.join(GL3DATA_DIR, "E374.TXT"), "DH": 15.2})
+    result = interp.run(tehlo, inputs={"BJM": os.path.join(GL3TEST_DIR, "E374.TXT"), "DH": 15.2})
     print("OK")
 
     print()

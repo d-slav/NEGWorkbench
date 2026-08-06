@@ -39,19 +39,17 @@ from gl3fc.gl3_props import add_property, icon_path
 
 
 def _default_search_dirs():
-    """Vychozi adresare pro hledani CALL-ovatelnych SUBRO:
-    <doplnek>/gl3sys      - systemove GL3 subrutiny (HLO, SCARA, HLOCUT...)
-    <doplnek>/gl3examples - ukazkove programy (TEHLO, E374...), ktere
-                            systemove subrutiny samy volaji.
-    gl3test/ (interni testovaci programy pro Python regresni sadu) se
-    zamerne NEnabizi jako vychozi - nejsou urcene pro bezne pouziti ve
-    FreeCADu."""
+    """Vychozi adresar pro hledani CALL-ovatelnych SUBRO:
+    <doplnek>/gl3sys - systemove GL3 subrutiny (HLO, SCARA, HLOCUT...).
+
+    gl3examples/ (ukazkove programy) se ZAMERNE nenabizi jako vychozi -
+    uzivatel si je muze pripojit rucne pres SearchPaths, pokud potrebuje
+    CALL i mezi ukazkovymi programy navzajem. gl3test/ (interni testovaci
+    programy pro Python regresni sadu) se nenabizi vubec - neni urcene
+    pro bezne pouziti ve FreeCADu."""
     # tenhle soubor: <doplnek>/gl3/gl3fc/gl3_library.py
     addon_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    return [
-        os.path.join(addon_dir, "gl3sys"),
-        os.path.join(addon_dir, "gl3examples"),
-    ]
+    return [os.path.join(addon_dir, "gl3sys")]
 
 
 class GL3Library(object):

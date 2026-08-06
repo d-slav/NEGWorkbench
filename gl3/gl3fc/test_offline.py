@@ -10,9 +10,9 @@ Simuluje presne to, co by FreeCAD udelal:
   4. 2. recompute - skutecny beh interpretu, PO/S se naplni
 
 Overuje se: dynamicke vlastnosti sedi na SUBRO hlavicku, CALL/HLO se
-rozresi pres GL3Library (adresare 'gl3sys/' a 'gl3examples/'), a
-vysledek (PO, S) sedi na uz drive overena data z gl3_test.py /
-proto_bezier_export.py.
+rozresi pres GL3Library (SearchPaths nastaveno na vlastni fixture
+kopie v gl3test/, viz nize), a vysledek (PO, S) sedi na uz drive
+overena data z gl3_test.py.
 """
 import json
 import os
@@ -72,27 +72,26 @@ def main():
     from gl3fc.gl3_library import GL3Library
     from gl3fc.gl3_program import GL3Program
 
+    # POZOR: tenhle test pouziva vyhradne vlastni fixture kopie v
+    # gl3test/ (E374.TXT, HLO.GL3, TEHLO.GL3), NE "zive" gl3sys/gl3data/
+    # gl3examples adresare, ktere jsou plne v rezii uzivatele a mohou se
+    # kdykoliv zmenit - viz gl3test/README pripadne konverzace. Vychozi
+    # SearchPaths chovani GL3Library (ukazuje na gl3sys/) se overuje
+    # samostatne v test_gl3_commands_offline.py, tady se SearchPaths
+    # nastavuje rucne na gl3test/.
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    gl3sys_dir = os.path.join(root_dir, "gl3sys")
-    gl3examples_dir = os.path.join(root_dir, "gl3examples")
-    gl3data_dir = os.path.join(root_dir, "gl3data")
+    gl3test_dir = os.path.join(root_dir, "gl3test")
 
     # --- GL3Library ---
     lib_obj = FakeObj("GL3Library")
     GL3Library(lib_obj)
-    # GL3Library.__init__ uz sam predvyplni SearchPaths na dodavane
-    # gl3sys/gl3examples adresare (viz _default_search_dirs), takze rucni
-    # add_path() tu neni potreba - jen si to overime:
-    assert lib_obj.SearchPaths == [gl3sys_dir, gl3examples_dir], (
-        "ocekavan vychozi SearchPaths = [%r, %r], je: %r"
-        % (gl3sys_dir, gl3examples_dir, lib_obj.SearchPaths)
-    )
+    lib_obj.SearchPaths = [gl3test_dir]
     print("Library.SearchPaths =", lib_obj.SearchPaths)
 
     # --- GL3Program (TEHLO) ---
     prog = FakeObj("TEHLO_Program")
     GL3Program(prog)
-    prog.SourceFile = os.path.join(gl3examples_dir, "TEHLO.GL3")
+    prog.SourceFile = os.path.join(gl3test_dir, "TEHLO.GL3")
     prog.Library = lib_obj
 
     # 1. recompute - BJM/DH jeste na vychozich hodnotach ("" / 0.0). Schema
@@ -117,7 +116,7 @@ def main():
     assert prog._prop_types["DH"] == "App::PropertyFloat"
 
     # 2. uzivatel nastavi vstupy
-    prog.BJM = os.path.join(gl3data_dir, "E374.TXT")
+    prog.BJM = os.path.join(gl3test_dir, "E374.TXT")
     prog.DH = 15.2
 
     # 3. skutecny recompute

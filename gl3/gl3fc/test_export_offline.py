@@ -115,23 +115,23 @@ def main():
     print("Array(Point) -> Compound, %d vrcholu (1 nedefinovany preskocen): OK" % len(shapes))
 
     # --- Spline (S03) na realnych datech z TEHLO (viz proto_bezier_export.py) ---
+    # POZOR: vlastni fixture kopie v gl3test/, ne "zive" gl3sys/gl3data/
+    # gl3examples adresare (viz test_offline.py).
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
     from gl3_lang import parse_program
     from gl3_interpreter import Interpreter
 
     root_dir = os.path.join(os.path.dirname(__file__), "..", "..")
-    gl3sys_dir = os.path.join(root_dir, "gl3sys")
-    gl3examples_dir = os.path.join(root_dir, "gl3examples")
-    gl3data_dir = os.path.join(root_dir, "gl3data")
+    gl3test_dir = os.path.join(root_dir, "gl3test")
 
     def load(directory, name):
         with open(os.path.join(directory, name), "r", encoding="utf-8", errors="replace") as f:
             return parse_program(f.read())
 
-    tehlo = load(gl3examples_dir, "TEHLO.GL3")
-    hlo = load(gl3sys_dir, "HLO.GL3")
+    tehlo = load(gl3test_dir, "TEHLO.GL3")
+    hlo = load(gl3test_dir, "HLO.GL3")
     interp = Interpreter(registry={"TEHLO": tehlo, "HLO": hlo})
-    result = interp.run(tehlo, inputs={"BJM": os.path.join(gl3data_dir, "E374.TXT"), "DH": 15.2})
+    result = interp.run(tehlo, inputs={"BJM": os.path.join(gl3test_dir, "E374.TXT"), "DH": 15.2})
     spline = result["S"]
 
     slot = serialize(spline)
