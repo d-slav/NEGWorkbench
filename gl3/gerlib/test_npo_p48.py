@@ -43,6 +43,12 @@ def main():
     check(point_count(chain) == 5, "NPO: pocet bodu retezce")
     check(point_count(spline) == 4, "NPO: pocet bodu krivky")
 
+    # NPO - rozsireni: obycejne pole bodu (napr. composite in:P(N) vstup
+    # primo z FreeCAD geometrie - viz gl3_program.py)
+    check(point_count([Point(0, 0, 0), Point(1, 1, 0), Point(2, 4, 0)]) == 3,
+          "NPO: pocet prvku obycejneho pole bodu (nase rozsireni)")
+    check(point_count([]) == 0, "NPO: prazdne pole -> 0")
+
     # P48 - chain, normalni bod (K < N)
     p, idx, is_end = chain_node(chain, 2)
     check(p.x == chain.points[1].x and p.y == chain.points[1].y, "P48E: souradnice K=2 souhlasi")

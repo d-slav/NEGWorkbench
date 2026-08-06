@@ -189,7 +189,8 @@ def _op_l20(line, distance, k=0):
 
 
 def _op_npo(curve_or_chain):
-    """NPO: pi=NPO>vg(S,E,T,H) - viz gerlib.point_count."""
+    """NPO: pi=NPO>vg(S,E,T,H) - viz gerlib.point_count. Rozsireni: funguje
+    i primo na poli bodu (napr. composite in:P(N) vstup), viz npo.py."""
     return _gerlib_point_count(curve_or_chain)
 
 

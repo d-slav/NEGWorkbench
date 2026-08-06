@@ -85,6 +85,13 @@ class Interpreter:
         # beh - novy Interpreter() (= novy GL3Program.execute()) zacina
         # vzdy s prazdnou sadou.
         self.coordinate_systems = {}
+        # Jmena 'in:' vstupnich parametru pro kazdy aktivni env (id(env) ->
+        # set jmen) - pouzito jen k tomu, aby DIMEN nemohl tise prepsat
+        # jiz svazany vstupni parametr (typicky composite in:P(N)) na
+        # prazdne pole. Klicovano podle id(env), aby to spravne fungovalo
+        # i pres vnorene CALL (kazdy ma svuj vlastni lokalni env) - viz
+        # _exec_call.
+        self._input_names_by_env = {}
         # ACCUR (presnost pro E45/H45/H96) - izolovana na tento beh:
         # kazdy novy Interpreter zacina na vychozich 0.01, predchozi
         # beh/test ji nemuze ovlivnit (viz gerlib.accur).
@@ -105,6 +112,7 @@ class Interpreter:
         """
         env = builtin_constants()
         env.update(inputs)
+        self._input_names_by_env[id(env)] = set(inputs.keys())
         self.io_channels = {}
         try:
             self._exec_block(subdef.body, env)
@@ -250,7 +258,16 @@ class Interpreter:
             return
 
         if isinstance(stmt, DimenStmt):
+            input_names = self._input_names_by_env.get(id(env), ())
             for name, size in stmt.entries:
+                if name in input_names:
+                    raise ValueError(
+                        "DIMEN,%s(...): '%s' uz je vstupni parametr (in:) "
+                        "teto subrutiny - DIMEN by tise prepsal jeho "
+                        "hodnotu na prazdne pole. Vstupni composite pole "
+                        "(napr. in:P(N)) netreba znovu deklarovat pres "
+                        "DIMEN, je uz k dispozici primo." % (name, name)
+                    )
                 env[name] = [None] * size
             return
 
@@ -505,6 +522,7 @@ class Interpreter:
         callee_params = callee.params
 
         local_env = builtin_constants()
+        local_input_names = set()
         for i, (formal_name, dim, _dir) in enumerate(callee_params):
             if i >= len(stmt.args):
                 continue
@@ -520,6 +538,9 @@ class Interpreter:
             if isinstance(value, list):
                 value = list(value)  # kopie pole - zadne sdileni pameti s volajicim
             local_env[formal_name] = value
+            local_input_names.add(formal_name)
+
+        self._input_names_by_env[id(local_env)] = local_input_names
 
         try:
             self._exec_block(callee.body, local_env)
