@@ -176,7 +176,6 @@ def offset_curve(spline, distance, p1=None, p2=None, side=0, accuracy=None):
                 fit_ok = converged and dd1 > 0 and dd2 > 0
 
             if fit_ok:
-                iss = 0
                 new_seg = (
                     (xx1, yy1), (xx2, yy2),
                     (cur_start_tan_xy[0] * dd1, cur_start_tan_xy[1] * dd1),
@@ -210,6 +209,7 @@ def offset_curve(spline, distance, p1=None, p2=None, side=0, accuracy=None):
                             break
 
                 if accept:
+                    iss = 0
                     segments.append(new_seg)
                     if abs(p2 - pp2) < 1e-9:
                         break
@@ -220,7 +220,15 @@ def offset_curve(spline, distance, p1=None, p2=None, side=0, accuracy=None):
                     pard = pard + roztec
                     roztec = p2 - pard
                     continue
-                # jinak: propadni do "rozdel" jako pri neuspesnem fitu
+                # jinak: propadni do "rozdel" jako pri neuspesnem fitu -
+                # i tohle se pocita do limitu pokusu (viz nize)
+                iss += 1
+                if iss >= _MAX_SUBDIVIDE_RETRIES:
+                    raise ValueError(
+                        "S51: aproximace ekvidistanty ani po %d pokusech o "
+                        "zmenseni useku nesplnila pozadovanou presnost ACCUR "
+                        "(puvodni chyba 800)" % (_MAX_SUBDIVIDE_RETRIES,)
+                    )
 
             else:
                 iss += 1

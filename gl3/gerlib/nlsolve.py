@@ -13,8 +13,7 @@ rekonstrukce tehle netrivialni 1980 implementace pouzivame klasickou
 Newton-Raphsonovu metodu s numerickym (diferencnim) Jakobianem a
 tlumenim kroku - kontrakt je stejny (dej rezidualni funkci FUNC(X,N,K)
 a pocatecni odhad, dostanes X takove, ze FUNC(X,N,K)~0 pro vsechna K),
-jina cesta k vysledku. Pro pouziti v S51 (4 rovnice, rozumny pocatecni
-odhad blizko reseni) je to spolehlive a jednoduche.
+jina cesta k vysledku.
 """
 
 
@@ -27,12 +26,20 @@ def solve(func, x0, n, tol=1e-9, max_iter=50, damping=1.0):
 
     Numericky Jakobian (dopredni diference), reseni linearniho
     systemu Gaussovou eliminaci s castecnou pivotaci (bez numpy -
-    viz gerlib/glply.py pro stejny duvod bezzavislostniho pristupu)."""
+    viz gerlib/glply.py pro stejny duvod bezzavislostniho pristupu).
+
+    Krok je TLUMENY (backtracking line search): plny Newtonuv krok se
+    prijme jen tehdy, kdyz snizi normu rezidualu; jinak se pulí, dokud
+    se zlepseni nenajde (nebo se to po par pokusech vzda). Bez tohohle
+    tlumeni obycejny Newton pro nektere vstupni geometrie (vetsi
+    zakriveni segmentu vuci pozadovane vzdalenosti offsetu) divergoval
+    misto konvergence - viz nahlasene selhani S51 v realnem pouziti."""
     x = list(x0)
+    residuals = [func(x, n, k + 1) for k in range(n)]
+    err = _norm(residuals)
 
     for _iteration in range(max_iter):
-        residuals = [func(x, n, k + 1) for k in range(n)]
-        if max(abs(r) for r in residuals) < tol:
+        if err < tol:
             return x, True
 
         jac = _numerical_jacobian(func, x, n, residuals)
@@ -42,11 +49,25 @@ def solve(func, x0, n, tol=1e-9, max_iter=50, damping=1.0):
             return x, False
 
         step = damping
-        x = [x[i] + step * delta[i] for i in range(n)]
+        improved = False
+        for _backtrack in range(30):
+            x_try = [x[i] + step * delta[i] for i in range(n)]
+            residuals_try = [func(x_try, n, k + 1) for k in range(n)]
+            err_try = _norm(residuals_try)
+            if err_try < err or err_try < tol:
+                x, residuals, err = x_try, residuals_try, err_try
+                improved = True
+                break
+            step *= 0.5
 
-    residuals = [func(x, n, k + 1) for k in range(n)]
-    converged = max(abs(r) for r in residuals) < tol
-    return x, converged
+        if not improved:
+            return x, err < tol
+
+    return x, err < tol
+
+
+def _norm(values):
+    return sum(v * v for v in values) ** 0.5
 
 
 def _numerical_jacobian(func, x, n, f0):
