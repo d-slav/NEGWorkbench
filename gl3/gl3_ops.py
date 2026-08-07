@@ -40,6 +40,7 @@ from gerlib import (
     tangent_line_parallel as _gerlib_tangent_line_parallel,
     discretize as _gerlib_discretize,
     set_accuracy as _gerlib_set_accuracy,
+    offset_curve as _gerlib_offset_curve,
     triangle_area, triangle_area_signed, triangle_area_from_lines, circle_area,
     scale as _gerlib_scale,
     get_component as _gerlib_get_component,
@@ -189,8 +190,7 @@ def _op_l20(line, distance, k=0):
 
 
 def _op_npo(curve_or_chain):
-    """NPO: pi=NPO>vg(S,E,T,H) - viz gerlib.point_count. Rozsireni: funguje
-    i primo na poli bodu (napr. composite in:P(N) vstup), viz npo.py."""
+    """NPO: pi=NPO>vg(S,E,T,H) - viz gerlib.point_count."""
     return _gerlib_point_count(curve_or_chain)
 
 
@@ -222,6 +222,11 @@ def _op_l45(direction_vec, curve, k=1):
 def _op_e45(spline, p1=None, p2=None):
     """E45: EM=E45>S[,[P1][,P2]]< - viz gerlib.discretize."""
     return _gerlib_discretize(spline, p1, p2)
+
+
+def _op_s51(spline, distance, p1=None, p2=None, side=0, accuracy=None):
+    """S51: SM=S51>S,D1[,[P1][,P2]][,K][,D2]< - viz gerlib.offset_curve."""
+    return _gerlib_offset_curve(spline, distance, p1, p2, side, accuracy)
 
 
 def _op_d01(x1, x2, k):
@@ -384,6 +389,7 @@ OPERATIONS = {
     # --- krivky / retezce ---
     "S01": _op_s01,
     "S03": _op_s03,
+    "S51": _op_s51,
     "E01": _op_e01,
     "E45": _op_e45,
     "NPO": _op_npo,

@@ -67,6 +67,9 @@ from .p22 import intersection as line_curve_intersection
 from .l45 import tangent_line_parallel
 from .accur import set_accuracy, get_accuracy, reset_accuracy
 from .e45 import discretize
+from .nlsolve import solve as solve_nonlinear
+from .sgpat import nearest_distance as sgpat_nearest_distance
+from .s51 import offset_curve
 
 from .e01 import make_chain, tangent_point_on_chain
 from .p85 import tangent_point
@@ -96,6 +99,7 @@ __all__ = [
     "implicit_line", "line_curve_intersections", "line_curve_intersection",
     "tangent_line_parallel",
     "set_accuracy", "get_accuracy", "reset_accuracy", "discretize",
+    "solve_nonlinear", "sgpat_nearest_distance", "offset_curve",
     "make_chain", "tangent_point_on_chain",
     "tangent_point", "tangent_point_from_line", "tangent_line",
     "make_spline", "make_spline1",
