@@ -8,9 +8,17 @@ Ucel:    Ekvidistantni (rovnobezna) krivka ke krivce ve vzdalenosti D1,
 
 Uziti:   SM=S51>S,D1[,[P1][,P2]][,K][,D2]<
          K - strana (0=vlevo,1=vpravo, jako V230/L20), D2 - presnost
-             (vynechana/<=0 = pouzij aktualni ACCUR; original mel
-             vynechanou hodnotu 0, u nas vzdy pouzijeme ACCUR prikaz,
-             protoze uz ho mame k dispozici z E45)
+             ekvidistanty
+
+ZAMERNY ODKLON OD ORIGINALU: puvodni S51.FOR cte D2 jako svuj vlastni
+argument a pri jeho vynechani nastavuje ACCUR=0 (zadna kontrola
+odchylky) - viz "ACCUR=R(1,7); IF(ITY(7).EQ.32767) ACCUR=0." Podle
+domluvy v konverzaci se u nas D2 vynechane MISTO toho chova stejne
+jako u E45 - pouzije se aktualni hodnota globalniho prikazu ACCUR
+(gerlib/accur.py, vychozi 0.01). Kdo chce vysloveny "bez kontroly
+odchylky" rezim (rychly, ale vysledek nemusi byt skutecna
+ekvidistanta u vice zakrivenych useku), musi D2 predat explicitne
+jako 0 (nebo zapornou hodnotu).
 
 Algoritmus (1:1 podle S51.FOR): presna ekvidistanta kubiky obecne
 NENI kubika (normala zavisi na |C'(t)|, tedy odmocnina) - kazdy puvodni
@@ -74,7 +82,9 @@ def _flip_segment(seg):
 def offset_curve(spline, distance, p1=None, p2=None, side=0, accuracy=None):
     """S51: ekvidistantni krivka ke 'spline' ve vzdalenosti 'distance'
     (na useku <p1,p2>, pokud jsou zadane). side: 0=vlevo, 1=vpravo.
-    accuracy=None pouzije aktualni ACCUR (gerlib.accur)."""
+    accuracy=None (D2 vynechany) pouzije aktualni globalni ACCUR (viz
+    hlavicka modulu - ZAMERNY odklon od originalu, kde by D2 vynechany
+    znamenal 0/bez kontroly)."""
     n = len(spline.points)
     if n < 2:
         raise ValueError("S51: krivka musi mit alespon 2 body")
@@ -176,6 +186,9 @@ def offset_curve(spline, distance, p1=None, p2=None, side=0, accuracy=None):
                 fit_ok = converged and dd1 > 0 and dd2 > 0
 
             if fit_ok:
+                iss = 0  # 1:1 podle originalu (label 120: ISS=0) - resetuje se
+                         # hned po uspesne konvergenci DNSBM, bez ohledu na to,
+                         # jestli pozdeji projde i kontrola presnosti
                 new_seg = (
                     (xx1, yy1), (xx2, yy2),
                     (cur_start_tan_xy[0] * dd1, cur_start_tan_xy[1] * dd1),
@@ -204,12 +217,11 @@ def offset_curve(spline, distance, p1=None, p2=None, side=0, accuracy=None):
                                 "S51: SGPAT nenasla zadny bod na puvodni krivce "
                                 "(neocekavana geometrie segmentu)"
                             )
-                        if abs(distance - measured) > acc:
+                        if abs(abs(distance) - measured) > acc:
                             accept = False
                             break
 
                 if accept:
-                    iss = 0
                     segments.append(new_seg)
                     if abs(p2 - pp2) < 1e-9:
                         break
@@ -220,15 +232,11 @@ def offset_curve(spline, distance, p1=None, p2=None, side=0, accuracy=None):
                     pard = pard + roztec
                     roztec = p2 - pard
                     continue
-                # jinak: propadni do "rozdel" jako pri neuspesnem fitu -
-                # i tohle se pocita do limitu pokusu (viz nize)
-                iss += 1
-                if iss >= _MAX_SUBDIVIDE_RETRIES:
-                    raise ValueError(
-                        "S51: aproximace ekvidistanty ani po %d pokusech o "
-                        "zmenseni useku nesplnila pozadovanou presnost ACCUR "
-                        "(puvodni chyba 800)" % (_MAX_SUBDIVIDE_RETRIES,)
-                    )
+                # jinak: propadni do "rozdel" (label 140) - POZOR, tohle
+                # se (1:1 podle originalu) NEPOCITA do limitu ISS - jen
+                # DNSBM-nekonvergence (vetev 'else' nize) ma limit 6
+                # pokusu; selhani kontroly presnosti je omezeno jen
+                # minimalni velikosti useku (ROZTEC.LT.1D-5 nize)
 
             else:
                 iss += 1

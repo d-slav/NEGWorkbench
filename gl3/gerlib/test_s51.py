@@ -3,7 +3,12 @@
 (ekvidistantni krivka).
 
 Zdroj: S51.FOR, FS51.FOR, SGPAT.FOR, DNSBM.FOR (dodano uzivatelem).
-DNSBM nahrazeno Newton-Raphsonem (viz nlsolve.py hlavicka)."""
+DNSBM nahrazeno Newton-Raphsonem (viz nlsolve.py hlavicka).
+
+POZOR: D2 (presnost) je VLASTNI parametr S51, NE globalni prikaz ACCUR
+(viz hlavicka s51.py - overeno a opraveno po hlaseni z realneho
+FreeCADu) - testy proto D2 predavaji vzdy primo jako 'accuracy=',
+nikdy pres gerlib.accur.set_accuracy()."""
 import math
 import os
 import sys
@@ -17,7 +22,7 @@ from gerlib.nlsolve import solve as nlsolve_solve
 from gerlib.sgpat import nearest_distance
 from gerlib.p42 import foot_points
 from gerlib.fs51 import make_residual_fn
-from gerlib.accur import set_accuracy, reset_accuracy
+from gerlib.s01 import make_spline
 from gerlib.s51 import offset_curve
 
 
@@ -79,7 +84,6 @@ def main():
     residual_fn = make_residual_fn((0.0, 0.0), (10.0, 0.0), (10.0, 0.0), (10.0, 0.0),
                                     targets=(5.0, 0.0, 7.0, 0.0))
     x = [0.5, 0.7, 1.0, 1.0]
-    # pri t=0.5 na teto primce: bod = (5,0) presne (h00*0+h10*10*1+...) - over rezidual K=1,2
     r1 = residual_fn(x, 4, 1)
     r2 = residual_fn(x, 4, 2)
     check(math.isclose(r1, 0.0, abs_tol=1e-9) and math.isclose(r2, 0.0, abs_tol=1e-9),
@@ -88,30 +92,22 @@ def main():
     # --- S51: primka - ekvidistanta je presne rovnobezna primka ---
     line_spline = Spline([Point(0.0, 0.0, 0.0), Point(10.0, 0.0, 0.0)],
                           [Vector(10.0, 0.0, 0.0), Vector(10.0, 0.0, 0.0)])
-    set_accuracy(0.01)
-    offset_line = offset_curve(line_spline, 2.0, side=0)
+    offset_line = offset_curve(line_spline, 2.0, side=0, accuracy=0.01)
     check(len(offset_line.points) == 2, "S51: primka -> ekvidistanta ma jen 2 body (zadne deleni)")
     check(math.isclose(offset_line.points[0].x, 0.0) and math.isclose(offset_line.points[0].y, 2.0),
           "S51: primka - prvni bod offsetu (0,2) pro side=0")
     check(math.isclose(offset_line.points[1].x, 10.0) and math.isclose(offset_line.points[1].y, 2.0),
           "S51: primka - posledni bod offsetu (10,2)")
 
-    # strana side=1 musi dat opacny smer offsetu
-    offset_line_r = offset_curve(line_spline, 2.0, side=1)
+    offset_line_r = offset_curve(line_spline, 2.0, side=1, accuracy=0.01)
     check(math.isclose(offset_line_r.points[0].y, -2.0), "S51: side=1 offsetuje na druhou stranu")
-    reset_accuracy()
 
     # --- S51: parabola - overeni proti nezavislemu analytickemu vzorci ---
     parabola = parabola_spline()
     for accuracy in (0.05, 0.01):
-        set_accuracy(accuracy)
-        offset = offset_curve(parabola, 0.3, side=0)
+        offset = offset_curve(parabola, 0.3, side=0, accuracy=accuracy)
         check(len(offset.points) >= 2, "S51: parabola - vysledek ma alespon 2 body (presnost %.3f)" % accuracy)
 
-        # over kazdy bod vysledne ekvidistanty proti analytickemu vzorci -
-        # potrebujeme najit odpovidajici parametr t (x-souradnice puvodni
-        # paraboly = t, ale offset bod uz ma jinou x-souradnici, takze
-        # hledame t numericky - staci hruby sken, staci pro kontrolu ACCUR)
         max_err = 0.0
         for pt in offset.points:
             best = min(
@@ -122,20 +118,14 @@ def main():
         check(max_err <= accuracy * 1.1,
               "S51: vsechny body vysledku jsou v ramci presnosti %.3f od analyticke ekvidistanty (chyba %.5f)"
               % (accuracy, max_err))
-    reset_accuracy()
 
     # presnejsi pozadavek -> vic bodu (vic deleni) - 0.05 dava jeden usek
     # (fit je prekvapive dobry i bez deleni), 0.0001 uz musi delit
-    set_accuracy(0.05)
-    coarse = offset_curve(parabola, 0.3, side=0)
-    set_accuracy(0.0001)
-    fine = offset_curve(parabola, 0.3, side=0)
+    coarse = offset_curve(parabola, 0.3, side=0, accuracy=0.05)
+    fine = offset_curve(parabola, 0.3, side=0, accuracy=0.0001)
     check(len(coarse.points) == 2, "S51: presnost 0.05 - fit staci na jeden usek (zadne deleni)")
     check(len(fine.points) > len(coarse.points), "S51: presnost 0.0001 uz vyzaduje deleni (vic bodu)")
 
-    # a i po deleni musi vysledek pri 0.0001 sedet na analyticky vzorec
-    # (hustsi vzorkovaci mrizka, aby sama chyba vzorkovani nebyla vetsi
-    # nez overovana tolerance)
     max_err_fine = 0.0
     samples = [true_offset_point(t / 20000.0, 0.3, side=0) for t in range(20001)]
     for pt in fine.points:
@@ -144,7 +134,25 @@ def main():
     check(max_err_fine <= 0.0001 * 1.5,
           "S51: i po deleni segmentu (presnost 0.0001) vysledek sedi na analyticky vzorec (chyba %.6f)"
           % max_err_fine)
+
+    # --- D2 vynechany pouziva globalni ACCUR (zamerny odklon od
+    # originalu - viz hlavicka s51.py - podle prani v konverzaci) ---
+    from gerlib.accur import set_accuracy, reset_accuracy
+    set_accuracy(0.05)
+    via_accur = offset_curve(parabola, 0.3, side=0)  # accuracy=None
+    explicit = offset_curve(parabola, 0.3, side=0, accuracy=0.05)
+    check(len(via_accur.points) == len(explicit.points),
+          "S51: D2 vynechan pouzije aktualni globalni ACCUR (stejny vysledek jako explicitni D2=ACCUR)")
     reset_accuracy()
+
+    # --- REGRESE: zaporny offset (puvodni bug - SGPAT vraci nezapornou
+    # vzdalenost, srovnavalo se se znamenkovou distance misto ABS) ---
+    hard_pts = [Point(-30.0, 20.0, 0.0), Point(-16.0, 23.0, 0.0), Point(-10.0, 10.0, 0.0),
+                Point(0.0, 10.0, 0.0), Point(0.0, 20.0, 0.0), Point(15.0, 20.0, 0.0)]
+    hard_spline = make_spline(hard_pts, len(hard_pts))
+    for d in (0.10, -0.10, 1.0, -1.0, 2.0, -2.0):
+        off = offset_curve(hard_spline, d, accuracy=0.01)
+        check(len(off.points) >= len(hard_pts), "S51: zaporny/kladny offset %.2f funguje symetricky" % d)
 
     print("Vse OK.")
 
