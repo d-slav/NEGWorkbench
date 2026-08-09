@@ -41,6 +41,12 @@ from gerlib import (
     discretize as _gerlib_discretize,
     set_accuracy as _gerlib_set_accuracy,
     offset_curve as _gerlib_offset_curve,
+    point_from_coords as _gerlib_point_from_coords,
+    circle_from_coords as _gerlib_circle_from_coords,
+    circle_from_point as _gerlib_circle_from_point,
+    tangent_to_two_lines as _gerlib_tangent_to_two_lines,
+    tangent_to_line_and_circle as _gerlib_tangent_to_line_and_circle,
+    tangent_to_two_circles as _gerlib_tangent_to_two_circles,
     triangle_area, triangle_area_signed, triangle_area_from_lines, circle_area,
     scale as _gerlib_scale,
     get_component as _gerlib_get_component,
@@ -229,6 +235,36 @@ def _op_s51(spline, distance, p1=None, p2=None, side=0, accuracy=None):
     return _gerlib_offset_curve(spline, distance, p1, p2, side, accuracy)
 
 
+def _op_p00(d1, d2):
+    """P00: PM=P00>D1,D2 - viz gerlib.point_from_coords."""
+    return _gerlib_point_from_coords(d1, d2)
+
+
+def _op_c00(d1, d2, d3):
+    """C00: CM=C00>D1,D2,D3 - viz gerlib.circle_from_coords."""
+    return _gerlib_circle_from_coords(d1, d2, d3)
+
+
+def _op_c01(point, d):
+    """C01: CM=C01>P,D - viz gerlib.circle_from_point."""
+    return _gerlib_circle_from_point(point, d)
+
+
+def _op_c32(line1, line2, d, kk):
+    """C32: CM=C32>L1,L2,D,KK - viz gerlib.tangent_to_two_lines."""
+    return _gerlib_tangent_to_two_lines(line1, line2, d, kk)
+
+
+def _op_c33(line, circle, d, kkk):
+    """C33: CM=C33>L,C,D,KKK - viz gerlib.tangent_to_line_and_circle."""
+    return _gerlib_tangent_to_line_and_circle(line, circle, d, kkk)
+
+
+def _op_c34(circle1, circle2, d, kkk):
+    """C34: CM=C34>C1,C2,D,KKK - viz gerlib.tangent_to_two_circles."""
+    return _gerlib_tangent_to_two_circles(circle1, circle2, d, kkk)
+
+
 def _op_d01(x1, x2, k):
     """D01 (interne D601): soucet/rozdil dvou skalaru."""
     return sum_or_diff(x1, x2, int(round(k)))
@@ -372,6 +408,7 @@ OPERATIONS = {
     "P47": _op_p47,
     "P48": _op_p48,
     "P49": _op_p49,
+    "P00": _op_p00,
     "P85": _op_p85,
     "P86": _op_p86,
 
@@ -385,6 +422,11 @@ OPERATIONS = {
     # --- kruznice ---
     "C02": _op_c02,
     "C49": _op_c49,
+    "C00": _op_c00,
+    "C01": _op_c01,
+    "C32": _op_c32,
+    "C33": _op_c33,
+    "C34": _op_c34,
 
     # --- krivky / retezce ---
     "S01": _op_s01,

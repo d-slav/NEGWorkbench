@@ -70,6 +70,13 @@ from .e45 import discretize
 from .nlsolve import solve as solve_nonlinear
 from .sgpat import nearest_distance as sgpat_nearest_distance
 from .s51 import offset_curve
+from .p00 import point_from_coords
+from .c00 import circle_from_coords
+from .c01 import circle_from_point
+from .c32 import tangent_to_two_lines
+from .c33 import tangent_to_line_and_circle
+from .c34 import tangent_to_two_circles
+from .circle_geom import line_circle_intersection, circle_circle_intersection
 
 from .e01 import make_chain, tangent_point_on_chain
 from .p85 import tangent_point
@@ -104,4 +111,7 @@ __all__ = [
     "tangent_point", "tangent_point_from_line", "tangent_line",
     "make_spline", "make_spline1",
     "scale",
+    "point_from_coords", "circle_from_coords", "circle_from_point",
+    "tangent_to_two_lines", "tangent_to_line_and_circle", "tangent_to_two_circles",
+    "line_circle_intersection", "circle_circle_intersection",
 ]
