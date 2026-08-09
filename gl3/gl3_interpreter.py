@@ -24,8 +24,8 @@ from gl3_lang import (
     parse_expr_text,
 )
 from gl3_ops import (
-    OPERATIONS, COMMANDS, Point, Curve, classify, NotYetImplemented,
-    ARRAY_REF_OPS, builtin_constants,
+    OPERATIONS, COMMANDS, Point, Vector, Line, Circle, Curve, classify,
+    NotYetImplemented, ARRAY_REF_OPS, DATA_CONSTANTS_PER_OBJECT, builtin_constants,
 )
 from geplib import define_coord_system3, transform3
 from gl3_analysis import get_param_directions, _is_identifier
@@ -58,6 +58,28 @@ _REL_FUNCS = {
     "EQ": lambda a, b: a == b,
     "NE": lambda a, b: a != b,
 }
+
+
+def _build_data_object(prefix, chunk):
+    """Sestavi jeden objekt prikazu DATA z 'chunk' (seznam konstant, jiz
+    vyhodnocenych na cisla/retezce) podle typu urceneho 'prefix' (prvni
+    pismeno jmena cile) - viz gl3_ops.DATA_CONSTANTS_PER_OBJECT pro
+    pocet konstant na typ."""
+    if prefix in ("D", "A"):
+        return float(chunk[0])
+    if prefix == "I":
+        return int(round(chunk[0]))
+    if prefix == "B":
+        return str(chunk[0])
+    if prefix == "P":
+        return Point(chunk[0], chunk[1], 0.0)
+    if prefix == "V":
+        return Vector(chunk[0], chunk[1], 0.0)
+    if prefix == "C":
+        return Circle(Point(chunk[0], chunk[1], 0.0), chunk[2])
+    if prefix == "L":
+        return Line(Point(chunk[0], chunk[1], 0.0), Vector(chunk[2], chunk[3], 0.0))
+    raise NotImplementedError("DATA: sestaveni objektu typu '%s' neni podporovano" % prefix)
 
 
 class Interpreter:
@@ -272,7 +294,7 @@ class Interpreter:
             return
 
         if isinstance(stmt, DataStmt):
-            env[stmt.array_name] = list(stmt.values)
+            self._exec_data(stmt, env)
             return
 
         if isinstance(stmt, CommandStmt):
@@ -331,6 +353,51 @@ class Interpreter:
             raise RetSubSignal()
 
         raise TypeError("Neznamy typ statementu: %r" % (stmt,))
+
+    def _exec_data(self, stmt, env):
+        """DATA,p,vi - viz manual (dodano v konverzaci). 'p' urcuje
+        prvek pole/mnoziny (jiz drive deklarovane pres DIMEN), pocinaje
+        kterym se prirazuji objekty; typ objektu se odvodi z prefixu
+        jmena 'p' (viz gl3_ops.classify/DATA_CONSTANTS_PER_OBJECT).
+        Zatim jen rovinne objekty (A/D/I/B skalary, P/V/C/L slozene) -
+        3D typy (Q/U/R/M/G) hlasi jasnou chybu."""
+        count = int(round(self.eval_expr(stmt.count, env)))
+        if count < 0:
+            raise ValueError("DATA,%s,...: pocet objektu (vi) nesmi byt zaporny" % stmt.target_name)
+
+        prefix = stmt.target_name[0].upper()
+        per_object = DATA_CONSTANTS_PER_OBJECT.get(prefix)
+        if per_object is None:
+            raise NotImplementedError(
+                "DATA,%s: typ s prefixem '%s' zatim neni podporovan "
+                "(zatim jen rovinne objekty A,D,I,B,P,V,C,L)"
+                % (stmt.target_name, prefix)
+            )
+
+        values = [self.eval_expr(v, env) for v in stmt.values]
+        expected = count * per_object
+        if len(values) != expected:
+            raise ValueError(
+                "DATA,%s,%d: ocekavano %d konstant (%d objekt(u) x %d na typ "
+                "'%s'), nalezeno %d"
+                % (stmt.target_name, count, expected, count, per_object, prefix, len(values))
+            )
+
+        if stmt.target_name not in env or not isinstance(env[stmt.target_name], list):
+            raise NameError(
+                "DATA,%s: pole '%s' nebylo deklarovano (DIMEN) pred pouzitim"
+                % (stmt.target_name, stmt.target_name)
+            )
+        target_array = env[stmt.target_name]
+
+        start_idx = 1
+        if stmt.target_index is not None:
+            start_idx = int(round(self.eval_expr(stmt.target_index, env)))
+
+        for i in range(count):
+            chunk = values[i * per_object:(i + 1) * per_object]
+            obj = _build_data_object(prefix, chunk)
+            self._set_indexed(target_array, start_idx + i, obj)
 
     def _exec_command(self, stmt, env):
         if stmt.name == "SCALE":

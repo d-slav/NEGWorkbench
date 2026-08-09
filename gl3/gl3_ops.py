@@ -109,6 +109,19 @@ TYPE_PREFIX_INFO = {
 }
 
 
+# Pocet konstant na jeden objekt pro prikaz DATA (viz manual - tabulka
+# v hlavicce _exec_data v gl3_interpreter.py). "Zatim jen rovinne
+# objekty" - Q/U/R/M/G (3D) zamerne chybi, DATA je pro ne zatim
+# neimplementovana (viz _build_data_object).
+DATA_CONSTANTS_PER_OBJECT = {
+    "A": 1, "D": 1,
+    "I": 1, "B": 1,
+    "P": 2, "V": 2,
+    "C": 3,
+    "L": 4,
+}
+
+
 def classify(var_name):
     """Vrati (kind, native_fc_type) podle prvniho pismene jmena promenne.
     Neznamy/nerezervovany prefix (napr. J, jak ho pouziva TEHLO.gl3 jako

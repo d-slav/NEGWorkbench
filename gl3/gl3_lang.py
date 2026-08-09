@@ -15,6 +15,7 @@ Tenhle soubor jen preklada text programu na AST.
 
 from dataclasses import dataclass, field
 from typing import List, Optional, Union, Tuple
+import re
 
 
 # ---------------------------------------------------------------------------
@@ -104,9 +105,10 @@ class DimenStmt:
 
 @dataclass
 class DataStmt:
-    array_name: str
-    size: int
-    values: List[float]
+    target_name: str
+    target_index: Optional[object]  # vyraz (index v poli) nebo None (=> od 1)
+    count: object  # vyraz "vi" - pocet objektu
+    values: List[object]  # AST uzly (Num/Str/UnaryMinus) - syrove konstanty
 
 
 @dataclass
@@ -191,6 +193,24 @@ class SubroutineDef:
 # Pomocne textove funkce (respektuji zavorky pri deleni na top-level casti)
 # ---------------------------------------------------------------------------
 
+_DATA_NUMBER_RE = re.compile(r"^[+-]?\d+\.?\d*([eE][+-]?\d+)?$")
+_DATA_STRING_RE = re.compile(r"^'[^']*'$")
+
+
+def _is_data_constants_line(line):
+    """True, kdyz 'line' vypada jako cisty seznam konstant (cisla a/nebo
+    retezcove literaly oddelene carkami) pro pokracovani prikazu DATA -
+    pouziva se k rozpoznani, kolik nasledujicich radku jeste patri k
+    DATA bloku (zadny jiny GL3 prikaz takhle nezacina - vzdy identifikator
+    nebo klicove slovo, nikdy cislo/apostrof)."""
+    if not line:
+        return False
+    parts = split_top_level(line, ",")
+    if not parts:
+        return False
+    return all(_DATA_NUMBER_RE.match(p) or _DATA_STRING_RE.match(p) for p in parts)
+
+
 def split_top_level(text, sep=","):
     parts = []
     depth = 0
@@ -214,8 +234,6 @@ def split_top_level(text, sep=","):
 # ---------------------------------------------------------------------------
 # Lexer + expression parser
 # ---------------------------------------------------------------------------
-
-import re
 
 _TOKEN_RE = re.compile(r"""
     (?P<STRING>'[^']*')
@@ -540,16 +558,24 @@ def _parse_one(line, cursor):
 
     if line.startswith("DATA,"):
         rest = line[len("DATA,"):]
-        name, size_text = split_top_level(rest, ",")
-        size = int(size_text)
-        values_line = cursor.advance()
-        values = [float(v) for v in split_top_level(values_line, ",")]
-        if len(values) != size:
-            raise SyntaxError(
-                "DATA %s: ocekavano %d hodnot, nalezeno %d"
-                % (name, size, len(values))
-            )
-        return DataStmt(name, size, values)
+        target_text, count_text = split_top_level(rest, ",")
+
+        m = re.match(r"^([A-Za-z][A-Za-z0-9_]*)(?:\((.+)\))?$", target_text)
+        if not m:
+            raise SyntaxError("DATA: nerozumim cili %r" % (target_text,))
+        target_name = m.group(1)
+        target_index = parse_expr_text(m.group(2)) if m.group(2) else None
+        count_expr = parse_expr_text(count_text)
+
+        value_texts = []
+        while True:
+            nxt = cursor.peek()
+            if nxt is None or not _is_data_constants_line(nxt):
+                break
+            value_texts.extend(split_top_level(cursor.advance(), ","))
+
+        values = [parse_expr_text(v) for v in value_texts]
+        return DataStmt(target_name, target_index, count_expr, values)
 
     if line.startswith("DO,"):
         rest = line[len("DO,"):]
