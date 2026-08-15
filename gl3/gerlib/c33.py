@@ -10,7 +10,8 @@ Kruznice CM o polomeru D se tecne dotyka primky L a kruznice C.
     K3=0 vlevo od L, K3=1 vpravo od L (konvence L20/V230)
     K2=0 dotyk vnitrni s C, K2=1 dotyk vnejsi s C
     K1 - viz POZNAMKA nize (nejista interpretace)
-V pripadech, kdy kruznice nemuze byt vypoctena, je hlasena chyba.
+V pripadech, kdy kruznice nemuze byt vypoctena, je to varovani
+(NoSolution - viz errors.py), ne tvrda chyba.
 
 POZNAMKA k baleni KKK: stejny predpoklad jako C32/C34 - KKK = 100*K3 +
 10*K2 + K1.
@@ -42,6 +43,7 @@ kandidaty na stred CM (circle_geom.line_circle_intersection).
 from .types import Circle
 from .l20 import parallel_line
 from .circle_geom import line_circle_intersection
+from .errors import NoSolution
 
 
 def tangent_to_line_and_circle(line, circle, radius, kkk):
@@ -58,7 +60,7 @@ def tangent_to_line_and_circle(line, circle, radius, kkk):
 
     candidates = line_circle_intersection(offset_line, circle.center, target_radius)
     if not candidates:
-        raise ValueError(
+        raise NoSolution(
             "C33: kruznici nelze sestrojit - posunuta primka a redukovana "
             "kruznice se neprotinaji"
         )

@@ -21,7 +21,7 @@ Vector/Circle/Line/Plane/Curve).
 """
 
 from gerlib import (
-    Point, Vector, Line, Circle, Plane, Curve, Spline,
+    Point, Vector, Line, Circle, Plane, Curve, Spline, NoSolution,
     make_chain, tangent_point, tangent_point_from_line, tangent_line,
     sum_or_diff, product_or_quotient,
     point_point, point_line, vector_magnitude,

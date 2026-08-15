@@ -11,7 +11,9 @@ Kruznice CM o polomeru D se tecne dotyka kruznic C1 a C2.
     K2=0 dotyk vnitrni s C2, K2=1 dotyk vnejsi s C2
     K1=0 stred CM vlevo od orientovane spojnice stredu C1->C2,
     K1=1 stred CM vpravo
-Nelze-li kruznici sestrojit, je hlasena chyba.
+Nelze-li kruznici sestrojit, je to varovani (NoSolution - viz
+errors.py, vyhozeno primo z circle_geom.circle_circle_intersection),
+ne tvrda chyba.
 
 POZNAMKA k baleni KKK: zadny Fortran zdroj nedodan - stejny predpoklad
 dekadickeho baleni jako C32/C33 - KKK = 100*K3 + 10*K2 + K1 (poradi

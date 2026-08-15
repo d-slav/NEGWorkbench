@@ -16,6 +16,11 @@ hodnoty se po dobehnuti zkopiruji zpatky do volajiciho prostredi.
 import os
 import re
 
+try:
+    import FreeCAD as App
+except ImportError:  # offline beh (testy, CLI) - beze zmeny, prosty text
+    App = None
+
 from gl3_lang import (
     Var, Num, Str, BinOp, UnaryMinus, OpCall,
     Assign, CallStmt, CommandStmt, DimenStmt, DataStmt,
@@ -25,7 +30,8 @@ from gl3_lang import (
 )
 from gl3_ops import (
     OPERATIONS, COMMANDS, Point, Vector, Line, Circle, Curve, classify,
-    NotYetImplemented, ARRAY_REF_OPS, DATA_CONSTANTS_PER_OBJECT, builtin_constants,
+    NotYetImplemented, NoSolution, ARRAY_REF_OPS, DATA_CONSTANTS_PER_OBJECT,
+    builtin_constants,
 )
 from geplib import define_coord_system3, transform3
 from gl3_analysis import get_param_directions, _is_identifier
@@ -47,6 +53,17 @@ _CHANNEL_BY_COMMAND = {
 
 class RetSubSignal(Exception):
     """Rizeni behu - ukonci provadeni aktualniho podprogramu (RETSUB/END)."""
+    pass
+
+
+class GL3RuntimeError(Exception):
+    """Kategorie 2 - chyba v GL3 programu (ne bug v Pythonu, ne kategorie
+    3 varovani). Napr. neexistujici promenna, neznamy opcode, promenna
+    v undefined stavu pouzita ve vypoctu. Zprava uz obsahuje kompletni
+    kontext ('[Error] program/radek/operace: text') sestaveny IHNED pri
+    vyhozeni - behem odvijeni vyjimky by uz self._program_name_stack/
+    current_line_no mohly ukazovat jinam (viz _exec_call - finally: pop
+    probehne pri odvijeni driv, nez se vyjimka dostane nahoru)."""
     pass
 
 
@@ -118,6 +135,16 @@ class Interpreter:
         # kazdy novy Interpreter zacina na vychozich 0.01, predchozi
         # beh/test ji nemuze ovlivnit (viz gerlib.accur).
         _gerlib_accur.reset_accuracy()
+        # Varovani (kategorie 3 - NoSolution, viz gerlib.errors) -
+        # izolovano per beh, presne jako ACCUR. MESS/NOMESS prepina.
+        self.disp_warning = True
+        # Zasobnik jmen aktualne bezicich SUBRO (kvuli vnorenym CALL) -
+        # pro hlaseni "[Warning] jmeno_programu/cislo_radku/operace: ...".
+        self._program_name_stack = []
+        # Cislo radku prave provadeneho statementu (pro totez hlaseni) -
+        # nastavuje se v _exec_stmt pred vyhodnocenim, cte se pri
+        # zachyceni NoSolution v eval_expr.
+        self.current_line_no = None
 
     # ------------------------------------------------------------------
     # verejne API
@@ -136,11 +163,13 @@ class Interpreter:
         env.update(inputs)
         self._input_names_by_env[id(env)] = set(inputs.keys())
         self.io_channels = {}
+        self._program_name_stack.append(subdef.name)
         try:
             self._exec_block(subdef.body, env)
         except RetSubSignal:
             pass
         finally:
+            self._program_name_stack.pop()
             for state in self.io_channels.values():
                 try:
                     state["file"].close()
@@ -161,9 +190,7 @@ class Interpreter:
 
         if isinstance(node, Var):
             if node.name not in env:
-                raise NameError(
-                    "Promenna '%s' nebyla pred pouzitim nastavena" % node.name
-                )
+                self._raise_gl3_error(node.name, "promenna nebyla pred pouzitim nastavena")
             value = env[node.name]
             if node.index is not None:
                 idx = int(round(self.eval_expr(node.index, env)))
@@ -189,9 +216,10 @@ class Interpreter:
         if isinstance(node, OpCall):
             fn = self.operations.get(node.opcode)
             if fn is None:
-                raise KeyError(
-                    "Operace '%s' neni v registru OPERATIONS vubec zavedena "
-                    "(ani jako stub) - zkontroluj gl3_ops.py" % node.opcode
+                self._raise_gl3_error(
+                    node.opcode,
+                    "neznamy opcode - neni v registru OPERATIONS vubec zavedeny "
+                    "(ani jako stub)",
                 )
             array_ref_positions = ARRAY_REF_OPS.get(node.opcode, ())
             args = []
@@ -200,7 +228,18 @@ class Interpreter:
                     args.append(self._eval_array_ref(a, env))
                 else:
                     args.append(self.eval_expr(a, env))
-            return fn(*args)
+            for i, v in enumerate(args):
+                if i not in array_ref_positions and v is None:
+                    self._raise_gl3_error(
+                        node.opcode,
+                        "%d. argument je undefined (predchozi operace nemela "
+                        "reseni) - nelze s nim dale pocitat" % (i + 1),
+                    )
+            try:
+                return fn(*args)
+            except NoSolution as exc:
+                self._report_warning(node.opcode, str(exc))
+                return None
 
         raise TypeError("Neznamy typ uzlu vyrazu: %r" % (node,))
 
@@ -265,6 +304,10 @@ class Interpreter:
             self._exec_stmt(stmt, env)
 
     def _exec_stmt(self, stmt, env):
+        line_no = getattr(stmt, "line_no", None)
+        if line_no is not None:
+            self.current_line_no = line_no
+
         if isinstance(stmt, Assign):
             value = self.eval_expr(stmt.value, env)
             if stmt.target_index is None:
@@ -353,6 +396,29 @@ class Interpreter:
             raise RetSubSignal()
 
         raise TypeError("Neznamy typ statementu: %r" % (stmt,))
+
+    def _format_report(self, kind, operation, message):
+        """Sestavi hlasku '[Warning|Error] jmeno_programu/cislo_radku/
+        operace: text' - viz konverzace o rozdeleni chyb do kategorii."""
+        program = self._program_name_stack[-1] if self._program_name_stack else "?"
+        line = self.current_line_no if self.current_line_no is not None else "?"
+        op = operation if operation else "-"
+        return "[%s] %s/%s/%s: %s" % (kind, program, line, op, message)
+
+    def _report_warning(self, operation, message):
+        """Kategorie 3 (viz gerlib.errors.NoSolution) - vypis (pokud
+        disp_warning) a beh programu pokracuje dal beze zmeny."""
+        if not self.disp_warning:
+            return
+        text = self._format_report("Warning", operation, message)
+        if App is not None:
+            App.Console.PrintWarning(text + "\n")
+        else:
+            print(text)
+
+    def _raise_gl3_error(self, operation, message):
+        """Kategorie 2 (chyba v GL3 programu) - vzdy tvrde zastavi beh."""
+        raise GL3RuntimeError(self._format_report("Error", operation, message))
 
     def _exec_data(self, stmt, env):
         """DATA,p,vi - viz manual (dodano v konverzaci). 'p' urcuje
@@ -466,6 +532,19 @@ class Interpreter:
             if fn is None:
                 raise KeyError("Prikaz 'ACCUR' neni v registru COMMANDS")
             fn(self, value)
+            return
+
+        if stmt.name == "MESS":
+            # MESS - zapne vypis varovani (kategorie 3 - NoSolution),
+            # vychozi stav. Izolovano per beh (viz __init__).
+            self.disp_warning = True
+            return
+
+        if stmt.name == "NOMESS":
+            # NOMESS - vypne vypis varovani ([Warning] hlasky se
+            # potlaci, ale cilova promenna se PRESTO priradi None
+            # beze zmeny - jen se to nevypise).
+            self.disp_warning = False
             return
 
         raise KeyError("Neznamy prikaz '%s'" % stmt.name)
@@ -609,10 +688,15 @@ class Interpreter:
 
         self._input_names_by_env[id(local_env)] = local_input_names
 
+        self._program_name_stack.append(stmt.name)
+        saved_line_no = self.current_line_no
         try:
             self._exec_block(callee.body, local_env)
         except RetSubSignal:
             pass
+        finally:
+            self._program_name_stack.pop()
+            self.current_line_no = saved_line_no
 
         for i, (formal_name, _dim, _dir) in enumerate(callee_params):
             if i >= len(stmt.args):
