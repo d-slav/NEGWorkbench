@@ -10,6 +10,7 @@ Zadny primy Fortran ekvivalent - jde o standardni analytickou geometrii
 import math
 
 from .types import Point
+from .errors import NoSolution
 
 
 def line_circle_intersection(line, center, radius):
@@ -47,16 +48,17 @@ def circle_circle_intersection(center1, r1, center2, r2):
     kandidaty prusecikove dvojice, kde 'left'/'right' jsou vzhledem k
     ORIENTOVANE spojnici center1->center2 (stejna konvence jako jinde -
     'left' = pri pohledu ve smeru center1->center2, otoceno o 90 CCW).
-    Pro tecne se dotykajici kruznice jsou oba body totozne. Chyba
-    (ValueError), pokud se kruznice neprotinaji (prilis daleko, jedna
-    uvnitr druhe bez dotyku, nebo stejny stred)."""
+    Pro tecne se dotykajici kruznice jsou oba body totozne. NoSolution
+    (kategorie "varovani" - viz errors.py), pokud se kruznice neprotinaji
+    (prilis daleko, jedna uvnitr druhe bez dotyku, nebo stejny stred) -
+    tohle je legitimni geometricky vysledek, ne bug."""
     dx = center2.x - center1.x
     dy = center2.y - center1.y
     d = math.hypot(dx, dy)
     if d < 1e-12:
-        raise ValueError("circle_circle_intersection: kruznice maji stejny stred")
+        raise NoSolution("circle_circle_intersection: kruznice maji stejny stred")
     if d > r1 + r2 + 1e-9 or d < abs(r1 - r2) - 1e-9:
-        raise ValueError("circle_circle_intersection: kruznice se neprotinaji")
+        raise NoSolution("circle_circle_intersection: kruznice se neprotinaji")
 
     a = (d * d + r1 * r1 - r2 * r2) / (2.0 * d)
     h_sq = max(r1 * r1 - a * a, 0.0)

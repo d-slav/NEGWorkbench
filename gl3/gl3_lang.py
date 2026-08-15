@@ -415,7 +415,8 @@ def _strip_trailing_comment(line):
 
 def _strip_comments_and_blanks(raw_lines):
     out = []
-    for line in raw_lines:
+    line_numbers = []
+    for i, line in enumerate(raw_lines):
         stripped = line.rstrip("\n").rstrip("\r")
         if stripped.lstrip().startswith("*"):
             continue
@@ -423,15 +424,18 @@ def _strip_comments_and_blanks(raw_lines):
         if stripped.strip() == "":
             continue
         out.append(stripped.strip())
-    return out
+        line_numbers.append(i + 1)  # 1-based cislo puvodniho radku
+    return out, line_numbers
 
 
-def preprocess_labels(lines):
+def preprocess_labels(lines, line_numbers):
     """Najde vzor 'navesti N: ... IFx/cond/N' (zpetny podmineny skok) a
     nahradi CELY tento usek (od navesti az po radek s GOTO, vcetne)
-    jednou syntetickou strukturou ('REPEATWHILE', kind, cond, body_lines).
-    Jakykoli jiny GOTO (dopredny skok, skok mimo tento vzor) zpusobi chybu
-    az pri statement-parsovani (viz _parse_one).
+    jednou syntetickou strukturou ('REPEATWHILE', kind, cond, body_lines,
+    body_line_numbers). Jakykoli jiny GOTO (dopredny skok, skok mimo
+    tento vzor) zpusobi chybu az pri statement-parsovani (viz _parse_one).
+    'line_numbers' je paralelni seznam (stejna delka jako 'lines') s
+    puvodnimi cisly radku - pouziva se pro hlaseni chyb.
     """
     label_positions = {}
     for i, line in enumerate(lines):
@@ -452,23 +456,29 @@ def preprocess_labels(lines):
         label_idx = label_positions[label]
         first_stmt = _LABEL_RE.match(lines[label_idx]).group(2)
         body_lines = ([first_stmt] if first_stmt else []) + list(lines[label_idx + 1:j])
+        body_line_numbers = (
+            ([line_numbers[label_idx]] if first_stmt else []) + list(line_numbers[label_idx + 1:j])
+        )
         cond = parse_condition(cond_text)
-        spans_by_start[label_idx] = (j, "IF" + kind, cond, body_lines)
+        spans_by_start[label_idx] = (j, "IF" + kind, cond, body_lines, body_line_numbers)
 
     if not spans_by_start:
-        return lines
+        return lines, line_numbers
 
     out = []
+    out_line_numbers = []
     i = 0
     while i < len(lines):
         if i in spans_by_start:
-            goto_idx, kind, cond, body_lines = spans_by_start[i]
-            out.append(("REPEATWHILE", kind, cond, body_lines))
+            goto_idx, kind, cond, body_lines, body_line_numbers = spans_by_start[i]
+            out.append(("REPEATWHILE", kind, cond, body_lines, body_line_numbers))
+            out_line_numbers.append(line_numbers[i])
             i = goto_idx + 1
             continue
         out.append(lines[i])
+        out_line_numbers.append(line_numbers[i])
         i += 1
-    return out
+    return out, out_line_numbers
 
 
 # ---------------------------------------------------------------------------
@@ -476,8 +486,9 @@ def preprocess_labels(lines):
 # ---------------------------------------------------------------------------
 
 class _Cursor:
-    def __init__(self, lines):
+    def __init__(self, lines, line_numbers=None):
         self.lines = lines
+        self.line_numbers = line_numbers if line_numbers is not None else [None] * len(lines)
         self.i = 0
 
     def peek(self):
@@ -488,8 +499,24 @@ class _Cursor:
         self.i += 1
         return item
 
+    def current_line_no(self):
+        """Cislo puvodniho zdrojoveho radku polozky, kterou vrati nejblizsi
+        peek()/advance() (nebo None, pokud cursor nema cisla radku - napr.
+        vnitrni pomocne pouziti, kde na tom nezalezi)."""
+        return self.line_numbers[self.i] if self.i < len(self.line_numbers) else None
+
     def eof(self):
         return self.i >= len(self.lines)
+
+
+def _attach_line_no(stmt_or_block, line_no):
+    """Priradi cislo radku vysledku parsovani (pro pozdejsi chybova
+    hlaseni) - nekteremu typu uzlu (napr. holy List z parse_block volane
+    rekurzivne) se nedari priradit atribut, coz je v poradku."""
+    try:
+        stmt_or_block.line_no = line_no
+    except Exception:
+        pass
 
 
 def parse_block(cursor, stop_words=()):
@@ -503,14 +530,19 @@ def parse_block(cursor, stop_words=()):
             return stmts  # stop slovo NEKONZUMUJEME - odchyti ho volajici
 
         if isinstance(item, tuple) and item[0] == "REPEATWHILE":
-            _, kind, cond, body_lines = cursor.advance()
-            body_cursor = _Cursor(body_lines)
+            line_no = cursor.current_line_no()
+            _, kind, cond, body_lines, body_line_numbers = cursor.advance()
+            body_cursor = _Cursor(body_lines, body_line_numbers)
             body = parse_block(body_cursor)
-            stmts.append(RepeatWhile(kind, cond, body))
+            rw = RepeatWhile(kind, cond, body)
+            _attach_line_no(rw, line_no)
+            stmts.append(rw)
             continue
 
+        line_no = cursor.current_line_no()
         line = cursor.advance()
         stmt_or_block = _parse_one(line, cursor)
+        _attach_line_no(stmt_or_block, line_no)
         stmts.append(stmt_or_block)
 
     return stmts
@@ -622,6 +654,9 @@ def _parse_one(line, cursor):
         args = [parse_expr_text(rest)] if rest else []
         return CommandStmt("ACCUR", args)
 
+    if line == "MESS" or line == "NOMESS":
+        return CommandStmt(line, [])
+
     if line == "IDEV" or line.startswith("IDEV,"):
         rest = line[len("IDEV"):]
         rest = rest[1:] if rest.startswith(",") else ""
@@ -709,15 +744,15 @@ def parse_subro_header(line):
 def parse_program(raw_text):
     """Zparsuje cely obsah .GL3 souboru (jeden SUBRO) do SubroutineDef."""
     raw_lines = raw_text.splitlines()
-    lines = _strip_comments_and_blanks(raw_lines)
+    lines, line_numbers = _strip_comments_and_blanks(raw_lines)
 
     if not lines or not lines[0].startswith("SUBRO/"):
         raise SyntaxError("Ocekavan radek SUBRO/... na zacatku souboru")
 
     name, params = parse_subro_header(lines[0])
-    body_lines = preprocess_labels(lines[1:])
+    body_lines, body_line_numbers = preprocess_labels(lines[1:], line_numbers[1:])
 
-    cursor = _Cursor(body_lines)
+    cursor = _Cursor(body_lines, body_line_numbers)
     body = parse_block(cursor)
 
     return SubroutineDef(name, params, body)
