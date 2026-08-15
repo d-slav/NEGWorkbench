@@ -61,6 +61,40 @@ class Plane:
     def __repr__(self):
         return "Plane(origin=%r, normal=%r)" % (self.origin, self.normal)
 
+    @classmethod
+    def r01(cls, normal_ref, distance):
+        """RM=R01>>U,D - Rovina normalou a vzdalenosti od pocatku."""
+        from geplib.plane import make_plane_r01
+        return make_plane_r01(normal_ref, distance)
+
+    def equation_coefficients(self):
+        """Vrati koeficienty obecne rovnice roviny (a, b, c, d), kde:
+            a*x + b*y + c*z + d = 0.
+        """
+        a, b, c = self.normal.x, self.normal.y, self.normal.z
+        d = -(a * self.origin.x + b * self.origin.y + c * self.origin.z)
+        return (a, b, c, d)
+
+    def distance_to_point(self, point):
+        """Orientovana (se znamenkem) vzdalenost bodu od roviny."""
+        px = getattr(point, "x", point[0] if isinstance(point, (tuple, list)) else 0.0)
+        py = getattr(point, "y", point[1] if isinstance(point, (tuple, list)) else 0.0)
+        pz = getattr(point, "z", point[2] if isinstance(point, (tuple, list)) else 0.0)
+        a, b, c, d = self.equation_coefficients()
+        return a * px + b * py + c * pz + d
+
+    def project_point(self, point):
+        """Kolmy prumet bodu do roviny."""
+        px = getattr(point, "x", point[0] if isinstance(point, (tuple, list)) else 0.0)
+        py = getattr(point, "y", point[1] if isinstance(point, (tuple, list)) else 0.0)
+        pz = getattr(point, "z", point[2] if isinstance(point, (tuple, list)) else 0.0)
+        dist = self.distance_to_point(point)
+        return Point(
+            px - dist * self.normal.x,
+            py - dist * self.normal.y,
+            pz - dist * self.normal.z,
+        )
+
 
 class Spline:
     """Krivka typu S - kubicky Hermitovsky splajn danymi uzlovymi body a

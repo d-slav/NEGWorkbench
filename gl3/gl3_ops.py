@@ -60,7 +60,9 @@ from gerlib import (
 from geplib import (
     make_point3 as _geplib_make_point3,
     make_vector3 as _geplib_make_vector3,
+    make_plane_r01 as _geplib_make_plane_r01,
 )
+
 
 
 def builtin_constants():
@@ -378,6 +380,11 @@ def _op_u00(d1, d2, d3):
     return _geplib_make_vector3(d1, d2, d3)
 
 
+def _op_r01(u, d):
+    """R01: RM=R01>U,D - rovina normalou a vzdalenosti od pocatku, viz geplib.r01/plane."""
+    return _geplib_make_plane_r01(u, d)
+
+
 # Opcody, ktere v puvodnim Fortranu ocekavaji "adresu prvniho prvku pole"
 # (zapis 'P(1),N' = precti N prvku pole P pocinaje P(1)) - interpret jim
 # proto misto jednoho vyhodnoceneho bodu preda cele podpole (viz
@@ -452,6 +459,7 @@ OPERATIONS = {
     # --- prostorove (3D) - viz geplib ---
     "Q00": _op_q00,
     "U00": _op_u00,
+    "R01": _op_r01,
 
     # --- ostatni ---
     "ABS": lambda x: abs(x),  # obycejna absolutni hodnota - neni potreba Fortran
