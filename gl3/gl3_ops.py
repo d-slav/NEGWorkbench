@@ -55,6 +55,7 @@ from gerlib import (
     interpolate_point as _gerlib_interpolate_point,
     make_spline as _gerlib_make_spline,
     make_spline1 as _gerlib_make_spline1,
+    line_chain_intersection as _gerlib_line_chain_intersection,
     builtin_constants as _gerlib_builtin_constants,
 )
 from geplib import (
@@ -233,6 +234,11 @@ def _op_d50(spline, point):
 def _op_p22(line, spline, k):
     """P22: PM=P22>L,S,K< - viz gerlib.line_curve_intersection (GLPRU.FOR)."""
     return _gerlib_line_curve_intersection(spline, line, k)
+
+
+def _op_p51(line, curve, k=1):
+    """P51: PM=P51>L,E,K - prusecik primky s retezcem, viz gerlib.p51."""
+    return _gerlib_line_chain_intersection(line, curve, k)
 
 
 def _op_l45(direction_vec, curve, k=1):
@@ -429,6 +435,7 @@ OPERATIONS = {
     "P48": _op_p48,
     "P49": _op_p49,
     "P00": _op_p00,
+    "P51": _op_p51,
     "P85": _op_p85,
     "P86": _op_p86,
 

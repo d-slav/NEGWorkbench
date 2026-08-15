@@ -85,6 +85,7 @@ from .l46 import tangent_line
 from .s03 import make_spline
 from .s01 import make_spline as make_spline1
 
+from .p51 import line_chain_intersection, line_chain_intersections
 from .scale import scale
 
 __all__ = [
@@ -104,6 +105,7 @@ __all__ = [
     "real_roots_in_range", "foot_points", "nearest_point",
     "curvature_radius_at", "nearest_point_on_curve", "radius_of_curvature",
     "implicit_line", "line_curve_intersections", "line_curve_intersection",
+    "line_chain_intersection", "line_chain_intersections",
     "tangent_line_parallel",
     "set_accuracy", "get_accuracy", "reset_accuracy", "discretize",
     "solve_nonlinear", "sgpat_nearest_distance", "offset_curve",
