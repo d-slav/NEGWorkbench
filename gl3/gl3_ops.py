@@ -26,6 +26,7 @@ from gerlib import (
     sum_or_diff, product_or_quotient,
     point_point, point_line, vector_magnitude,
     line_intersection,
+    line_from_coords as _gerlib_line_from_coords,
     line_through_point as _gerlib_line_through_point,
     copy_point as _gerlib_copy_point,
     copy_circle as _gerlib_copy_circle,
@@ -180,6 +181,11 @@ def _op_p86(line, curve, k):
 def _op_l46(line, curve, k):
     """L46: LM=L46>L,E,K - viz gerlib.tangent_line."""
     return tangent_line(line, curve, k)
+
+
+def _op_l00(d1, d2, d3, d4):
+    """L00: LM=L00>>D1,D2,D3,D4 - primka slozkami bodu (D1,D2) a vektoru (D3,D4), viz gerlib.l00."""
+    return _gerlib_line_from_coords(d1, d2, d3, d4)
 
 
 def _op_l02(point, direction):
