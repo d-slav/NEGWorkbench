@@ -48,6 +48,7 @@ from .p13 import interpolate_point
 from .p20 import line_intersection
 from .l00 import line_from_coords
 from .l02 import line_through_point
+from .l04 import line_through_two_points
 from .p49 import copy_point
 from .c49 import copy_circle
 from .p47 import circle_center
@@ -105,7 +106,7 @@ __all__ = [
     "point_point", "point_line", "vector_magnitude", "get_component", "index_parameter",
     "triangle_area", "triangle_area_signed", "triangle_area_from_lines", "circle_area",
     "offset_point", "interpolate_point", "line_intersection",
-    "line_from_coords", "line_through_point",
+    "line_from_coords", "line_through_point", "line_through_two_points",
     "copy_point", "copy_circle", "circle_center",
     "perpendicular_bisector", "circle_from_3_points",
     "perpendicular_vector", "parallel_line",
