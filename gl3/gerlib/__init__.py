@@ -45,6 +45,7 @@ from .d43 import circle_area
 
 from .p10 import offset_point
 from .p13 import interpolate_point
+from .p14 import point_on_line_by_coord
 from .p20 import line_intersection
 from .l00 import line_from_coords
 from .l02 import line_through_point
@@ -99,7 +100,7 @@ __all__ = [
     "sum_or_diff", "product_or_quotient",
     "point_point", "point_line", "vector_magnitude", "get_component", "index_parameter",
     "triangle_area", "triangle_area_signed", "triangle_area_from_lines", "circle_area",
-    "offset_point", "interpolate_point", "line_intersection",
+    "offset_point", "interpolate_point", "point_on_line_by_coord", "line_intersection",
     "line_from_coords", "line_through_point",
     "copy_point", "copy_circle", "circle_center",
     "perpendicular_bisector", "circle_from_3_points",

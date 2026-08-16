@@ -54,6 +54,7 @@ from gerlib import (
     index_parameter as _gerlib_index_parameter,
     offset_point as _gerlib_offset_point,
     interpolate_point as _gerlib_interpolate_point,
+    point_on_line_by_coord as _gerlib_point_on_line_by_coord,
     make_spline as _gerlib_make_spline,
     make_spline1 as _gerlib_make_spline1,
     line_chain_intersection as _gerlib_line_chain_intersection,
@@ -370,6 +371,11 @@ def _op_p13(p1, p2, t):
     return _gerlib_interpolate_point(p1, p2, t)
 
 
+def _op_p14(d, line, k):
+    """P14: PM=P14>D,L,K - bod na primce souradnici x(K=0)/y(K=1), viz gerlib.p14."""
+    return _gerlib_point_on_line_by_coord(d, line, k)
+
+
 def _op_s01(points_ref, k, *rest):
     """S01: SM=S01>P(I),K[,[V1],[VK]] - krivka (Spline) K body, chordalni
     (chord-length) parametrizace, viz gerlib.make_spline1. Na rozdil od
@@ -440,6 +446,7 @@ OPERATIONS = {
     # --- body ---
     "P10": _op_p10,
     "P13": _op_p13,
+    "P14": _op_p14,
     "P22": _op_p22,
     "P40": _op_p40,
     "P42": _op_p42,
