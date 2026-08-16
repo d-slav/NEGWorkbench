@@ -59,6 +59,7 @@ from gerlib import (
     make_spline1 as _gerlib_make_spline1,
     line_chain_intersection as _gerlib_line_chain_intersection,
     foot_point_on_line as _gerlib_foot_point_on_line,
+    foot_point_from_circle_center as _gerlib_foot_point_from_circle_center,
     builtin_constants as _gerlib_builtin_constants,
 )
 from geplib import (
@@ -237,6 +238,11 @@ def _op_p48(curve_or_chain, k):
 def _op_p40(point, line):
     """P40: PM=P40>P,L - patni bod kolmice z bodu na primku, viz gerlib.p40."""
     return _gerlib_foot_point_on_line(point, line)
+
+
+def _op_p43(circle, line):
+    """P43: PM=P43>C,L - patni bod kolmice ze stredu kruznice na primku, viz gerlib.p43."""
+    return _gerlib_foot_point_from_circle_center(circle, line)
 
 
 def _op_p42(point, spline, k):
@@ -449,6 +455,7 @@ OPERATIONS = {
     "P22": _op_p22,
     "P40": _op_p40,
     "P42": _op_p42,
+    "P43": _op_p43,
     "P44": _stub("P44", "odpovidajici bod na jine krivce (projekce?)"),
     "P47": _op_p47,
     "P48": _op_p48,
