@@ -28,6 +28,7 @@ from gerlib import (
     line_intersection,
     line_from_coords as _gerlib_line_from_coords,
     line_through_point as _gerlib_line_through_point,
+    line_through_two_points as _gerlib_line_through_two_points,
     copy_point as _gerlib_copy_point,
     copy_circle as _gerlib_copy_circle,
     circle_center as _gerlib_circle_center,
@@ -191,6 +192,11 @@ def _op_l00(d1, d2, d3, d4):
 def _op_l02(point, direction):
     """L02: LM=L02>P,V - viz gerlib.line_through_point (L302.FOR)."""
     return _gerlib_line_through_point(point, direction)
+
+
+def _op_l04(p1, p2):
+    """L04: LM=L04>>P1,P2 - primka dvema body, viz gerlib.line_through_two_points."""
+    return _gerlib_line_through_two_points(p1, p2)
 
 
 def _op_p49(point):
@@ -454,6 +460,7 @@ OPERATIONS = {
 
     # --- primky ---
     "L02": _op_l02,
+    "L04": _op_l04,
     "L20": _op_l20,
     "L45": _op_l45,
     "L46": _op_l46,
