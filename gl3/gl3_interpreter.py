@@ -26,6 +26,7 @@ from gl3_lang import (
     Assign, CallStmt, CommandStmt, DimenStmt, DataStmt,
     DoLoop, IfBlock, IfShort, RepeatWhile, RetSub,
     IODevStmt, IOTarget, InputStmt, OutputStmt, IsUndefined,
+    CreStmt, EndCreStmt, MoveStmt,
     parse_expr_text,
 )
 from gl3_ops import (
@@ -36,6 +37,11 @@ from gl3_ops import (
 from geplib import define_coord_system3, transform3
 from gl3_analysis import get_param_directions, _is_identifier
 import gerlib.accur as _gerlib_accur
+from gerlib import make_chain as _gerlib_make_chain
+from gerlib.move_geom import (
+    evaluate_move_phrase as _gerlib_evaluate_move_phrase,
+    MovePhraseError, MovePhraseNotYetImplemented,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -138,6 +144,15 @@ class Interpreter:
         # Varovani (kategorie 3 - NoSolution, viz gerlib.errors) -
         # izolovano per beh, presne jako ACCUR. MESS/NOMESS prepina.
         self.disp_warning = True
+        # Rezim kresleni (ABSOL/INCRE, viz G17.md 17.6.1) - globalni pro
+        # cely beh (vc. vnorenych CALL), izolovano per beh jako ACCUR.
+        # Ovlivnuje jen fraze MOVE s "promenlivym rezimem" (D#A, D1:D2) -
+        # viz gerlib.move_geom.
+        self.draw_mode = "ABSOL"
+        # Rozpracovany blok CRE...ENDCRE (viz G10.md "VYTVARENI RETEZCU
+        # POMOCI KRESLICICH PRIKAZU") - None mimo blok. Vnorene bloky
+        # CRE zatim nejsou podporovany (viz _exec_cre).
+        self._chain_builder = None
         # Zasobnik jmen aktualne bezicich SUBRO (kvuli vnorenym CALL) -
         # pro hlaseni "[Warning] jmeno_programu/cislo_radku/operace: ...".
         self._program_name_stack = []
@@ -344,6 +359,18 @@ class Interpreter:
             self._exec_command(stmt, env)
             return
 
+        if isinstance(stmt, CreStmt):
+            self._exec_cre(stmt, env)
+            return
+
+        if isinstance(stmt, EndCreStmt):
+            self._exec_endcre(stmt, env)
+            return
+
+        if isinstance(stmt, MoveStmt):
+            self._exec_move(stmt, env)
+            return
+
         if isinstance(stmt, IODevStmt):
             self._exec_idev(stmt, env)
             return
@@ -547,7 +574,134 @@ class Interpreter:
             self.disp_warning = False
             return
 
+        if stmt.name == "ABSOL":
+            # ABSOL - absolutni rezim kresleni (viz G17.md 17.6.1),
+            # vychozi. Ovlivnuje jen fraze MOVE s "promenlivym rezimem"
+            # (D#A, D1:D2).
+            self.draw_mode = "ABSOL"
+            return
+
+        if stmt.name == "INCRE":
+            # INCRE - prirustkovy rezim kresleni (viz G17.md 17.6.1).
+            self.draw_mode = "INCRE"
+            return
+
         raise KeyError("Neznamy prikaz '%s'" % stmt.name)
+
+    def _assign_result(self, target_name, target_index, value, env):
+        """Zapise 'value' do 'target_name' (pripadne indexovane pole) v
+        'env' - stejna logika jako u _exec_stmt(Assign, ...), sdilena i
+        pro cil prikazu CRE...ENDCRE (viz _exec_endcre)."""
+        if target_index is None:
+            env[target_name] = value
+            return
+        idx = int(round(self.eval_expr(target_index, env)))
+        if target_name not in env:
+            raise NameError(
+                "Pole '%s' nebylo deklarovano (DIMEN) pred zapisem" % target_name
+            )
+        self._set_indexed(env[target_name], idx, value)
+
+    def _exec_cre(self, stmt, env):
+        """CRE,pg - zahajeni vytvareni retezce (viz G10.md 'VYTVARENI
+        RETEZCU POMOCI KRESLICICH PRIKAZU'). Nasledujici prikazy MOVE az
+        do ENDCRE budujici body retezce 'pg' - viz _exec_move."""
+        if self._chain_builder is not None:
+            raise GL3RuntimeError(
+                "CRE,%s: vnorene bloky CRE...ENDCRE nejsou (zatim) "
+                "podporovany (predchozi blok jeste neni uzavren ENDCRE)"
+                % stmt.target_name
+            )
+        self._chain_builder = {
+            "target_name": stmt.target_name,
+            "target_index": stmt.target_index,
+            "env": env,
+            "points": [],
+            "current_point": None,
+            "last_direction": None,
+        }
+
+    def _exec_endcre(self, stmt, env):
+        """ENDCRE - uzavreni retezce zahajeneho prikazem CRE. Body
+        nasbirane prikazy MOVE (viz _exec_move) se ulozi jako retezec
+        (Curve, stejna konstrukce jako opcode E01) do cile zadaneho
+        v CRE."""
+        builder = self._chain_builder
+        if builder is None:
+            raise GL3RuntimeError("ENDCRE bez odpovidajiciho predchoziho CRE")
+        if len(builder["points"]) < 2:
+            raise GL3RuntimeError(
+                "CRE,%s...ENDCRE: retezec ma min nez 2 body - je potreba "
+                "aspon jeden pohyb MOVE 'se spustenym perem' (*) za "
+                "zakladajicim pohybem 'se zdviženym perem' (/)"
+                % builder["target_name"]
+            )
+        chain = _gerlib_make_chain(builder["points"])
+        self._assign_result(builder["target_name"], builder["target_index"], chain, builder["env"])
+        self._chain_builder = None
+
+    def _exec_move(self, stmt, env):
+        """MOVE|fraze1|fraze2|... (viz G18.md 18.4) - zatim podporovano
+        jen uvnitr bloku CRE...ENDCRE (vytvareni retezce, viz _exec_cre/
+        _exec_endcre); kresleni primo do souboru CL2 (bloky INI/OPE...
+        CLOSE) jeste neni implementovano."""
+        builder = self._chain_builder
+        if builder is None:
+            raise GL3RuntimeError(
+                "MOVE: (zatim) podporovano jen uvnitr bloku CRE...ENDCRE "
+                "(vytvareni retezce) - kresleni do souboru CL2 pres "
+                "INI/OPE...CLOSE jeste neni implementovano"
+            )
+
+        for phrase in stmt.phrases:
+            values = [self.eval_expr(v, env) for v in phrase.values]
+
+            if builder["current_point"] is None:
+                # Uplne prvni fraze bloku CRE - zakladajici bod retezce.
+                # Nema jeste zadny "aktualni bod", pouzijeme pocatek
+                # souradnic - useckove fraze zavisle na predchozim bode
+                # (*D, *D:V v INCRE rezimu apod.) tu davaji smysl jen
+                # vyjimecne, spravny zapis je vzdy absolutni bod (*P)
+                # nebo souradnice (*D1:D2 v rezimu ABSOL).
+                try:
+                    points, direction = _gerlib_evaluate_move_phrase(
+                        Point(0.0, 0.0, 0.0), None, self.draw_mode, phrase.sep, values
+                    )
+                except MovePhraseNotYetImplemented as exc:
+                    raise NotYetImplemented(str(exc))
+                except MovePhraseError as exc:
+                    raise GL3RuntimeError("MOVE (zakladajici fraze): %s" % exc)
+                builder["points"].append(points[-1])
+                builder["current_point"] = points[-1]
+                builder["last_direction"] = direction
+                continue
+
+            try:
+                points, direction = _gerlib_evaluate_move_phrase(
+                    builder["current_point"], builder["last_direction"], self.draw_mode,
+                    phrase.sep, values
+                )
+            except MovePhraseNotYetImplemented as exc:
+                raise NotYetImplemented(str(exc))
+            except MovePhraseError as exc:
+                raise GL3RuntimeError("MOVE: %s" % exc)
+
+            if phrase.pen == "down":
+                builder["points"].extend(points)
+            else:
+                # Pohyb "se zdviženym perem" (/) uprostred bloku CRE by
+                # vytvoril nesouvisly retezec (fiktivni spojeni, viz
+                # G10.md) - nas Curve typ jeden nesouvisly retezec
+                # (vice useku) zatim neumi reprezentovat.
+                raise NotYetImplemented(
+                    "MOVE/... (pohyb se zdviženym perem) uprostred bloku "
+                    "CRE...ENDCRE by vytvoril nesouvisly retezec - "
+                    "podporovano zatim jen pro UPLNE prvni frazi bloku "
+                    "(zalozeni pocatecniho bodu)"
+                )
+
+            builder["current_point"] = points[-1]
+            builder["last_direction"] = direction
 
     def _exec_dcoos3(self, stmt, env):
         """DCOOS3,vi,vg1,vg2,vg3 - definice prostorove souradnicove

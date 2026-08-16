@@ -178,6 +178,40 @@ class OutputStmt:
 
 
 @dataclass
+class CreStmt:
+    """CRE,pg - zahajeni vytvareni retezce (viz G10.md 'VYTVARENI
+    RETEZCU POMOCI KRESLICICH PRIKAZU'). 'pg' je cil typu E (rovinny
+    retezec) nebo H (prostorovy - zatim nepodporovano)."""
+    target_name: str
+    target_index: Optional[object]
+
+
+@dataclass
+class EndCreStmt:
+    """ENDCRE - uzavreni retezce zahajeneho prikazem CRE."""
+    pass
+
+
+@dataclass
+class MovePhrase:
+    """Jedna fraze prikazu MOVE (viz G18.md 18.4) - 'pen' je 'up' (/,
+    pero zvednuto) nebo 'down' (*, pero spusteno). 'sep' je oddelovac
+    pouzity uvnitr fraze (None pro holou hodnotu, '#'/':'/',' jinak) -
+    spolu s runtime typy vyhodnocenych 'values' urcuje az za behu
+    (gerlib.move_geom), o jakou konkretni frazi jde (viz tamni
+    dokumentace - stejny princip jako u D30/get_component)."""
+    pen: str  # "up" | "down"
+    sep: Optional[str]
+    values: List[object]  # vyrazy (Num/Var/BinOp/OpCall/...)
+
+
+@dataclass
+class MoveStmt:
+    """MOVE|fraze1|fraze2|... - viz G18.md 18.4."""
+    phrases: List[MovePhrase]
+
+
+@dataclass
 class RetSub:
     pass
 
@@ -209,6 +243,70 @@ def _is_data_constants_line(line):
     if not parts:
         return False
     return all(_DATA_NUMBER_RE.match(p) or _DATA_STRING_RE.match(p) for p in parts)
+
+
+def _split_move_phrases(rest):
+    """'rest' je text prikazu MOVE PO odstraneni slova 'MOVE' (zacina
+    perovym symbolem '/' nebo '*'). Vraci seznam (pen, phrase_text),
+    kde pen je 'up' (/) nebo 'down' (*) - viz G18.md 18.4: '|' v
+    obecnem zapisu prikazu je bud '/' (zvednute pero) nebo '*'
+    (spustene pero). Respektuje zavorky (aritmeticky vyraz v zavorce
+    smi obsahovat cokoliv, viz stejne pravidlo jako u split_top_level).
+    """
+    phrases = []
+    depth = 0
+    current = []
+    pen = None
+    for ch in rest:
+        if ch == "(":
+            depth += 1
+            current.append(ch)
+        elif ch == ")":
+            depth -= 1
+            current.append(ch)
+        elif depth == 0 and ch in ("/", "*"):
+            if pen is not None:
+                phrases.append((pen, "".join(current).strip()))
+            elif "".join(current).strip():
+                raise SyntaxError(
+                    "MOVE: text pred prvnim perovym symbolem (/ nebo *): %r" % (rest,)
+                )
+            pen = "up" if ch == "/" else "down"
+            current = []
+        else:
+            current.append(ch)
+
+    if pen is None:
+        raise SyntaxError(
+            "MOVE ocekava aspon jednu frazi uvozenou '/' (zvednute pero) "
+            "nebo '*' (spustene pero): %r" % (rest,)
+        )
+    phrase_text = "".join(current).strip()
+    if not phrase_text:
+        raise SyntaxError("MOVE: prazdna fraze na konci prikazu: %r" % (rest,))
+    phrases.append((pen, phrase_text))
+    return phrases
+
+
+def _split_move_phrase_fields(phrase_text):
+    """Rozdeli text jedne fraze prikazu MOVE na (separator, [pole_textu]) -
+    separator je prvni z '#', ':', ',' nalezeny na top-level (respektuje
+    zavorky), nebo None, neni-li zadny pritomen (fraze je jedna holá
+    hodnota). Viz G18.md 18.4: fraze pouziva vzdy jen JEDEN druh
+    oddelovace ('vg', 'vg1:vg2', 'vg1#vg2', 'vg1,vg2,vg3[,vg4]')."""
+    depth = 0
+    sep_found = None
+    for ch in phrase_text:
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+        elif depth == 0 and ch in ("#", ":", ","):
+            sep_found = ch
+            break
+    if sep_found is None:
+        return None, [phrase_text]
+    return sep_found, split_top_level(phrase_text, sep_found)
 
 
 def split_top_level(text, sep=","):
@@ -656,6 +754,31 @@ def _parse_one(line, cursor):
 
     if line == "MESS" or line == "NOMESS":
         return CommandStmt(line, [])
+
+    if line == "ABSOL" or line == "INCRE":
+        return CommandStmt(line, [])
+
+    if line.startswith("CRE,"):
+        rest = line[len("CRE,"):]
+        m = re.match(r"^([A-Za-z][A-Za-z0-9_]*)(?:\((.+)\))?$", rest.strip())
+        if not m:
+            raise SyntaxError("CRE,pg: nerozumim cili %r" % (rest,))
+        target_name = m.group(1)
+        target_index = parse_expr_text(m.group(2)) if m.group(2) else None
+        return CreStmt(target_name, target_index)
+
+    if line == "ENDCRE":
+        return EndCreStmt()
+
+    if line == "MOVE" or line.startswith("MOVE/") or line.startswith("MOVE*"):
+        rest = line[len("MOVE"):]
+        raw_phrases = _split_move_phrases(rest)
+        phrases = []
+        for pen, phrase_text in raw_phrases:
+            sep, field_texts = _split_move_phrase_fields(phrase_text)
+            values = [parse_expr_text(t.strip()) for t in field_texts]
+            phrases.append(MovePhrase(pen, sep, values))
+        return MoveStmt(phrases)
 
     if line == "IDEV" or line.startswith("IDEV,"):
         rest = line[len("IDEV"):]

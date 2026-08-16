@@ -91,6 +91,11 @@ from .s01 import make_spline as make_spline1
 from .p51 import line_chain_intersection, line_chain_intersections
 from .scale import scale
 
+from .move_geom import (
+    evaluate_move_phrase, flatten_arc, nearest_point_on_circle,
+    MovePhraseError, MovePhraseNotYetImplemented,
+)
+
 __all__ = [
     "Point", "Vector", "Line", "Circle", "Plane", "Curve", "Spline",
     "builtin_constants",
@@ -122,4 +127,6 @@ __all__ = [
     "tangent_to_two_lines", "tangent_to_line_and_circle", "tangent_to_two_circles",
     "line_circle_intersection", "circle_circle_intersection",
     "NoSolution",
+    "evaluate_move_phrase", "flatten_arc", "nearest_point_on_circle",
+    "MovePhraseError", "MovePhraseNotYetImplemented",
 ]
