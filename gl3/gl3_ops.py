@@ -453,6 +453,7 @@ OPERATIONS = {
     "P86": _op_p86,
 
     # --- primky ---
+    "L00": _op_l00,
     "L02": _op_l02,
     "L20": _op_l20,
     "L45": _op_l45,
