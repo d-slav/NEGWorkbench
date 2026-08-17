@@ -61,6 +61,7 @@ from gerlib import (
     make_spline as _gerlib_make_spline,
     make_spline1 as _gerlib_make_spline1,
     line_chain_intersection as _gerlib_line_chain_intersection,
+    point_at_distance_along_chain as _gerlib_point_at_distance_along_chain,
     foot_point_on_line as _gerlib_foot_point_on_line,
     foot_point_from_circle_center as _gerlib_foot_point_from_circle_center,
     builtin_constants as _gerlib_builtin_constants,
@@ -266,6 +267,12 @@ def _op_p22(line, spline, k):
 def _op_p51(line, curve, k=1):
     """P51: PM=P51>L,E,K - prusecik primky s retezcem, viz gerlib.p51."""
     return _gerlib_line_chain_intersection(line, curve, k)
+
+
+def _op_p58(point, curve, d, k=1):
+    """P58: PM=P58>P,E,D[,K] - bod od bodu po retezci do vzdalenosti,
+    viz gerlib.p58. Default K=1 (ve smeru orientace retezce)."""
+    return _gerlib_point_at_distance_along_chain(point, curve, d, k)
 
 
 def _op_l45(direction_vec, curve, k=1):
@@ -496,6 +503,7 @@ OPERATIONS = {
     "P49": _op_p49,
     "P00": _op_p00,
     "P51": _op_p51,
+    "P58": _op_p58,
     "P85": _op_p85,
     "P86": _op_p86,
 
