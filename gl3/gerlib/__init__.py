@@ -37,6 +37,7 @@ from .d10 import point_point
 from .d11 import point_line
 from .d20 import vector_magnitude
 from .d30 import get_component
+from .d28 import length_of_chain
 from .d31 import index_parameter
 from .d40 import triangle_area
 from .d41 import triangle_area_from_lines
@@ -107,6 +108,7 @@ __all__ = [
     "is_zero_vector", "solve_tridiagonal", "tangent_vectors", "tangent_vectors_chordal",
     "sum_or_diff", "product_or_quotient",
     "point_point", "point_line", "vector_magnitude", "get_component", "index_parameter",
+    "length_of_chain",
     "triangle_area", "triangle_area_signed", "triangle_area_from_lines", "circle_area",
     "offset_point", "interpolate_point", "point_on_line_by_coord", "line_intersection",
     "line_from_coords", "line_through_point", "line_through_two_points",

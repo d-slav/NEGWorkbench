@@ -54,6 +54,7 @@ from gerlib import (
     scale as _gerlib_scale,
     get_component as _gerlib_get_component,
     index_parameter as _gerlib_index_parameter,
+    length_of_chain as _gerlib_length_of_chain,
     offset_point as _gerlib_offset_point,
     interpolate_point as _gerlib_interpolate_point,
     point_on_line_by_coord as _gerlib_point_on_line_by_coord,
@@ -369,6 +370,25 @@ def _op_d31(curve_or_spline, point):
     return _gerlib_index_parameter(curve_or_spline, point)
 
 
+def _op_d28(curve, *rest):
+    """D28: DM=D28>E[,[P1][,P2]] - delka retezce E (cela, nebo v useku),
+    viz gerlib.d28. Volitelne argumenty se (stejne jako u S01) berou
+    pozicne za sebou: 0 extra = cely retezec, 1 extra = jen P1 ("od P1
+    do konce"), 2 extra = P1 a P2. POZNAMKA: varianta "jen P2 (od
+    zacatku do P2), P1 vynechany" by v GL3 vyzadovala zapis s prazdnym
+    mistem (D28>E,,P2) - soucasny parser vyrazu prazdne pozice v
+    seznamu argumentu (zatim) nepodporuje; funkce gerlib.length_of_chain
+    tuto kombinaci (p1=None, p2=zadano) uz plne podporuje, jen sem
+    (zatim) neni z jazyka dostupna."""
+    if len(rest) == 0:
+        return _gerlib_length_of_chain(curve)
+    if len(rest) == 1:
+        return _gerlib_length_of_chain(curve, p1=rest[0])
+    if len(rest) == 2:
+        return _gerlib_length_of_chain(curve, p1=rest[0], p2=rest[1])
+    raise TypeError("D28: prilis mnoho argumentu (ocekava E[,P1[,P2]])")
+
+
 def _op_p20(line1, line2):
     """P20 (interne P120): prusecik dvou primek."""
     return line_intersection(line1, line2)
@@ -455,6 +475,7 @@ OPERATIONS = {
     "D27": _stub("D27", "delka kruhoveho oblouku - potrebuje jeste A512.FOR (D627.FOR ho vola)"),
     "D30": _op_d30,
     "D31": _op_d31,
+    "D28": _op_d28,
     "D40": _op_d40,
     "D41": _op_d41,
     "D42": _op_d42,
