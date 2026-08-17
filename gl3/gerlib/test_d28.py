@@ -85,6 +85,28 @@ END
     check(isclose(env["DM2"], 35.0), "GL3: od (5,0) do konce = 35")
     check(isclose(env["DM3"], 15.0), "GL3: od (5,0) do (10,10) = 15")
 
+    # --- nove: vynechany P1 uprostred seznamu argumentu (D28>E1,,PM) ---
+    gl3_code_omit = """
+SUBRO/TESTD28OMIT/out:DM
+P1=P00>0.0,0.0
+P2=P00>10.0,0.0
+P3=P00>10.0,10.0
+P4=P00>0.0,10.0
+CRE,E1
+MOVE/P1
+MOVE*P2*P3*P4*P1
+ENDCRE
+PM=P00>5.0,0.0
+DM=D28>E1,,PM
+RETSUB
+END
+"""
+    program_omit = parse_program(gl3_code_omit)
+    interpreter_omit = Interpreter()
+    env_omit = interpreter_omit.run(program_omit, {})
+    check(isclose(env_omit["DM"], 5.0),
+          "GL3: D28>E1,,PM (P1 vynechan uprostred) - od zacatku do (5,0) = 5")
+
     print("\nVSE OK - D28 (gerlib.d28) je plne funkcni.")
 
 

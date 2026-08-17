@@ -95,6 +95,7 @@ from .s01 import make_spline as make_spline1
 
 from .p51 import line_chain_intersection, line_chain_intersections
 from .p58 import point_at_distance_along_chain
+from .p66 import point_on_chain_by_coord
 from .scale import scale
 
 from .move_geom import (
@@ -124,6 +125,7 @@ __all__ = [
     "implicit_line", "line_curve_intersections", "line_curve_intersection",
     "line_chain_intersection", "line_chain_intersections",
     "point_at_distance_along_chain",
+    "point_on_chain_by_coord",
     "tangent_line_parallel",
     "set_accuracy", "get_accuracy", "reset_accuracy", "discretize",
     "solve_nonlinear", "sgpat_nearest_distance", "offset_curve",

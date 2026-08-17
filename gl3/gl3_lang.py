@@ -60,6 +60,36 @@ class OpCall:
 
 
 @dataclass
+class Omitted:
+    """Vynechany volitelny parametr uprostred (nebo na konci) seznamu
+    argumentu OpCall - napr. DM=D28>E,,P2 vynechava P1 (prazdne misto
+    mezi dvema carkami). Odlisne od proste chybejiciho koncoveho
+    argumentu (D28>E,P1), coz GL3 take podporuje - tady jde navic o
+    vynechani NEKDE UPROSTRED seznamu, ktere obycejny volitelny-
+    parametr-na-konci vzor (Python *args) nedokaze vyjadrit.
+    Vyhodnoti se na sentinel OMITTED (viz gl3_interpreter.eval_expr) -
+    jednotlive opcody (v gl3_ops.py) uz rozhoduji, jakou vychozi
+    hodnotu za vynechany parametr dosadit."""
+    pass
+
+
+class _OmittedSentinelType:
+    """Sentinel hodnota vyhodnoceneho Omitted() uzlu - viz gl3_lang.Omitted.
+    Zamerne ODLISNA od None (ktere v interpretu znamena 'predchozi
+    operace nemela reseni' - viz eval_expr/OpCall a NoSolution)."""
+    __slots__ = ()
+
+    def __repr__(self):
+        return "OMITTED"
+
+    def __bool__(self):
+        return False
+
+
+OMITTED = _OmittedSentinelType()
+
+
+@dataclass
 class Compare:
     rel: str  # GT, LT, EQ, NE, GE, LE
     left: object
@@ -438,11 +468,21 @@ class ExprParser:
 
         raise SyntaxError("Neocekavany token: %r" % (val,))
 
+    # Terminatory, ktere NEMOHOU zahajovat vyraz (viz parse_unary/
+    # parse_primary - jedine povolene unarni predznamenani je '-', to
+    # tedy NENI terminator) - pouzito k detekci vynechane pozice v
+    # seznamu argumentu OpCall (viz Omitted, napr. "D28>E,,P2").
+    _ARG_SLOT_TERMINATORS = (",", ")", "+", "*", "/")
+
+    def _arg_slot_is_omitted(self):
+        kind, val = self.peek()
+        return kind == "EOF" or val in self._ARG_SLOT_TERMINATORS
+
     def parse_arg_list(self):
-        args = [self.parse_expr()]
+        args = [Omitted() if self._arg_slot_is_omitted() else self.parse_expr()]
         while self.peek()[1] == ",":
             self.advance()
-            args.append(self.parse_expr())
+            args.append(Omitted() if self._arg_slot_is_omitted() else self.parse_expr())
         return args
 
 

@@ -20,6 +20,8 @@ kde arg1/arg2 uz jsou vyhodnocene Python hodnoty (float, nebo gerlib.Point/
 Vector/Circle/Line/Plane/Curve).
 """
 
+from gl3_lang import OMITTED
+
 from gerlib import (
     Point, Vector, Line, Circle, Plane, Curve, Spline, NoSolution,
     make_chain, tangent_point, tangent_point_from_line, tangent_line,
@@ -62,6 +64,7 @@ from gerlib import (
     make_spline1 as _gerlib_make_spline1,
     line_chain_intersection as _gerlib_line_chain_intersection,
     point_at_distance_along_chain as _gerlib_point_at_distance_along_chain,
+    point_on_chain_by_coord as _gerlib_point_on_chain_by_coord,
     foot_point_on_line as _gerlib_foot_point_on_line,
     foot_point_from_circle_center as _gerlib_foot_point_from_circle_center,
     builtin_constants as _gerlib_builtin_constants,
@@ -275,6 +278,11 @@ def _op_p58(point, curve, d, k=1):
     return _gerlib_point_at_distance_along_chain(point, curve, d, k)
 
 
+def _op_p66(curve, d, kk):
+    """P66: PM=P66>E,D,KK - bod na retezci souradnici, viz gerlib.p66."""
+    return _gerlib_point_on_chain_by_coord(curve, d, kk)
+
+
 def _op_l45(direction_vec, curve, k=1):
     """L45: LM=L45>V,E,K< - viz gerlib.tangent_line_parallel (P85 + V221)."""
     return _gerlib_tangent_line_parallel(direction_vec, curve, k)
@@ -365,6 +373,15 @@ def _op_d43(circle):
     return circle_area(circle)
 
 
+def _opt(value, default=None):
+    """Nahradi sentinel OMITTED (vynechany volitelny parametr uprostred
+    seznamu argumentu OpCall, napr. DM=D28>E,,P2 - viz gl3_lang.Omitted)
+    hodnotou 'default'. Genuinne chybejici KONCOVY argument (kratsi
+    *rest n-tice) se resi uz na urovni volajiciho opcode wrapperu -
+    tohle jen dorovnava vynechani UPROSTRED seznamu."""
+    return default if value is OMITTED else value
+
+
 def _op_d30(pg, k):
     """D30: DM=D30>pg,K - vytazena slozka geometrickeho objektu (podle
     dokumentace uzivatele - viz gerlib.get_component pro presne cislovani
@@ -379,21 +396,13 @@ def _op_d31(curve_or_spline, point):
 
 def _op_d28(curve, *rest):
     """D28: DM=D28>E[,[P1][,P2]] - delka retezce E (cela, nebo v useku),
-    viz gerlib.d28. Volitelne argumenty se (stejne jako u S01) berou
-    pozicne za sebou: 0 extra = cely retezec, 1 extra = jen P1 ("od P1
-    do konce"), 2 extra = P1 a P2. POZNAMKA: varianta "jen P2 (od
-    zacatku do P2), P1 vynechany" by v GL3 vyzadovala zapis s prazdnym
-    mistem (D28>E,,P2) - soucasny parser vyrazu prazdne pozice v
-    seznamu argumentu (zatim) nepodporuje; funkce gerlib.length_of_chain
-    tuto kombinaci (p1=None, p2=zadano) uz plne podporuje, jen sem
-    (zatim) neni z jazyka dostupna."""
-    if len(rest) == 0:
-        return _gerlib_length_of_chain(curve)
-    if len(rest) == 1:
-        return _gerlib_length_of_chain(curve, p1=rest[0])
-    if len(rest) == 2:
-        return _gerlib_length_of_chain(curve, p1=rest[0], p2=rest[1])
-    raise TypeError("D28: prilis mnoho argumentu (ocekava E[,P1[,P2]])")
+    viz gerlib.d28. Volitelne P1/P2 lze vynechat na konci (D28>E,P1) i
+    uprostred (D28>E,,P2 - viz gl3_lang.Omitted/OMITTED, _opt nize)."""
+    if len(rest) > 2:
+        raise TypeError("D28: prilis mnoho argumentu (ocekava E[,P1[,P2]])")
+    p1 = _opt(rest[0]) if len(rest) >= 1 else None
+    p2 = _opt(rest[1]) if len(rest) >= 2 else None
+    return _gerlib_length_of_chain(curve, p1=p1, p2=p2)
 
 
 def _op_p20(line1, line2):
@@ -504,6 +513,7 @@ OPERATIONS = {
     "P00": _op_p00,
     "P51": _op_p51,
     "P58": _op_p58,
+    "P66": _op_p66,
     "P85": _op_p85,
     "P86": _op_p86,
 

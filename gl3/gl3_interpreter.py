@@ -26,7 +26,7 @@ from gl3_lang import (
     Assign, CallStmt, CommandStmt, DimenStmt, DataStmt,
     DoLoop, IfBlock, IfShort, RepeatWhile, RetSub,
     IODevStmt, IOTarget, InputStmt, OutputStmt, IsUndefined,
-    CreStmt, EndCreStmt, MoveStmt,
+    CreStmt, EndCreStmt, MoveStmt, Omitted, OMITTED,
     parse_expr_text,
 )
 from gl3_ops import (
@@ -227,6 +227,14 @@ class Interpreter:
 
         if isinstance(node, UnaryMinus):
             return -self.eval_expr(node.operand, env)
+
+        if isinstance(node, Omitted):
+            # Vynechany volitelny parametr uprostred seznamu argumentu
+            # OpCall (napr. DM=D28>E,,P2) - viz gl3_lang.Omitted. Sentinel
+            # OMITTED je zamerne odlisny od None (to znamena "predchozi
+            # operace nemela reseni", viz nize) - jednotlive opcody v
+            # gl3_ops.py rozhoduji, jakou vychozi hodnotu za nej dosadit.
+            return OMITTED
 
         if isinstance(node, OpCall):
             fn = self.operations.get(node.opcode)
