@@ -33,29 +33,40 @@ Protoze se stejny uzel i muze dotykat dvou ruznych segmentu s ruznou
 delkou tetivy, NEMA obecne jednu spolecnou tecnu - proto Spline nese
 segment_tangents (dvojice tecen PO SEGMENTECH, viz gerlib.types.Spline),
 ne jen jednu tecnu na uzel.
+Omezeni poctu bodu K (viz G07.md, "Omezeni uzlu shora... pro krivky se
+secnovou parametrizaci (S01, T01, S10, T10) nesmi prekrocit 300 bodu"):
+K musi lezet v <2,300>. Sdileno i s geplib.t01 (prostorova varianta T01
+je jen tenky wrapper nad touto funkci - viz tamni docstring).
 """
 
 from .types import Point, Vector, Spline
 from .dspn import tangent_vectors, _chord
 
+MAX_POINTS = 300
 
-def make_spline(points_ref, k, v1=None, vk=None):
+
+def make_spline(points_ref, k, v1=None, vk=None, opcode="S01"):
     k_int = int(round(k))
     if k_int < 2:
-        raise ValueError("S01: K (pocet bodu krivky) musi byt >= 2 (dostal %r)" % (k,))
+        raise ValueError("%s: K (pocet bodu krivky) musi byt >= 2 (dostal %r)" % (opcode, k))
+    if k_int > MAX_POINTS:
+        raise ValueError(
+            "%s: K (pocet bodu krivky) nesmi prekrocit %d (dostal %d)"
+            % (opcode, MAX_POINTS, k_int)
+        )
 
     if len(points_ref) < k_int:
         raise ValueError(
-            "S01: pole bodu obsahuje jen %d prvku, ale je potreba %d (K=%d)"
-            % (len(points_ref), k_int, k_int)
+            "%s: pole bodu obsahuje jen %d prvku, ale je potreba %d (K=%d)"
+            % (opcode, len(points_ref), k_int, k_int)
         )
 
     nodes = list(points_ref[:k_int])
     for i, p in enumerate(nodes):
         if p is None:
-            raise ValueError("S01: uzlovy bod c. %d neni definovan" % (i + 1,))
+            raise ValueError("%s: uzlovy bod c. %d neni definovan" % (opcode, i + 1))
         if not isinstance(p, Point):
-            raise TypeError("S01: prvek c. %d neni bod (Point), ale %r" % (i + 1, p))
+            raise TypeError("%s: prvek c. %d neni bod (Point), ale %r" % (opcode, i + 1, p))
 
     if k_int == 2:
         # GLSPL.FOR: pro presne 2 body je to primy segment - smer je
@@ -69,7 +80,7 @@ def make_spline(points_ref, k, v1=None, vk=None):
         t0, t1 = _pick(v1), _pick(vk)
         return Spline(
             nodes, [t0, t1], closed=False,
-            opcode="S01", parametrization="chordal",
+            opcode=opcode, parametrization="chordal",
             segment_tangents=[(t0, t1)],
         )
 
@@ -92,6 +103,6 @@ def make_spline(points_ref, k, v1=None, vk=None):
 
     return Spline(
         nodes, node_tangents, closed=False,
-        opcode="S01", parametrization="chordal",
+        opcode=opcode, parametrization="chordal",
         segment_tangents=segment_tangents,
     )

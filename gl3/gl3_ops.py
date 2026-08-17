@@ -75,6 +75,7 @@ from geplib import (
     make_point3 as _geplib_make_point3,
     make_vector3 as _geplib_make_vector3,
     make_plane_r01 as _geplib_make_plane_r01,
+    make_spatial_spline as _geplib_make_spatial_spline,
 )
 
 
@@ -452,6 +453,14 @@ def _op_s01(points_ref, k, *rest):
     return _gerlib_make_spline1(points_ref, k, v1, vk)
 
 
+def _op_t01(points_ref, k, *rest):
+    """T01: TM=T01>Q(I),K[,[U1][,UK]] - prostorova obdoba S01, viz
+    geplib.make_spatial_spline (tenky wrapper nad gerlib.s01.make_spline)."""
+    u1 = rest[0] if len(rest) >= 1 else None
+    uk = rest[1] if len(rest) >= 2 else None
+    return _geplib_make_spatial_spline(points_ref, k, u1, uk)
+
+
 def _op_s03(points_ref, k, *rest):
     """S03: SM=S03>P(I),K[,[V1],[VK][,N]] - krivka (Spline) K body se
     dvema okrajovymi tecnymi vektory, viz gerlib.make_spline."""
@@ -485,6 +494,7 @@ ARRAY_REF_OPS = {
     "E01": {0},
     "S01": {0},
     "S03": {0},
+    "T01": {0},
 }
 
 
@@ -553,6 +563,7 @@ OPERATIONS = {
 
     # --- krivky / retezce ---
     "S01": _op_s01,
+    "T01": _op_t01,
     "S03": _op_s03,
     "S51": _op_s51,
     "E01": _op_e01,

@@ -27,6 +27,7 @@ from .tra23 import (
 from .q00 import make_point3
 from .u00 import make_vector3
 from .plane import Plane, make_plane_r01
+from .t01 import make_spatial_spline
 
 __all__ = [
     "CoordSystem3", "define_coord_system3",
@@ -34,5 +35,6 @@ __all__ = [
     "transform_curve3",
     "make_point3", "make_vector3",
     "Plane", "make_plane_r01",
+    "make_spatial_spline",
 ]
 
