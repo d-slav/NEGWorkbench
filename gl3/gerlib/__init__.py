@@ -78,6 +78,7 @@ from .errors import NoSolution
 from .p00 import point_from_coords
 from .c00 import circle_from_coords
 from .c01 import circle_from_point
+from .c30 import tangent_through_point
 from .c32 import tangent_to_two_lines
 from .c33 import tangent_to_line_and_circle
 from .c34 import tangent_to_two_circles
@@ -126,6 +127,7 @@ __all__ = [
     "make_spline", "make_spline1",
     "scale",
     "point_from_coords", "circle_from_coords", "circle_from_point",
+    "tangent_through_point",
     "tangent_to_two_lines", "tangent_to_line_and_circle", "tangent_to_two_circles",
     "line_circle_intersection", "circle_circle_intersection",
     "NoSolution",

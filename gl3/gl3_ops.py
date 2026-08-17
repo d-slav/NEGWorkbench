@@ -47,6 +47,7 @@ from gerlib import (
     circle_from_coords as _gerlib_circle_from_coords,
     circle_from_point as _gerlib_circle_from_point,
     tangent_to_two_lines as _gerlib_tangent_to_two_lines,
+    tangent_through_point as _gerlib_tangent_through_point,
     tangent_to_line_and_circle as _gerlib_tangent_to_line_and_circle,
     tangent_to_two_circles as _gerlib_tangent_to_two_circles,
     triangle_area, triangle_area_signed, triangle_area_from_lines, circle_area,
@@ -295,6 +296,11 @@ def _op_c01(point, d):
     return _gerlib_circle_from_point(point, d)
 
 
+def _op_c30(point, line, d, k):
+    """C30: CM=C30>P,L,D,K - viz gerlib.tangent_through_point (C430.FOR)."""
+    return _gerlib_tangent_through_point(point, line, d, k)
+
+
 def _op_c32(line1, line2, d, kk):
     """C32: CM=C32>L1,L2,D,KK - viz gerlib.tangent_to_two_lines."""
     return _gerlib_tangent_to_two_lines(line1, line2, d, kk)
@@ -479,6 +485,7 @@ OPERATIONS = {
     "C49": _op_c49,
     "C00": _op_c00,
     "C01": _op_c01,
+    "C30": _op_c30,
     "C32": _op_c32,
     "C33": _op_c33,
     "C34": _op_c34,
