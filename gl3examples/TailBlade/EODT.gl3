@@ -1,0 +1,25 @@
+*
+*    Podprogram EODTOKOVKA
+*
+
+SUBRO/EODT/in:DL,in:DKH,in:DTH,in:DKN,in:DTN,out:EODT
+
+*DL=110      < delka listu
+*DKH=30      < hloubka u korene
+*DTH=25      < hloubka na konci
+*DKN=8       < Y nabezne hrany u korene
+*DTN=6.6     < Y nabezne hrany na konci
+
+LODT=L04>(P00>0,(DKN-DKH)),(P00>DL,(DTN-DTH))   < odtokova hrana
+LK=L00>DL,0,0,1
+CODT=C32>LODT,LK,2,00       < TODO zaobleni na odtokovce
+PODT=P43>CODT,LODT
+PODTLK=P43>CODT,LK
+
+ACCUR,0.0001
+CRE,EODT
+    MOVE/PODTLK*PODT,CODT,1*LODT:LY
+ENDCRE
+
+RETSUB
+END

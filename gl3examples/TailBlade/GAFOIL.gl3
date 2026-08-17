@@ -1,0 +1,25 @@
+*
+*   Podprogram GAFOIL
+*
+*   Program pøeète souøadmnce profilu ze souboru a naplní pole bodù
+*
+*   BNAME = Jméno vstupního souboru
+*   P(1)  = Výstupní pole bodù
+*   I     = Poèet naštených bodù
+*
+SUBRO/GAFOIL/in:BNAME,out:P(2),out:K
+
+IDEV,BNAME              < Otevøe vstunní soubor.
+READ,B                  < Ze souboru naète dummy øádek.
+DO,I=1,100              < Cyklus do velikosti pole
+    NOMESS
+    READ,P(I)          < Naètení dalšího bodu
+    MESS
+    IFN/P(I)/THEN      < Test jestli je objket definovám, pøípadnì konec.
+        K=I-1           < Zapamatujeme si kolik jsme naèetli bodù
+        I=100           < Nastavi konec cyklu
+    ENDIF               < Konec testovac9ho bloku
+ENDDO                   < Konec cyklu
+
+RETSUB
+END

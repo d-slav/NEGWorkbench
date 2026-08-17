@@ -1,0 +1,64 @@
+*
+*    Program TAILBLADE
+*
+
+SUBRO/TAILBL/out:EODT,out:ENAB,out:DODTLEN,out:TF
+
+DL=110      < delka listu
+DKH=30      < hloubka u korene
+DTH=25      < hloubka na konci
+DKN=8       < Y nabezne hrany u korene
+DTN=5.6     < Y nabezne hrany na konci
+DODT=0.5    < Tloustka odtokovky
+
+CALL/EODT/DL,DKH,DTH,DKN,DTN,EODT
+CALL/ENAB/DL,DKH,DTH,DKN,DTN,ENAB
+
+DODTLEN=D28>EODT    < Delka odtokové hrany
+
+* Vypocet bodu na retezci pro stanovení polohy rezu.
+
+DFIRST=0.5
+ICOUNT=20
+DIMEN,DD(20),PODT(20),PNAB(20)
+
+CALL/DSPLIT/DODTLEN,DFIRST,ICOUNT,DRATIO,DD
+
+* Vypocet bodu na nabezce a odtokovce
+
+PODT(1)=P48>EODT,1
+PNAB(1)=P48>ENAB,1
+DO,I=2,ICOUNT-1
+    PODT(I)=P58>PODT(1),EODT,DD(I)
+    PNAB(I)=P66>ENAB,(D30>PODT(I),1),10
+ENDDO
+PODT(ICOUNT)=P48>EODT,(NPO>EODT)
+PNAB(ICOUNT)=P48>ENAB,(NPO>ENAB)
+
+WRITE,PODT,PNAB
+
+DIMEN,TF(81)
+CALL/TFOIL/DL,TF,K
+
+DIMEN,Q(100),P(100)
+
+* Mame vse potrebne k vytvoreni rezu
+*FOR,I=1,ICOUNT
+DO,I=20,20
+*print,i
+    DZ=D30>PODT(I),1
+    DHLO=D10>PNAB(I),PODT(I)
+    RFOIL=R01>UZ,DZ
+    DO,J=1,K
+        Q(J)=Q38>TF(J),RFOIL,1
+        p(J)=P00>(D30>Q(J),1),(D30>Q(J),2)
+    ENDDO
+PRINT,DHLO,DODT
+    CALL/HLOCUT/K,P,DHLO,DODT,S
+    S=S01>P,K
+*    MOVE/S:0*S
+ENDDO
+
+RETSUB
+END
+

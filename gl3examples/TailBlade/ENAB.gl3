@@ -1,0 +1,27 @@
+*
+*    Podprogram ENAB
+*
+SUBRO/ENAB/in:DL,in:DKH,in:DTH,in:DKN,in:DTN,out:ENAB
+
+*DL=110      < delka listu
+*DKH=30      < hloubka u korene
+*DTH=25      < hloubka na konci
+*DKN=8       < Y nabezne hrany u korene
+*DTN=6.6     < Y nabezne hrany na konci
+
+LNAB=L04>(P00>0, DKN),(P00>DL,DTN)        < nabezna hrana
+LK=L00>DL,0,0,1
+PK1=P14>-12.5,LK,1
+CNAB1=C30>PK1,LK,50,0
+CNAB2=C33>LNAB,CNAB1,6,101
+LCAX=L04>(P47>CNAB1),(P47>CNAB2)
+PK2=P21>LCAX,CNAB1,1
+PK3=P40>(P47>CNAB2),LNAB
+
+ACCUR,0.0001
+CRE,ENAB
+    MOVE/PK1*PK2,CNAB1,0*PK3,CNAB2,0*(P20>LNAB,LY)
+ENDCRE
+
+RETSUB
+END
