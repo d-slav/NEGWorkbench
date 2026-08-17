@@ -47,7 +47,9 @@ from .d43 import circle_area
 from .p10 import offset_point
 from .p13 import interpolate_point
 from .p14 import point_on_line_by_coord
+from .p17 import point_parallel_to_line
 from .p20 import line_intersection
+from .p21 import line_circle_intersection_point
 from .l00 import line_from_coords
 from .l02 import line_through_point
 from .l04 import line_through_two_points
@@ -113,6 +115,7 @@ __all__ = [
     "length_of_chain",
     "triangle_area", "triangle_area_signed", "triangle_area_from_lines", "circle_area",
     "offset_point", "interpolate_point", "point_on_line_by_coord", "line_intersection",
+    "point_parallel_to_line", "line_circle_intersection_point",
     "line_from_coords", "line_through_point", "line_through_two_points",
     "copy_point", "copy_circle", "circle_center",
     "perpendicular_bisector", "circle_from_3_points",

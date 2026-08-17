@@ -60,6 +60,8 @@ from gerlib import (
     offset_point as _gerlib_offset_point,
     interpolate_point as _gerlib_interpolate_point,
     point_on_line_by_coord as _gerlib_point_on_line_by_coord,
+    point_parallel_to_line as _gerlib_point_parallel_to_line,
+    line_circle_intersection_point as _gerlib_line_circle_intersection_point,
     make_spline as _gerlib_make_spline,
     make_spline1 as _gerlib_make_spline1,
     line_chain_intersection as _gerlib_line_chain_intersection,
@@ -430,6 +432,17 @@ def _op_p14(d, line, k):
     return _gerlib_point_on_line_by_coord(d, line, k)
 
 
+def _op_p17(point, line, d, k=1):
+    """P17: PM=P17>P,L,D[,K] - bod od bodu ve vzdalenosti rovnobezne s
+    primkou, viz gerlib.p17. Default K=1 (kladny smer primky)."""
+    return _gerlib_point_parallel_to_line(point, line, d, k)
+
+
+def _op_p21(line, circle, k):
+    """P21: PM=P21>L,C,K - prusecik primky s kruznici, viz gerlib.p21."""
+    return _gerlib_line_circle_intersection_point(line, circle, k)
+
+
 def _op_s01(points_ref, k, *rest):
     """S01: SM=S01>P(I),K[,[V1],[VK]] - krivka (Spline) K body, chordalni
     (chord-length) parametrizace, viz gerlib.make_spline1. Na rozdil od
@@ -502,6 +515,8 @@ OPERATIONS = {
     "P10": _op_p10,
     "P13": _op_p13,
     "P14": _op_p14,
+    "P17": _op_p17,
+    "P21": _op_p21,
     "P22": _op_p22,
     "P40": _op_p40,
     "P42": _op_p42,
