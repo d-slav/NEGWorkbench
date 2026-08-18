@@ -70,7 +70,7 @@ from .p42 import foot_points, nearest_point
 from .p43 import foot_point_from_circle_center
 from .rkseg import curvature_radius_at
 from .d50 import nearest_point_on_curve, radius_of_curvature
-from .glpru import implicit_line, line_curve_intersections
+from .glpru import implicit_line, implicit_plane, line_curve_intersections, plane_curve_intersections
 from .p22 import intersection as line_curve_intersection
 from .l45 import tangent_line_parallel
 from .accur import set_accuracy, get_accuracy, reset_accuracy
@@ -125,7 +125,8 @@ __all__ = [
     "real_roots_in_range", "foot_points", "nearest_point",
     "foot_point_on_line", "foot_point_from_circle_center",
     "curvature_radius_at", "nearest_point_on_curve", "radius_of_curvature",
-    "implicit_line", "line_curve_intersections", "line_curve_intersection",
+    "implicit_line", "implicit_plane", "line_curve_intersections", "plane_curve_intersections",
+    "line_curve_intersection",
     "line_chain_intersection", "line_chain_intersections",
     "point_at_distance_along_chain",
     "point_on_chain_by_coord",

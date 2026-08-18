@@ -76,6 +76,7 @@ from geplib import (
     make_vector3 as _geplib_make_vector3,
     make_plane_r01 as _geplib_make_plane_r01,
     make_spatial_spline as _geplib_make_spatial_spline,
+    curve_plane_intersection as _geplib_curve_plane_intersection,
 )
 
 
@@ -461,6 +462,11 @@ def _op_t01(points_ref, k, *rest):
     return _geplib_make_spatial_spline(points_ref, k, u1, uk)
 
 
+def _op_q38(curve, plane, k):
+    """Q38: QM=Q38>T,R,K - prusecik krivky s rovinou, viz geplib.q38."""
+    return _geplib_curve_plane_intersection(curve, plane, k)
+
+
 def _op_s03(points_ref, k, *rest):
     """S03: SM=S03>P(I),K[,[V1],[VK][,N]] - krivka (Spline) K body se
     dvema okrajovymi tecnymi vektory, viz gerlib.make_spline."""
@@ -564,6 +570,7 @@ OPERATIONS = {
     # --- krivky / retezce ---
     "S01": _op_s01,
     "T01": _op_t01,
+    "Q38": _op_q38,
     "S03": _op_s03,
     "S51": _op_s51,
     "E01": _op_e01,
