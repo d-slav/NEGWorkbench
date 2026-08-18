@@ -67,6 +67,8 @@ from .glfun import evaluate as evaluate_segment
 from .glply import polynomial_roots, real_roots_in_range
 from .p40 import foot_point_on_line
 from .p42 import foot_points, nearest_point
+from .v34 import curve_normal_at_point
+from .l42 import perpendicular_to_curve
 from .p43 import foot_point_from_circle_center
 from .rkseg import curvature_radius_at
 from .d50 import nearest_point_on_curve, radius_of_curvature
@@ -123,6 +125,7 @@ __all__ = [
     "point_count", "chain_node", "spline_node", "curve_node",
     "segment_coefficients", "evaluate_segment", "polynomial_roots",
     "real_roots_in_range", "foot_points", "nearest_point",
+    "curve_normal_at_point", "perpendicular_to_curve",
     "foot_point_on_line", "foot_point_from_circle_center",
     "curvature_radius_at", "nearest_point_on_curve", "radius_of_curvature",
     "implicit_line", "implicit_plane", "line_curve_intersections", "plane_curve_intersections",

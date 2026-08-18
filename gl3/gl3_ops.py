@@ -39,6 +39,8 @@ from gerlib import (
     point_count as _gerlib_point_count,
     curve_node as _gerlib_curve_node,
     nearest_point as _gerlib_nearest_point,
+    curve_normal_at_point as _gerlib_curve_normal_at_point,
+    perpendicular_to_curve as _gerlib_perpendicular_to_curve,
     radius_of_curvature as _gerlib_radius_of_curvature,
     line_curve_intersection as _gerlib_line_curve_intersection,
     tangent_line_parallel as _gerlib_tangent_line_parallel,
@@ -259,6 +261,16 @@ def _op_p43(circle, line):
 def _op_p42(point, spline, k):
     """P42: PM=P42>P,S,K< - viz gerlib.nearest_point (paty kolmic na krivku)."""
     return _gerlib_nearest_point(spline, point, k)
+
+
+def _op_v34(point, spline, k):
+    """V34: VM=V34>P,S,K< - jednotkova normala krivky v bode, viz gerlib.v34."""
+    return _gerlib_curve_normal_at_point(point, spline, k)
+
+
+def _op_l42(point, spline, k):
+    """L42: LM=L42>P,S,K< - primka kolma ke krivce bodem, viz gerlib.l42."""
+    return _gerlib_perpendicular_to_curve(point, spline, k)
 
 
 def _op_d50(spline, point):
@@ -536,6 +548,8 @@ OPERATIONS = {
     "P22": _op_p22,
     "P40": _op_p40,
     "P42": _op_p42,
+    "V34": _op_v34,
+    "L42": _op_l42,
     "P43": _op_p43,
     "P44": _stub("P44", "odpovidajici bod na jine krivce (projekce?)"),
     "P47": _op_p47,
