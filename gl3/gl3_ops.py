@@ -81,7 +81,7 @@ from geplib import (
     curve_plane_intersection as _geplib_curve_plane_intersection,
 )
 
-
+import math
 
 def builtin_constants():
     return _gerlib_builtin_constants()
@@ -521,18 +521,16 @@ ARRAY_REF_OPS = {
 # ---------------------------------------------------------------------------
 
 OPERATIONS = {
-    # --- skalary ---
+    # --- vzdalenosti / velikosti / obsahy ---
     "D01": _op_d01,
     "D02": _op_d02,
-
-    # --- vzdalenosti / velikosti / obsahy ---
     "D10": _op_d10,
     "D11": _op_d11,
     "D20": _op_d20,
     "D27": _stub("D27", "delka kruhoveho oblouku - potrebuje jeste A512.FOR (D627.FOR ho vola)"),
+    "D28": _op_d28,
     "D30": _op_d30,
     "D31": _op_d31,
-    "D28": _op_d28,
     "D40": _op_d40,
     "D41": _op_d41,
     "D42": _op_d42,
@@ -540,64 +538,71 @@ OPERATIONS = {
     "D50": _op_d50,
 
     # --- body ---
+    "P00": _op_p00,
     "P10": _op_p10,
     "P13": _op_p13,
     "P14": _op_p14,
     "P17": _op_p17,
+    "P20": _op_p20,  # prusecik dvou primek - vraci bod, ale nazev je P20 (viz uzivatelovo vysvetleni P20->P120)
     "P21": _op_p21,
     "P22": _op_p22,
     "P40": _op_p40,
     "P42": _op_p42,
-    "V34": _op_v34,
-    "L42": _op_l42,
     "P43": _op_p43,
     "P44": _stub("P44", "odpovidajici bod na jine krivce (projekce?)"),
     "P47": _op_p47,
     "P48": _op_p48,
     "P49": _op_p49,
-    "P00": _op_p00,
     "P51": _op_p51,
     "P58": _op_p58,
     "P66": _op_p66,
     "P85": _op_p85,
     "P86": _op_p86,
 
+    # --- vektory ---
+    "V34": _op_v34,
+
     # --- primky ---
     "L00": _op_l00,
     "L02": _op_l02,
     "L04": _op_l04,
     "L20": _op_l20,
+    "L42": _op_l42,
     "L45": _op_l45,
     "L46": _op_l46,
-    "P20": _op_p20,  # prusecik dvou primek - vraci bod, ale nazev je P20 (viz uzivatelovo vysvetleni P20->P120)
 
     # --- kruznice ---
-    "C02": _op_c02,
-    "C49": _op_c49,
     "C00": _op_c00,
     "C01": _op_c01,
+    "C02": _op_c02,
     "C30": _op_c30,
     "C32": _op_c32,
     "C33": _op_c33,
     "C34": _op_c34,
+    "C49": _op_c49,
 
-    # --- krivky / retezce ---
+    # --- krivky ---
     "S01": _op_s01,
-    "T01": _op_t01,
-    "Q38": _op_q38,
     "S03": _op_s03,
     "S51": _op_s51,
+
+    # --- retezce ---
     "E01": _op_e01,
     "E45": _op_e45,
-    "NPO": _op_npo,
 
     # --- prostorove (3D) - viz geplib ---
     "Q00": _op_q00,
     "U00": _op_u00,
     "R01": _op_r01,
+    "T01": _op_t01,
+    "Q38": _op_q38,
 
     # --- ostatni ---
+    "NPO": _op_npo,
     "ABS": lambda x: abs(x),  # obycejna absolutni hodnota - neni potreba Fortran
+    "SIN": lambda x: math.sin(math.radians(x)),      # sinus, x v DEG
+    "COS": lambda x: math.cos(math.radians(x)),      # cosinus, x v DEG
+    "TAN": lambda x: math.tan(math.radians(x)),      # tangens, x v DEG
 }
 
 
