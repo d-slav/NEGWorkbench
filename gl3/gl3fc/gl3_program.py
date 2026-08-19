@@ -117,6 +117,30 @@ class GL3Program(object):
             "GL3Library pro rozreseni CALL na dalsi SUBRO (nepovinne, jen "
             "pokud vlastni SUBRO nekoho vola)",
         )
+        # "Skryty retezec" (viz zadani uzivatele) - vzdy pritomna property,
+        # NENI odvozena z SUBRO hlavicky (na rozdil od GL3 In/Out - viz
+        # _sync_properties), takze musi zit ve skupine "GL3" (SourceFile/
+        # Library), ne "GL3 Out" - _remove_stale_properties() maze jen
+        # property ve skupinach "GL3 In"/"GL3 Out" chybejici v aktualni
+        # hlavicce, "GL3" skupinu nikdy neodstranuje.
+        # Stejny JSON "slot" format jako ostatni composite out: property
+        # (viz gerlib.serialize) - {"defined": false}, nebylo-li nic
+        # nakresleno (INI...CLOSE, vc. vsech vnorenych CALL, se nikdy
+        # nespustilo) - zadna chyba, proste nic k exportu (GL3Export na
+        # tohle narazi se stejnou, uz existujici chybou "vystup je
+        # nedefinovany" jako u kteregokoliv jineho nedefinovaneho vystupu,
+        # pokud by ho na to uzivatel presto zkusil napojit).
+        add_property(
+            obj,
+            "App::PropertyString",
+            "Drawing",
+            "GL3",
+            "(automaticky) Skryty retezec nakresleny bloky INI...CLOSE "
+            "(vc. vsech vnorenych CALL) - pouzij jako Input pro GL3Export "
+            "(napr. 'TEHLO002.Drawing') pro vykresleni. Nedefinovano "
+            "(prazdne), pokud program nic nekresli.",
+            read_only=True,
+        )
 
     # -----------------------------------------------------------------
     # Hlavni vypocet
@@ -141,6 +165,7 @@ class GL3Program(object):
         result = interp.run(subdef, inputs=inputs)
 
         self._store_outputs(obj, subdef, result)
+        obj.Drawing = dump_json(interp.hidden_chain, indent=None)
 
         # POZOR: zde uz NENASTAVUJEME vobj.Visibility = True (drive se tu
         # opakovane nastavovalo na kazdem execute(), z duvodu "objekt

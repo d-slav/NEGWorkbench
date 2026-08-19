@@ -324,7 +324,13 @@ class CreateGL3ExportCommand(object):
         presne takhle GL3Program uklada composite vystupy (JSON text, viz
         gl3_program.py). Cte se jen z verejneho FC API (PropertiesList +
         getGroupOfProperty/getTypeIdOfProperty), zadna zavislost na
-        internich atributech Proxy - funguje i po znovunacteni dokumentu."""
+        internich atributech Proxy - funguje i po znovunacteni dokumentu.
+
+        Navic (na konci seznamu) 'Drawing', pokud je definovana (skryty
+        retezec z INI...CLOSE - viz gl3_program.py) - je ve skupine
+        "GL3" (ne "GL3 Out", protoze neni odvozena z SUBRO hlavicky), ale
+        jde o stejny druh exportovatelneho vystupu, jen bez pojmenovaneho
+        out: parametru."""
         names = []
         for prop_name in source.PropertiesList:
             try:
@@ -334,6 +340,12 @@ class CreateGL3ExportCommand(object):
                 continue
             if group == "GL3 Out" and type_id == "App::PropertyString":
                 names.append(prop_name)
+        if hasattr(source, "Drawing"):
+            try:
+                if json.loads(source.Drawing).get("defined"):
+                    names.append("Drawing")
+            except (ValueError, TypeError, AttributeError):
+                pass
         return names
 
     @staticmethod
