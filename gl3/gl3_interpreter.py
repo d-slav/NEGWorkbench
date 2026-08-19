@@ -14,6 +14,7 @@ hodnoty se po dobehnuti zkopiruji zpatky do volajiciho prostredi.
 """
 
 import os
+import sys
 import re
 
 try:
@@ -27,6 +28,7 @@ from gl3_lang import (
     DoLoop, IfBlock, IfShort, RepeatWhile, RetSub,
     IODevStmt, IOTarget, InputStmt, OutputStmt, IsUndefined,
     CreStmt, EndCreStmt, MoveStmt, Omitted, OMITTED,
+    IniStmt, CloseStmt,
     parse_expr_text,
 )
 from gl3_ops import (
@@ -153,6 +155,27 @@ class Interpreter:
         # POMOCI KRESLICICH PRIKAZU") - None mimo blok. Vnorene bloky
         # CRE zatim nejsou podporovany (viz _exec_cre).
         self._chain_builder = None
+        # Kolik bloku INI...CLOSE je prave otevrenych KDEKOLIV v
+        # zasobniku volani (viz _hidden_chain_stack nize) - pouzito jen
+        # pro rychlou vzajemnou kontrolu s CRE (nesmi bezet soucasne,
+        # viz G10.md "CRE, ENDCRE uvnitr otevrene kresby... neni
+        # pripustne").
+        self._open_ini_count = 0
+        # Zasobnik "skrytych retezcu" - jeden zaznam na kazde aktivni
+        # volani SUBRO (vc. hlavniho programu), viz zadani uzivatele:
+        # kazdy GL3 program ma skryty retezec, ktery vznika bloky
+        # INI...CLOSE (stejnou MOVE frazovou logikou jako CRE...ENDCRE,
+        # viz _active_move_builder). Pri navratu z CALL se hotovy
+        # skryty retezec volane SUBRO pripoji (konkatenuje) do
+        # skryteho retezce volajiciho - viz _push_hidden_chain_frame/
+        # _pop_hidden_chain_frame.
+        #   frame = {"points": [...], "ini_builder": None nebo
+        #            {"points": [...], "current_point": ..., "last_direction": ...}}
+        self._hidden_chain_stack = []
+        # Vysledny skryty retezec CELEHO behu (Curve, nebo None, nebylo-
+        # li nikdy nic nakresleno) - viz run(). K dispozici az PO
+        # run() dobehne.
+        self.hidden_chain = None
         # Zasobnik jmen aktualne bezicich SUBRO (kvuli vnorenym CALL) -
         # pro hlaseni "[Warning] jmeno_programu/cislo_radku/operace: ...".
         self._program_name_stack = []
@@ -173,24 +196,69 @@ class Interpreter:
         I/O kanaly (IDEV) jsou globalni pro cely beh programu (sdilene i
         pres vnorene CALL) a resetuji/zaviraji se na zacatku a konci
         kazdeho volani run() - odpovida tomu, ze jde o novy beh programu.
+
+        Po dobehnuti je vysledny "skryty retezec" (viz zadani uzivatele
+        - INI...CLOSE, sbira i skryte retezce vsech vnorenych CALL) k
+        dispozici v self.hidden_chain (Curve, nebo None, nebylo-li nic
+        nakresleno).
         """
         env = builtin_constants()
         env.update(inputs)
         self._input_names_by_env[id(env)] = set(inputs.keys())
         self.io_channels = {}
         self._program_name_stack.append(subdef.name)
+        self._push_hidden_chain_frame()
         try:
             self._exec_block(subdef.body, env)
         except RetSubSignal:
             pass
         finally:
             self._program_name_stack.pop()
+            had_error = sys.exc_info()[0] is not None
+            top_level_points = self._pop_hidden_chain_frame(
+                parent_frame=None, suppress_dangling_check=had_error
+            )
+            self.hidden_chain = _gerlib_make_chain(top_level_points) if top_level_points else None
             for state in self.io_channels.values():
                 try:
                     state["file"].close()
                 except Exception:
                     pass
         return env
+
+    # ------------------------------------------------------------------
+    # "skryty retezec" (INI...CLOSE) - viz zadani uzivatele
+    # ------------------------------------------------------------------
+
+    def _push_hidden_chain_frame(self):
+        """Otevre novy zaznam skryteho retezce pro prave zacinajici
+        volani SUBRO (hlavni program i kazdy vnoreny CALL) - viz
+        _hidden_chain_stack."""
+        self._hidden_chain_stack.append({"points": [], "ini_builder": None})
+
+    def _pop_hidden_chain_frame(self, parent_frame, suppress_dangling_check=False):
+        """Uzavre zaznam skryteho retezce prave koncici SUBRO a vrati
+        jeho nasbirane body. 'parent_frame' je zaznam volajiciho (nebo
+        None na urovni hlavniho programu) - je-li zadan a tato SUBRO
+        neco nakreslila, jeji body se do nej rovnou pripoji (viz zadani
+        uzivatele: "skryty retezec [volane SUBRO] bude pripojeny k
+        vlastnimu skrytemu retezci [volajiciho]").
+
+        Chyba, byl-li blok INI ponechany otevreny bez CLOSE (obdoba
+        existujici kontroly u CRE/ENDCRE) - POKUD 'suppress_dangling_check'
+        neni True (nastavuje volajici, kdyz uz stejne probiha jina
+        vyjimka - jinak by tato kontrola tu puvodni, dulezitejsi chybu
+        nezadouci prekryla)."""
+        frame = self._hidden_chain_stack.pop()
+        if frame["ini_builder"] is not None and not suppress_dangling_check:
+            raise GL3RuntimeError(
+                "INI bez odpovidajiciho CLOSE pred koncem SUBRO "
+                "(skryty retezec zustal otevreny)"
+            )
+        points = frame["points"]
+        if parent_frame is not None and points:
+            parent_frame["points"].extend(points)
+        return points
 
     # ------------------------------------------------------------------
     # vyhodnoceni vyrazu
@@ -377,6 +445,14 @@ class Interpreter:
 
         if isinstance(stmt, MoveStmt):
             self._exec_move(stmt, env)
+            return
+
+        if isinstance(stmt, IniStmt):
+            self._exec_ini(stmt, env)
+            return
+
+        if isinstance(stmt, CloseStmt):
+            self._exec_close(stmt, env)
             return
 
         if isinstance(stmt, IODevStmt):
@@ -620,6 +696,11 @@ class Interpreter:
                 "podporovany (predchozi blok jeste neni uzavren ENDCRE)"
                 % stmt.target_name
             )
+        if self._open_ini_count > 0:
+            raise GL3RuntimeError(
+                "CRE,%s: nelze zahajit uvnitr otevreneho bloku INI...CLOSE "
+                "(kresleni se nesmi prolinat, viz G10.md)" % stmt.target_name
+            )
         self._chain_builder = {
             "target_name": stmt.target_name,
             "target_index": stmt.target_index,
@@ -648,29 +729,80 @@ class Interpreter:
         self._assign_result(builder["target_name"], builder["target_index"], chain, builder["env"])
         self._chain_builder = None
 
+    def _exec_ini(self, stmt, env):
+        """INI (bez parametru) - zahajeni kresleni do 'skryteho
+        retezce' aktualne bezici SUBRO (viz zadani uzivatele -
+        zjednodusena nahrada puvodniho INI/OPE...CLOSE do souboru CL2).
+        Nasledujici prikazy MOVE az do CLOSE stavi body stejnym
+        zpusobem jako CRE...ENDCRE - viz _exec_move/_active_move_builder."""
+        frame = self._hidden_chain_stack[-1]
+        if frame["ini_builder"] is not None:
+            raise GL3RuntimeError(
+                "INI: vnorene bloky INI...CLOSE (v ramci jedne SUBRO) "
+                "nejsou podporovany (predchozi blok jeste neni uzavren "
+                "CLOSE) - kazda volana SUBRO ma ale svuj VLASTNI skryty "
+                "retezec, viz CALL"
+            )
+        if self._chain_builder is not None:
+            raise GL3RuntimeError(
+                "INI: nelze zahajit uvnitr otevreneho bloku CRE...ENDCRE "
+                "(kresleni se nesmi prolinat, viz G10.md)"
+            )
+        frame["ini_builder"] = {"points": [], "current_point": None, "last_direction": None}
+        self._open_ini_count += 1
+
+    def _exec_close(self, stmt, env):
+        """CLOSE - uzavreni kresleni zahajeneho prikazem INI. Nasbirane
+        body se pripoji do skryteho retezce aktualni SUBRO (viz
+        _push_hidden_chain_frame/_pop_hidden_chain_frame pro pripojeni
+        pri navratu z CALL)."""
+        frame = self._hidden_chain_stack[-1]
+        builder = frame["ini_builder"]
+        if builder is None:
+            raise GL3RuntimeError("CLOSE bez odpovidajiciho predchoziho INI")
+        if len(builder["points"]) < 2:
+            raise GL3RuntimeError(
+                "INI...CLOSE: nakreslena cast ma min nez 2 body - je "
+                "potreba aspon jeden pohyb MOVE 'se spustenym perem' (*) "
+                "za zakladajicim pohybem 'se zdviženym perem' (/)"
+            )
+        frame["points"].extend(builder["points"])
+        frame["ini_builder"] = None
+        self._open_ini_count -= 1
+
+    def _active_move_builder(self):
+        """Vrati builder (dict s 'points'/'current_point'/'last_direction'),
+        do ktereho ma MOVE prave prispivat - bud rozpracovany CRE, nebo
+        rozpracovany INI aktualniho ramce (viz _exec_cre/_exec_ini - jsou
+        navzajem vylucne, nemuzou byt aktivni soucasne). None, neni-li
+        aktivni zadny z nich."""
+        if self._chain_builder is not None:
+            return self._chain_builder
+        return self._hidden_chain_stack[-1]["ini_builder"]
+
     def _exec_move(self, stmt, env):
-        """MOVE|fraze1|fraze2|... (viz G18.md 18.4) - zatim podporovano
-        jen uvnitr bloku CRE...ENDCRE (vytvareni retezce, viz _exec_cre/
-        _exec_endcre); kresleni primo do souboru CL2 (bloky INI/OPE...
-        CLOSE) jeste neni implementovano."""
-        builder = self._chain_builder
+        """MOVE|fraze1|fraze2|... (viz G18.md 18.4) - podporovano uvnitr
+        bloku CRE...ENDCRE (vytvareni pojmenovaneho retezce, viz
+        _exec_cre/_exec_endcre) NEBO uvnitr bloku INI...CLOSE
+        (vytvareni 'skryteho retezce' aktualni SUBRO, viz _exec_ini/
+        _exec_close) - stejna frazova logika pro oba pripady."""
+        builder = self._active_move_builder()
         if builder is None:
             raise GL3RuntimeError(
-                "MOVE: (zatim) podporovano jen uvnitr bloku CRE...ENDCRE "
-                "(vytvareni retezce) - kresleni do souboru CL2 pres "
-                "INI/OPE...CLOSE jeste neni implementovano"
+                "MOVE: podporovano jen uvnitr bloku CRE...ENDCRE (retezec) "
+                "nebo INI...CLOSE (skryty retezec)"
             )
 
         for phrase in stmt.phrases:
             values = [self.eval_expr(v, env) for v in phrase.values]
 
             if builder["current_point"] is None:
-                # Uplne prvni fraze bloku CRE - zakladajici bod retezce.
-                # Nema jeste zadny "aktualni bod", pouzijeme pocatek
-                # souradnic - useckove fraze zavisle na predchozim bode
-                # (*D, *D:V v INCRE rezimu apod.) tu davaji smysl jen
-                # vyjimecne, spravny zapis je vzdy absolutni bod (*P)
-                # nebo souradnice (*D1:D2 v rezimu ABSOL).
+                # Uplne prvni fraze bloku - zakladajici bod retezce. Nema
+                # jeste zadny "aktualni bod", pouzijeme pocatek souradnic
+                # - useckove fraze zavisle na predchozim bode (*D, *D:V
+                # v INCRE rezimu apod.) tu davaji smysl jen vyjimecne,
+                # spravny zapis je vzdy absolutni bod (*P) nebo
+                # souradnice (*D1:D2 v rezimu ABSOL).
                 try:
                     points, direction = _gerlib_evaluate_move_phrase(
                         Point(0.0, 0.0, 0.0), None, self.draw_mode, phrase.sep, values
@@ -697,15 +829,15 @@ class Interpreter:
             if phrase.pen == "down":
                 builder["points"].extend(points)
             else:
-                # Pohyb "se zdviženym perem" (/) uprostred bloku CRE by
+                # Pohyb "se zdviženym perem" (/) uprostred bloku by
                 # vytvoril nesouvisly retezec (fiktivni spojeni, viz
                 # G10.md) - nas Curve typ jeden nesouvisly retezec
                 # (vice useku) zatim neumi reprezentovat.
                 raise NotYetImplemented(
                     "MOVE/... (pohyb se zdviženym perem) uprostred bloku "
-                    "CRE...ENDCRE by vytvoril nesouvisly retezec - "
-                    "podporovano zatim jen pro UPLNE prvni frazi bloku "
-                    "(zalozeni pocatecniho bodu)"
+                    "by vytvoril nesouvisly retezec - podporovano zatim "
+                    "jen pro UPLNE prvni frazi bloku (zalozeni "
+                    "pocatecniho bodu)"
                 )
 
             builder["current_point"] = points[-1]
@@ -852,6 +984,7 @@ class Interpreter:
 
         self._program_name_stack.append(stmt.name)
         saved_line_no = self.current_line_no
+        self._push_hidden_chain_frame()
         try:
             self._exec_block(callee.body, local_env)
         except RetSubSignal:
@@ -859,6 +992,11 @@ class Interpreter:
         finally:
             self._program_name_stack.pop()
             self.current_line_no = saved_line_no
+            # stack je [..., parent_frame, callee_frame] - callee_frame
+            # (prave dobehnuvsi) je na vrcholu, parent_frame je pod nim.
+            parent_frame = self._hidden_chain_stack[-2]
+            had_error = sys.exc_info()[0] is not None
+            self._pop_hidden_chain_frame(parent_frame=parent_frame, suppress_dangling_check=had_error)
 
         for i, (formal_name, _dim, _dir) in enumerate(callee_params):
             if i >= len(stmt.args):

@@ -223,6 +223,25 @@ class EndCreStmt:
 
 
 @dataclass
+class IniStmt:
+    """INI (bez parametru) - zahajeni kresleni do 'skryteho retezce'
+    aktualne bezici SUBRO (viz zadani uzivatele - zjednodusena nahrada
+    puvodniho INI/OPE...CLOSE do souboru CL2, ktery uz nepotrebujeme).
+    Nasledujici prikazy MOVE az do CLOSE stavi body do tohoto skryteho
+    retezce - stejnym zpusobem jako CRE...ENDCRE stavi pojmenovany
+    retezec, jen bez explicitniho cile."""
+    pass
+
+
+@dataclass
+class CloseStmt:
+    """CLOSE - uzavreni kresleni zahajeneho prikazem INI. Nasbirane
+    body se pripoji do skryteho retezce aktualni SUBRO (ktery se pri
+    navratu z CALL pripoji do skryteho retezce volajiciho)."""
+    pass
+
+
+@dataclass
 class MovePhrase:
     """Jedna fraze prikazu MOVE (viz G18.md 18.4) - 'pen' je 'up' (/,
     pero zvednuto) nebo 'down' (*, pero spusteno). 'sep' je oddelovac
@@ -809,6 +828,12 @@ def _parse_one(line, cursor):
 
     if line == "ENDCRE":
         return EndCreStmt()
+
+    if line == "INI":
+        return IniStmt()
+
+    if line == "CLOSE":
+        return CloseStmt()
 
     if line == "MOVE" or line.startswith("MOVE/") or line.startswith("MOVE*"):
         rest = line[len("MOVE"):]
