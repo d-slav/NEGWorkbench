@@ -56,7 +56,16 @@ SUBRO bez CALL (nebo CALL na sebe sama).
 
 Editace .GL3 zdroje je v teto fazi externi (obycejny textovy editor) -
 kazdy execute() cte soubor ze disku znovu, zadny interni cache mezi
-recomputy.
+recomputy (krome levke "nezmenilo se nic?" kontroly pred samotnym
+ctenim/behem - viz execute()).
+
+"Skryty retezec" (INI...CLOSE, vc. vsech vnorenych CALL - viz
+gl3_interpreter.py) se vykresluje PRIMO na tomto objektu: GL3Program je
+Part::FeaturePython, takze uz ma svuj vlastni nativni Shape - zadny
+samostatny GL3Export objekt ani JSON property tu neni potreba (na
+rozdil od pojmenovanych composite out: vystupu, ktere porad potrebuji
+GL3Export, chce-li je uzivatel materializovat jako samostatny FreeCAD
+objekt).
 """
 
 import sys
@@ -67,15 +76,20 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from gl3_lang import parse_program
 from gl3_interpreter import Interpreter
 from gl3_ops import classify
-from gerlib.serialize import dump_json, load_json
+from gerlib.serialize import dump_json, load_json, serialize
 from gerlib.types import Point
 from gl3fc.gl3_registry import Gl3FileRegistry
 from gl3fc.gl3_props import add_property, add_hidden_link, parse_ref, icon_path
+from gl3fc.gl3_export import build_shape
 
 try:
     import FreeCAD as App
+    import Part
 except ImportError:  # umoznuje syntax-check/testy mimo FreeCAD
     App = None
+    Part = None
+
+_MISSING = object()  # sentinel pro "property s timhle jmenem neexistuje"
 
 
 def _log_warning(msg):
@@ -101,6 +115,11 @@ class GL3Program(object):
     def __init__(self, obj):
         obj.Proxy = self
         self.Type = "GL3Program"
+        # Signatura (viz execute()) posledniho USPESNEHO execute() -
+        # pouziva se k preskoceni draheho znovunacteni/beh interpretu, kdyz
+        # execute() bylo vyvolano jen vedlejsim ucinkem (touch() z jinych
+        # duvodu nez skutecna zmena zavislosti - viz gl3_export.create()).
+        self._exec_cache = None
 
         add_property(
             obj,
@@ -117,30 +136,6 @@ class GL3Program(object):
             "GL3Library pro rozreseni CALL na dalsi SUBRO (nepovinne, jen "
             "pokud vlastni SUBRO nekoho vola)",
         )
-        # "Skryty retezec" (viz zadani uzivatele) - vzdy pritomna property,
-        # NENI odvozena z SUBRO hlavicky (na rozdil od GL3 In/Out - viz
-        # _sync_properties), takze musi zit ve skupine "GL3" (SourceFile/
-        # Library), ne "GL3 Out" - _remove_stale_properties() maze jen
-        # property ve skupinach "GL3 In"/"GL3 Out" chybejici v aktualni
-        # hlavicce, "GL3" skupinu nikdy neodstranuje.
-        # Stejny JSON "slot" format jako ostatni composite out: property
-        # (viz gerlib.serialize) - {"defined": false}, nebylo-li nic
-        # nakresleno (INI...CLOSE, vc. vsech vnorenych CALL, se nikdy
-        # nespustilo) - zadna chyba, proste nic k exportu (GL3Export na
-        # tohle narazi se stejnou, uz existujici chybou "vystup je
-        # nedefinovany" jako u kteregokoliv jineho nedefinovaneho vystupu,
-        # pokud by ho na to uzivatel presto zkusil napojit).
-        add_property(
-            obj,
-            "App::PropertyString",
-            "Drawing",
-            "GL3",
-            "(automaticky) Skryty retezec nakresleny bloky INI...CLOSE "
-            "(vc. vsech vnorenych CALL) - pouzij jako Input pro GL3Export "
-            "(napr. 'TEHLO002.Drawing') pro vykresleni. Nedefinovano "
-            "(prazdne), pokud program nic nekresli.",
-            read_only=True,
-        )
 
     # -----------------------------------------------------------------
     # Hlavni vypocet
@@ -152,6 +147,45 @@ class GL3Program(object):
                 "GL3Program '%s': SourceFile neni nastaven na existujici .GL3 soubor"
                 % (obj.Name,)
             )
+
+        # Rychla kontrola PRED drahym znovunactenim/parsovanim souboru a
+        # behem cele interpretu: zmenilo se od posledniho USPESNEHO behu
+        # vubec neco, na cem execute() skutecne zavisi (obsah souboru -
+        # detekovano pres mtime, pripojena Library, hodnoty vsech in:
+        # parametru)? Pokud ne, tenhle execute() byl nejspis vyvolan jen
+        # vedlejsim ucinkem FreeCADu (napr. touch() pri pridani noveho
+        # GL3Exportu na NEKTERY jiny (pojmenovany) vystup - viz
+        # gl3_export.create() - je potreba, aby se novy Export ve strome
+        # spravne zaradil jako potomek, ale sam o sobe neznamena, ze SE NA
+        # VSTUPECH TOHOTO PROGRAMU cokoliv zmenilo) - preskocit drahou cast
+        # a nechat vystupni property i Shape beze zmeny. "Reload GL3
+        # Program" tuhle cache vzdy explicitne zneplatni (viz
+        # gl3_commands.py), takze rucni vyvolani je porad spolehlive.
+        #
+        # POZOR - ZNAMY LIMIT: sleduje se jen mtime TOHOTO souboru, ne
+        # souboru resolvovanych pres CALL/Library (viz Gl3FileRegistry) -
+        # zmena v zavislosti volane pres CALL (napr. HLO.GL3 volane z
+        # TEHLO.GL3) se tak nemusi projevit automaticky. Po editaci
+        # takoveho souboru pouzij "Reload GL3 Program" (nebo rucni "Mark
+        # to recompute" + Refresh) na PRISLUSNYCH programech.
+        try:
+            mtime = os.path.getmtime(path)
+        except OSError:
+            mtime = None
+        library_name = getattr(getattr(obj, "Library", None), "Name", None)
+
+        cache = getattr(self, "_exec_cache", None)
+        if (
+            cache is not None
+            and cache["path"] == path
+            and cache["mtime"] == mtime
+            and cache["library_name"] == library_name
+            and all(
+                getattr(obj, name, _MISSING) == value
+                for name, value in cache["inputs"].items()
+            )
+        ):
+            return
 
         with open(path, "r", encoding="utf-8", errors="replace") as f:
             subdef = parse_program(f.read())
@@ -165,7 +199,34 @@ class GL3Program(object):
         result = interp.run(subdef, inputs=inputs)
 
         self._store_outputs(obj, subdef, result)
-        obj.Drawing = dump_json(interp.hidden_chain, indent=None)
+
+        # "Skryty retezec" (viz zadani uzivatele - INI...CLOSE, vc. vsech
+        # vnorenych CALL) se vykresli PRIMO na tomto objektu - stejnou
+        # cestou (build_shape na serializovanem "slot" dictu), jakou uz
+        # pouziva GL3Export pro pojmenovane composite vystupy (viz
+        # gl3_export.py). Zadny mezikrok pres samostatny GL3Export objekt
+        # ani JSON property tu neni potreba - GL3Program uz je Part::
+        # FeaturePython, takze ma svuj vlastni nativni Shape.
+        if interp.hidden_chain is not None:
+            obj.Shape = build_shape(serialize(interp.hidden_chain))
+        elif Part is not None:
+            obj.Shape = Part.Shape()  # nic nenakresleno - prazdny tvar
+
+        # Cache aktualizovat AZ PO uspesnem behu - pri chybe (napr. spatny
+        # vstup, vyhozena vyjimka drive v teto funkci) se nesmi nic
+        # cachovat, aby dalsi pokus (po oprave) spolehlive spustil skutecny
+        # beh znovu, misto aby omylem "uspesne" preskocil na zaklade
+        # stareho/neplatneho stavu.
+        self._exec_cache = {
+            "path": path,
+            "mtime": mtime,
+            "library_name": library_name,
+            "inputs": {
+                name: getattr(obj, name, None)
+                for name, _size, direction in subdef.params
+                if direction == "in"
+            },
+        }
 
         # POZOR: zde uz NENASTAVUJEME vobj.Visibility = True (drive se tu
         # opakovane nastavovalo na kazdem execute(), z duvodu "objekt
@@ -173,8 +234,9 @@ class GL3Program(object):
         # nenacte" - ale tim se pri kazdem recomputu prepsalo i rucni
         # schovani objektu uzivatelem, coz je skutecny bug. Visibility se
         # nastavuje jen JEDNOU, pri vytvoreni - viz create() nize.
-        # GL3Program navic nema zadny Shape/3D obsah, takze puvodni
-        # "opticky neviditelny" problem se ho ani netykal).
+        # GL3Program uz ted MA vlastni Shape (viz vyse - skryty retezec z
+        # INI...CLOSE) - stejny "nastav jen jednou pri vytvoreni" pristup
+        # k Visibility ale porad plati, viz duvod vyse.
 
     def onChanged(self, obj, prop):
         link_name = self._shadow_link_name(prop)

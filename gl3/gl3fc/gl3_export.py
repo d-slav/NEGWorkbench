@@ -440,11 +440,8 @@ class GL3Export(object):
         #    pruchodu byl hotovy - FreeCAD po dokonceni recompute() hlasi
         #    "Unnamed#<Name> still touched after recompute", protoze
         #    nedojde k dalsimu prepoctu, ktery by touched flag zase smazal.
-        #    Puvodne presunuto do create() (zavolano PRED prvnim doc.
-        #    recompute()), pozdeji (na zaklade zpetne vazby) odstraneno
-        #    UPLNE - viz komentar v create() nize: touchnuti Source jen
-        #    kvuli pridani noveho Exportu vynucovalo zbytecny plny
-        #    prepocet celeho GL3Programu.
+        #    Reseni: source.touch() se vola JEN v create() (viz tam, PRED
+        #    prvnim doc.recompute() volanym volajicim) - ne tady.
 
     def onDocumentRestored(self, obj):
         self.Type = "GL3Export"
@@ -487,32 +484,26 @@ def create(doc, name, source, output_name, index=None):
         ref = "%s(%d)" % (ref, index)
     obj.Input = ref
 
-    # POZOR (zmeneno na zaklade zpetne vazby): puvodne se tu volalo
-    # "source.touch()", aby se Source (GL3Program) zaradil do STEJNE
-    # recompute davky jako novy Export - to ale melo vedlejsi ucinek, ze
-    # KAZDE pridani noveho Exportu vynutilo i plny prepocet (znovunacteni
-    # .GL3 souboru + beh cele interpretu) Source, i kdyz se na jeho
-    # vstupech nic nezmenilo. To je zbytecne (muze byt drahe) a nezadouci -
-    # prepocet Source ma probihat jen pri zmene neceho, na cem skutecne
-    # zavisi (SourceFile/Library/GL3 In), nebo pri rucnim vyvolani.
+    # "touchnuti" Source (JEDNOU, tady, PRED prvnim doc.recompute() volanym
+    # volajicim) zajisti, ze strom po tomhle recomputu spravne zobrazi
+    # novy Export jako potomka Source (viz ViewProviderGL3Program.
+    # claimChildren()) - OVERENO na zivem FreeCADu (viz zpetna vazba), ze
+    # bez tohohle se novy Export objevi na STEJNE UROVNI jako Source, misto
+    # jako jeho potomek, dokud Source neprojde nejakym DALSIM prepoctem.
     #
-    # Novy Export nema tenhle problem - je to CERSTVE vytvoreny objekt,
-    # takze uz je sam o sobe "touched" (FreeCAD tak oznacuje kazdy nove
-    # pridany objekt automaticky) a nasledujici doc.recompute() (viz
-    # CreateGL3ExportCommand.Activated()) mu bez dalsiho spusti execute()
-    # tak jako tak - zadne dalsi touchnuti tu neni potreba.
-    #
-    # Spravne zarazeni ve strome pod Source (ViewProviderGL3Program.
-    # claimChildren()) uz zajistuje doc.addObject() vyse (vyvola FreeCAD
-    # "novy objekt" udalost, na kterou Gui tree reaguje pretazenim
-    # claimChildren() u existujicich kandidatu na rodice) v kombinaci s
-    # Gui.updateGui()/Std_TreeExpand, ktere uz volajici (gl3_commands.
-    # CreateGL3ExportCommand.Activated()) dela hned po doc.recompute().
-    #
-    # NEOVERENO v zivem FreeCADu (offline testy tree/Gui chovani
-    # nesimuluji) - pokud by se po tehle zmene novy Export znovu objevoval
-    # ve strome jako SOUROZENEC (misto potomka) Source, je potreba resit
-    # to na urovni stromu/Gui (napr. explicitnim prekreslenim polozky
-    # Source), NE navratem k source.touch().
+    # POZOR: touch() sam o sobe VZDY vynuti volani GL3Program.execute() -
+    # to by bylo drahe (znovunacteni .GL3 souboru + beh cele interpretu)
+    # pri kazdem pridani exportu, i kdyz se na vstupech Source nic
+    # nezmenilo. Reseni je na druhe strane: GL3Program.execute() ma
+    # vlastni levnou "nezmenilo se nic podstatneho?" kontrolu (viz
+    # gl3_program.GL3Program._exec_cache) a v tom pripade se rychle vrati
+    # beze skutecne prace - FreeCAD tak porad dostane svuj "touched ->
+    # execute() zavolano -> touched smazano" cyklus (potrebny pro spravne
+    # zarazeni ve strome), ale drahou cast prace to presto neudela
+    # zbytecne znovu.
+    try:
+        source.touch()
+    except AttributeError:
+        pass
 
     return obj

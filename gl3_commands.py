@@ -326,11 +326,9 @@ class CreateGL3ExportCommand(object):
         getGroupOfProperty/getTypeIdOfProperty), zadna zavislost na
         internich atributech Proxy - funguje i po znovunacteni dokumentu.
 
-        Navic (na konci seznamu) 'Drawing', pokud je definovana (skryty
-        retezec z INI...CLOSE - viz gl3_program.py) - je ve skupine
-        "GL3" (ne "GL3 Out", protoze neni odvozena z SUBRO hlavicky), ale
-        jde o stejny druh exportovatelneho vystupu, jen bez pojmenovaneho
-        out: parametru."""
+        POZOR: "skryty retezec" (INI...CLOSE) uz se SEM nezahrnuje - ten
+        se ted vykresluje PRIMO na GL3Programu (jeho vlastni Shape, viz
+        gl3_program.py) a nepotrebuje samostatny GL3Export vubec."""
         names = []
         for prop_name in source.PropertiesList:
             try:
@@ -340,12 +338,6 @@ class CreateGL3ExportCommand(object):
                 continue
             if group == "GL3 Out" and type_id == "App::PropertyString":
                 names.append(prop_name)
-        if hasattr(source, "Drawing"):
-            try:
-                if json.loads(source.Drawing).get("defined"):
-                    names.append("Drawing")
-            except (ValueError, TypeError, AttributeError):
-                pass
         return names
 
     @staticmethod
@@ -410,6 +402,14 @@ class ReloadGL3ProgramCommand(object):
             return None
 
         obj = programs[0]
+        # Explicitne zneplatnit levnou "nezmenilo se nic?" cache (viz
+        # gl3_program.GL3Program._exec_cache) - "Reload" ma byt spolehliva
+        # cesta k VZDY skutecnemu, cerstvemu behu (napr. po editaci
+        # souboru resolvovaneho pres CALL/Library, coz cache sama o sobe
+        # nesleduje - viz komentar v execute()), ne jen k touchnuti, ktere
+        # by cache stejne mohla znovu preskocit.
+        if hasattr(obj, "Proxy") and hasattr(obj.Proxy, "_exec_cache"):
+            obj.Proxy._exec_cache = None
         obj.touch()
         obj.Document.recompute()
         return obj
