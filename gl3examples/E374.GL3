@@ -1,7 +1,7 @@
 *
 * Porovnání profilù E374
 *
-SUBRO/E374/in:BA,in:BB,out:SA,out:SB,out:S(1)
+SUBRO/E374/in:BA,in:BB,out:SA,out:SB,out:S(1),out:E1
 
 DIMEN,PI(100),PO(100),S(2)
 
@@ -37,11 +37,16 @@ S(2)=SB
 *MOVE/SA:0*SA/S(1):0*S(1)
 *CLOSE
 
+E1=E45>SA
+
 INI
+MOVE/10:10*20:20
 C1=C00>1,0,10
-MOVE/C1:0*C1
-MOVE/SB:0*SB/S(2):0*S(2)
+MOVE*C1:0*C1*P0
+*MOVE/E1:0*E1
+*MOVE/SB:0*SB/S(2):0*S(2)
 CLOSE
+
 
 
 
