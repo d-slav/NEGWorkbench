@@ -326,10 +326,12 @@ def main():
         assert "neexistuje" in str(e)
         print("execute() s neexistujicim zdrojovym objektem: OK - jasna chyba (%s)" % e)
 
-    # --- 10) create() UZ NEMA touchnout Source - pridani noveho Exportu
-    # nema vynutit prepocet Source (viz komentar v gl3_export.create() -
-    # zmeneno na zaklade zpetne vazby, aby recompute Source probihal jen
-    # pri zmene neceho, na cem skutecne zavisi, nebo pri rucnim vyvolani) ---
+    # --- 10) create() ma touchnout Source JEDNOU, pred prvnim recomputem
+    # (viz komentar v gl3_export.create()) - OVERENO na zivem FreeCADu, ze
+    # je to nutne pro spravne zarazeni noveho Exportu do stromu jako
+    # potomka Source. Cena (plny prepocet Source) se resi jinde -
+    # GL3Program._exec_cache (viz gl3_program.py) drzi execute() levne,
+    # kdyz se na vstupech Source nic nezmenilo. ---
     doc10 = FakeDocument()
     source10 = doc10.register(FakeSource("TEHLO010"))
     source10.PO = json.dumps(
@@ -339,12 +341,9 @@ def main():
     )
     assert not source10._touched
     export10 = create_export(doc10, "Export010", source10, "PO")
-    assert not source10._touched, (
-        "create() nesmi touchnout Source - pridani Exportu by nemelo vynutit "
-        "prepocet celeho GL3Programu"
-    )
+    assert source10._touched, "create() ma touchnout Source JEDNOU, pred prvnim recomputem"
     assert export10.Input == "TEHLO010.PO"
-    print("create(): OK - NEtouchne Source (zadny vynuceny prepocet jen kvuli novemu Exportu)")
+    print("create(): OK - touchne Source presne jednou, pred vracenim noveho objektu")
 
     print()
     print("VSE OK - GL3Export.execute() spravne resolvuje 'Objekt.Vystup' referenci")
