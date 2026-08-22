@@ -79,6 +79,8 @@ from geplib import (
     make_plane_r01 as _geplib_make_plane_r01,
     make_spatial_spline as _geplib_make_spatial_spline,
     curve_plane_intersection as _geplib_curve_plane_intersection,
+    rotate_vector_about_line as _geplib_rotate_vector_about_line,
+    make_chain3 as _geplib_make_chain3,
 )
 
 import math
@@ -479,6 +481,18 @@ def _op_q38(curve, plane, k):
     return _geplib_curve_plane_intersection(curve, plane, k)
 
 
+def _op_u19(vector, line, a, k=0):
+    """U19: UM=U19>U,M,A[,K] - vektor otoceny o uhel kolem primky, viz
+    geplib.u19. Default K=0 (proti smeru hodinovych rucicek)."""
+    return _geplib_rotate_vector_about_line(vector, line, a, k)
+
+
+def _op_h02(*points):
+    """H02: HM=H02>Q1,Q2[,Q3]...[,Q7] - retezec mnozinou vyjmenovanych
+    bodu (2 az 7), viz geplib.h02."""
+    return _geplib_make_chain3(*points)
+
+
 def _op_s03(points_ref, k, *rest):
     """S03: SM=S03>P(I),K[,[V1],[VK][,N]] - krivka (Spline) K body se
     dvema okrajovymi tecnymi vektory, viz gerlib.make_spline."""
@@ -596,6 +610,8 @@ OPERATIONS = {
     "R01": _op_r01,
     "T01": _op_t01,
     "Q38": _op_q38,
+    "U19": _op_u19,
+    "H02": _op_h02,
 
     # --- ostatni ---
     "NPO": _op_npo,
