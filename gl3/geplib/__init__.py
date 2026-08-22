@@ -31,6 +31,7 @@ from .t01 import make_spatial_spline
 from .q38 import curve_plane_intersection
 from .u19 import rotate_vector_about_line
 from .h02 import make_chain3
+from .q48 import curve_node3
 
 __all__ = [
     "CoordSystem3", "define_coord_system3",
@@ -42,5 +43,6 @@ __all__ = [
     "curve_plane_intersection",
     "rotate_vector_about_line",
     "make_chain3",
+    "curve_node3",
 ]
 

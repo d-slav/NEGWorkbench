@@ -81,6 +81,7 @@ from geplib import (
     curve_plane_intersection as _geplib_curve_plane_intersection,
     rotate_vector_about_line as _geplib_rotate_vector_about_line,
     make_chain3 as _geplib_make_chain3,
+    curve_node3 as _geplib_curve_node3,
 )
 
 import math
@@ -493,6 +494,12 @@ def _op_h02(*points):
     return _geplib_make_chain3(*points)
 
 
+def _op_q48(curve_or_spline, k):
+    """Q48: QM=Q48>pg,K< - vyjmuty uzlovy bod prostoroveho retezce (H)
+    nebo krivky (T), viz geplib.q48."""
+    return _geplib_curve_node3(curve_or_spline, k)
+
+
 def _op_s03(points_ref, k, *rest):
     """S03: SM=S03>P(I),K[,[V1],[VK][,N]] - krivka (Spline) K body se
     dvema okrajovymi tecnymi vektory, viz gerlib.make_spline."""
@@ -612,6 +619,7 @@ OPERATIONS = {
     "Q38": _op_q38,
     "U19": _op_u19,
     "H02": _op_h02,
+    "Q48": _op_q48,
 
     # --- ostatni ---
     "NPO": _op_npo,

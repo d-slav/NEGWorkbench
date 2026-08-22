@@ -103,6 +103,15 @@ def main():
     except TypeError:
         check(True, "P48: spatny typ objektu -> TypeError")
 
+    # K jako FLOAT (realny GL3 interpret vzdy predava cisla jako float,
+    # i kdyz "cele" - napr. 2.0 - byl to skutecny latentni bug: primy list
+    # index list[k-1] s float k spadl na "list indices must be integers")
+    p_float, idx_float, end_float = chain_node(chain, 2.0)
+    check(p_float.x == chain.points[1].x and p_float.y == chain.points[1].y,
+          "P48E: K jako float (2.0) funguje stejne jako int 2")
+    p_float_last, idx_float_last, end_float_last = chain_node(chain, 5.0)
+    check(end_float_last is True, "P48E: K jako float na poslednim bode take funguje")
+
     print("Vse OK.")
 
 

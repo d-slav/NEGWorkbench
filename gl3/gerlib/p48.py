@@ -42,22 +42,27 @@ from .types import Point, Curve, Spline
 
 
 def _node_index_and_flag(k, n):
-    """Spolecna logika P48E/P48S: pro K==N (posledni bod, N != 1) vrat
-    (N-1, True), jinak (K, False). Chyba pro K mimo <1,N> (puvodni
-    IER=256)."""
-    if k < 1 or k > n:
+    """Spolecna logika P48E/P48S (a Q48): K se nejdriv znormalizuje na
+    int (GL3 cisla jsou vzdy float, i kdyz cele - napr. K=2.0 z realneho
+    interpretu, ne jen "cisty" int 2 jako v puvodnich testech - bez
+    tehle normalizace by pozdejsi indexovani seznamu bodu spadlo na
+    "list indices must be integers", i kdyz K bylo naprosto v poradku).
+    Pro K==N (posledni bod, N != 1) vrat (K_int, N-1, True), jinak
+    (K_int, K_int, False). Chyba pro K mimo <1,N> (puvodni IER=256)."""
+    k_int = int(round(k))
+    if k_int < 1 or k_int > n:
         raise ValueError("P48: index K=%r mimo rozsah <1,%d> (puvodni chyba 256)" % (k, n))
-    if k == n and n != 1:
-        return n - 1, True
-    return k, False
+    if k_int == n and n != 1:
+        return k_int, n - 1, True
+    return k_int, k_int, False
 
 
 def chain_node(curve, k):
     """P48E: K-ty uzlovy bod retezce (Curve). Vraci (Point, index,
     is_end) - viz poznamka v hlavicce modulu."""
     n = len(curve.points)
-    idx, is_end = _node_index_and_flag(k, n)
-    p = curve.points[k - 1]
+    k_int, idx, is_end = _node_index_and_flag(k, n)
+    p = curve.points[k_int - 1]
     return Point(p.x, p.y, 0.0), idx, is_end
 
 
@@ -65,8 +70,8 @@ def spline_node(spline, k):
     """P48S: K-ty uzlovy bod krivky (Spline). Vraci (Point, index,
     is_end) - viz poznamka v hlavicce modulu."""
     n = len(spline.points)
-    idx, is_end = _node_index_and_flag(k, n)
-    p = spline.points[k - 1]
+    k_int, idx, is_end = _node_index_and_flag(k, n)
+    p = spline.points[k_int - 1]
     return Point(p.x, p.y, 0.0), idx, is_end
 
 
