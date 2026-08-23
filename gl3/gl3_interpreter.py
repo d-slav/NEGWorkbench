@@ -26,6 +26,7 @@ from gl3_lang import (
     Var, Num, Str, BinOp, UnaryMinus, OpCall,
     Assign, CallStmt, CommandStmt, DimenStmt, DataStmt,
     DoLoop, IfBlock, IfShort, RepeatWhile, RetSub,
+    BreakStmt, ContinueStmt,
     IODevStmt, IOTarget, InputStmt, OutputStmt, IsUndefined,
     CreStmt, EndCreStmt, MoveStmt, Omitted, OMITTED,
     IniStmt, CloseStmt,
@@ -61,6 +62,21 @@ _CHANNEL_BY_COMMAND = {
 
 class RetSubSignal(Exception):
     """Rizeni behu - ukonci provadeni aktualniho podprogramu (RETSUB/END)."""
+    pass
+
+
+class BreakSignal(Exception):
+    """Rizeni behu (rozsireni nad ramec puvodniho GL-3) - predcasne
+    ukonceni nejblizsiho obepinajiciho cyklu (BREAK). Zachyti se primo
+    v obsluze DoLoop/RepeatWhile - pokud unikne az na uroven podprogramu,
+    znamena to pouziti BREAK mimo cyklus."""
+    pass
+
+
+class ContinueSignal(Exception):
+    """Rizeni behu (rozsireni nad ramec puvodniho GL-3) - preskok na
+    dalsi iteraci nejblizsiho obepinajiciho cyklu (CONTINUE). Zachyti se
+    primo v obsluze DoLoop/RepeatWhile."""
     pass
 
 
@@ -212,6 +228,11 @@ class Interpreter:
             self._exec_block(subdef.body, env)
         except RetSubSignal:
             pass
+        except (BreakSignal, ContinueSignal) as exc:
+            kw = "BREAK" if isinstance(exc, BreakSignal) else "CONTINUE"
+            raise GL3RuntimeError(
+                "%s pouzit mimo cyklus (DO/FOR nebo REPEATWHILE)" % (kw,)
+            )
         finally:
             self._program_name_stack.pop()
             had_error = sys.exc_info()[0] is not None
@@ -474,15 +495,25 @@ class Interpreter:
         if isinstance(stmt, DoLoop):
             start = int(round(self.eval_expr(stmt.start, env)))
             end = int(round(self.eval_expr(stmt.end, env)))
+            step = int(round(self.eval_expr(stmt.step, env))) if stmt.step is not None else 1
+            if step == 0:
+                raise GL3RuntimeError(
+                    "DO/FOR: krok (vi3) nesmi byt 0 (promenna %r)" % (stmt.var,)
+                )
             i = start
-            while i <= end:
+            while (i <= end) if step > 0 else (i >= end):
                 env[stmt.var] = i
-                self._exec_block(stmt.body, env)
+                try:
+                    self._exec_block(stmt.body, env)
+                except ContinueSignal:
+                    pass
+                except BreakSignal:
+                    break
                 # Cetba aktualni hodnoty citace AZ PO tele - podporuje bezny
                 # idiom starych GL3 programu, kdy se citac uvnitr tela
                 # nastavi rovnou na koncovou hodnotu, aby se smycka po
                 # tomto pruchodu ukoncila drive (viz TEHLO.gl3: I=100).
-                i = int(round(self.eval_expr(Var(stmt.var, None), env))) + 1
+                i = int(round(self.eval_expr(Var(stmt.var, None), env))) + step
             return
 
         if isinstance(stmt, IfBlock):
@@ -498,10 +529,21 @@ class Interpreter:
         if isinstance(stmt, RepeatWhile):
             # preklad "navesti + zpetny skok, dokud plati cond"
             while True:
-                self._exec_block(stmt.body, env)
+                try:
+                    self._exec_block(stmt.body, env)
+                except ContinueSignal:
+                    pass
+                except BreakSignal:
+                    break
                 if not self.eval_cond(stmt.cond, env):
                     break
             return
+
+        if isinstance(stmt, BreakStmt):
+            raise BreakSignal()
+
+        if isinstance(stmt, ContinueStmt):
+            raise ContinueSignal()
 
         if isinstance(stmt, RetSub):
             raise RetSubSignal()
@@ -989,6 +1031,12 @@ class Interpreter:
             self._exec_block(callee.body, local_env)
         except RetSubSignal:
             pass
+        except (BreakSignal, ContinueSignal) as exc:
+            kw = "BREAK" if isinstance(exc, BreakSignal) else "CONTINUE"
+            raise GL3RuntimeError(
+                "%s pouzit mimo cyklus (DO/FOR nebo REPEATWHILE) v podprogramu %r"
+                % (kw, stmt.name)
+            )
         finally:
             self._program_name_stack.pop()
             self.current_line_no = saved_line_no

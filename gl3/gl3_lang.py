@@ -147,6 +147,22 @@ class DoLoop:
     start: object
     end: object
     body: List[object]
+    step: Optional[object] = None  # vyraz "vi3" (krok) - None => implicitni 1
+
+
+@dataclass
+class BreakStmt:
+    """Rozsireni nad ramec puvodniho GL-3 - predcasne ukonceni nejblizsiho
+    obepinajiciho cyklu (DO/FOR nebo REPEATWHILE)."""
+    pass
+
+
+@dataclass
+class ContinueStmt:
+    """Rozsireni nad ramec puvodniho GL-3 - preskoci na dalsi iteraci
+    nejblizsiho obepinajiciho cyklu (DO/FOR nebo REPEATWHILE). Nezamenovat
+    s puvodnim GL-3 prikazem CONTIN (ten je jen no-op/zvyrazneni cteni)."""
+    pass
 
 
 @dataclass
@@ -766,17 +782,37 @@ def _parse_one(line, cursor):
         values = [parse_expr_text(v) for v in value_texts]
         return DataStmt(target_name, target_index, count_expr, values)
 
-    if line.startswith("DO,"):
-        rest = line[len("DO,"):]
+    if line == "BREAK":
+        return BreakStmt()
+
+    if line == "CONTINUE":
+        return ContinueStmt()
+
+    if line.startswith("DO,") or line.startswith("FOR,"):
+        # DO/ENDDO a FOR/NEXT jsou v GL-3 plne rovnocenne synonyma (viz
+        # dokumentace, kap. "PRIKAZ CYKLU") - parsuji se identicky a smi
+        # se i kombinovat (zahajeni FOR ukoncene NEXT i ENDDO a naopak).
+        prefix_len = len("DO,") if line.startswith("DO,") else len("FOR,")
+        rest = line[prefix_len:]
         var_part, range_part = rest.split("=", 1)
-        start_text, end_text = split_top_level(range_part, ",")
-        body = parse_block(cursor, stop_words=("ENDDO",))
-        cursor.advance()  # spotrebuj ENDDO
+        range_parts = split_top_level(range_part, ",")
+        if len(range_parts) == 2:
+            start_text, end_text = range_parts
+            step_text = None
+        elif len(range_parts) == 3:
+            start_text, end_text, step_text = range_parts
+        else:
+            raise SyntaxError(
+                "Nerozumim rozsahu cyklu %r (ocekavano pi=vi1,vi2[,vi3])" % (rest,)
+            )
+        body = parse_block(cursor, stop_words=("ENDDO", "NEXT"))
+        cursor.advance()  # spotrebuj ENDDO/NEXT
         return DoLoop(
             var_part.strip(),
             parse_expr_text(start_text),
             parse_expr_text(end_text),
             body,
+            parse_expr_text(step_text) if step_text else None,
         )
 
     m = re.match(r"^IF([A-Z])/(.*)/(THEN)$", line)
