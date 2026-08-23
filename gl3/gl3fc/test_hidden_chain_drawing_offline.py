@@ -59,16 +59,28 @@ class FakeWire(object):
         return "FakeWire(%d edges)" % len(self.edges)
 
 
+class FakeCompound(object):
+    """Napodobenina Part.Compound - pouzivano, kdyz retezec obsahuje
+    mezery (viz gl3_export._build_curve) a vznikne tak vic nez jeden
+    samostatny Part.Wire."""
+    def __init__(self, wires):
+        self.wires = wires
+
+    def __repr__(self):
+        return "FakeCompound(%d wires)" % len(self.wires)
+
+
 def _install_fake_freecad_modules():
     """Nainstaluje minimalni FreeCAD/Part staby do sys.modules PRED
     (prvnim) importem gl3_program/gl3_export - oba na modulove urovni
     delaji 'import Part' a gl3_export definuje build_shape() pouzivajici
-    Part.makeLine/Part.Wire/FreeCAD.Vector."""
+    Part.makeLine/Part.Wire/Part.makeCompound/FreeCAD.Vector."""
     fake_freecad = _types.ModuleType("FreeCAD")
     fake_freecad.Vector = FakeVector
     fake_part = _types.ModuleType("Part")
     fake_part.makeLine = lambda a, b: ("LineEdge", a, b)
     fake_part.Wire = lambda edges: FakeWire(edges)
+    fake_part.makeCompound = lambda wires: FakeCompound(wires)
     fake_part.Shape = lambda: FakeShape()
     sys.modules["FreeCAD"] = fake_freecad
     sys.modules["Part"] = fake_part
@@ -220,13 +232,18 @@ END
     prog_main.Library = _FakeLibrary()
     prog_main.Proxy.execute(prog_main)
 
-    assert isinstance(prog_main.Shape, FakeWire), prog_main.Shape
+    assert isinstance(prog_main.Shape, FakeCompound), prog_main.Shape
     # 2 (hlavni) + 3 (volana SUBRO, pripojeno) = 5 bodu, ale DRAWSQUARE
     # zacina zakladajicim pohybem '/' (MOVE/Q1) -> spojeni s TMAIN je
-    # NEVIDITELNE (mezera/None mezi P2 a Q1) - viz zadani uzivatele o
-    # respektovani lomítka/nespojitosti pri spojovani pres CALL. Vysledek
-    # jsou tedy 3 viditelne usecky (P1-P2, Q1-Q2, Q2-Q3), ne 4.
-    assert len(prog_main.Shape.edges) == 3, len(prog_main.Shape.edges)
+    # NEVIDITELNE (mezera mezi P2 a Q1) - viz zadani uzivatele o
+    # respektovani lomítka/nespojitosti pri spojovani pres CALL. Vznikaji
+    # tak DVA samostatne Part.Wire (P1-P2, Q1-Q2-Q3) zabalene v
+    # Part.Compound (viz gl3_export._build_curve - realne OCC Part.Wire()
+    # nesouvisle hrany neprijme, viz puvodni chyba "BRep_API: command not
+    # done" nahlasena uzivatelem).
+    assert len(prog_main.Shape.wires) == 2, prog_main.Shape
+    assert len(prog_main.Shape.wires[0].edges) == 1  # P1-P2
+    assert len(prog_main.Shape.wires[1].edges) == 2  # Q1-Q2-Q3
     print("Skryty retezec volane SUBRO (CALL pres Library) se take vykresli primo, s mezerou na spoji: OK")
 
     # --- 5) cache: opakovany execute() beze zmeny NEudela skutecny beh ---

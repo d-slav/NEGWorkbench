@@ -144,17 +144,46 @@ def _build_point_array(slot):
 
 
 def _build_curve(slot):
+    """Curve -> Part.Wire (nebo Part.Compound vice Part.Wire, jsou-li v
+    retezci mezery - viz nize).
+
+    POZOR (puvodni chyba - viz zpetna vazba uzivatele "BRep_API: command
+    not done"): skutecne OCC Part.Wire(edges) vyzaduje, aby VSECHNY
+    predane hrany tvorily JEDEN souvisly retezec - na rozdil od offline
+    testovaciho FakePart (ten zadnou topologii nekontroluje) skutecny OCC
+    odmitne sadu hran, ktera obsahuje vic nez jeden nesouvisly kus (coz
+    presne nastane, kdyz se mezi hranami jednoduse preskoci mezera/None -
+    to, co drive delal tento kod, bylo funkcni jen v testech, ne v
+    realnem FreeCADu). Proto se retezec s mezerami rozdeli na jednotlive
+    SOUVISLE useky (kazdy min. 2 body) a KAZDY se postavi jako VLASTNI
+    Part.Wire zvlast; je-li useku vic nez jeden, vysledek se zabali do
+    Part.Compound (validni Shape, zobrazi vsechny kusy najednou)."""
     points_slot = slot.get("points")
     vectors = [_vector3(item) for item in _array_items(points_slot)]
     defined_vectors = [v for v in vectors if v is not None]
     if len(defined_vectors) < 2:
         raise ValueError("GL3Export: retezec (Curve) ma min nez 2 definovane body")
-    edges = []
-    for i in range(len(vectors) - 1):
-        if vectors[i] is None or vectors[i + 1] is None:
-            continue  # nedefinovana mezera - segment se preskoci
-        edges.append(Part.makeLine(vectors[i], vectors[i + 1]))
-    return Part.Wire(edges)
+
+    runs = []
+    current = []
+    for v in vectors:
+        if v is None:
+            if len(current) >= 2:
+                runs.append(current)
+            current = []
+        else:
+            current.append(v)
+    if len(current) >= 2:
+        runs.append(current)
+
+    wires = []
+    for run in runs:
+        edges = [Part.makeLine(run[i], run[i + 1]) for i in range(len(run) - 1)]
+        wires.append(Part.Wire(edges))
+
+    if len(wires) == 1:
+        return wires[0]
+    return Part.makeCompound(wires)
 
 
 def _single_bspline_edge(points, segment_pairs):
