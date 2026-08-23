@@ -10,9 +10,9 @@ SUBRO/ETWIST/in:DL,in:DKH,in:DTH,in:DKN,in:DTN,out:ETWI
 *DTN=6.6     < Y nabezne hrany na konci
 
 DIMEN,PT(3)
-PT(1)=P00>0,-5
-PT(2)=P00>DL*0.5,-1
-PT(3)=P00>DL,0
+PT(3)=P00>0,5
+PT(2)=P00>DL*0.5,1
+PT(1)=P00>DL,0
 
 S=S01>PT,3
 ETWI=E45>S

@@ -1,8 +1,12 @@
 *
-*    Program TAILBLADE
+*   Program TAILBLADE
 *
-
-SUBRO/TAILBL/out:EODT,out:ENAB,out:DODTLEN,out:T(2)
+*   V Surface workbench vytvorit plochy a uzavrit.
+*   V Curves workbench vytvorit z ploch parametric solid
+*   V Part design workbench vytvorit z parametric solid clone (base feature)
+*
+*
+SUBRO/TAILBL/out:HTIP,out:HROOT,out:T(2)
 
 DL=110      < delka listu
 DKH=30      < hloubka u korene
@@ -20,14 +24,11 @@ DODTLEN=D28>EODT    < Delka odtokové hrany
 
 * Vypocet bodu na retezci pro stanovení polohy rezu.
 
-DFIRST=0.5
 ICOUNT=30
 DIMEN,DD(30),PODT(30),PNAB(30),PTWI(30),T(30)
 
-*CALL/DSPLIT/DODTLEN,DFIRST,ICOUNT,DRATIO,DD
-*WRITE,DD
-*WRITE,DRATIO
 CALL/SINSPL/DODTLEN,ICOUNT,0,135,DD
+
 WRITE,DD
 
 *RETSUB
@@ -46,15 +47,19 @@ PODT(ICOUNT)=P48>EODT,(NPO>EODT)
 PNAB(ICOUNT)=P48>ENAB,(NPO>ENAB)
 PTWI(ICOUNT)=P48>ETWI,(NPO>ETWI)
 
-WRITE,PODT,PNAB
+*WRITE,PODT,PNAB,PTWI
 
-DIMEN,TF(81),Q(100),P(100)
+*RETSUB
+
+DIMEN,TF(81),Q(81),P(81)
 CALL/TFOIL/DL,TF,K
 
+DIMEN,PPP(2)
 
 * Mame vse potrebne k vytvoreni rezu
+
+*ICOUNT=7
 DO,I=1,ICOUNT
-*DO,I=1,4
 PRINT,I
     DZ=D30>PODT(I),1
     DHLO=D10>PNAB(I),PODT(I)
@@ -66,12 +71,31 @@ PRINT,I
 *PRINT,DHLO,DODT
 *WRITE,Q
     CALL/HLOCUT/K,P,DHLO,DODT,SS
-    DCOOS3,1,(Q00>-(D30>PNAB(I),2),0,DZ),UX,UY
-    TRA23,T(I),SS,1,1
+    DTWI=D30>PTWI(I),2
+    UTWIST=U19>UX,MZ,DTWI,21
+    DOFF=(DL-DZ)/DL*0.4
+    DCOOS3,1,(Q00>-(D30>PNAB(I),2),(DTWI*-0.1+DOFF),DZ),UTWIST,(U00>0,-1,0)
+    <DCOOS3,1,(Q00>-(D30>PNAB(I),2),0,DZ),UTWIST,UY
+    TRA23,T(I),SS,1,1                           
     <WRITE,SS
     <S(I)=S01>P,K
 *    MOVE/S:0*S
+*    IFI/I.EQ.1/THEN
+*        PPP(1)=P48>SS,1
+*        PPP(2)=P48>SS,(NPO>SS)
+*        EE=E01>PPP,2
+*        TRA23,HTIP,EE,1,1
+*    ENDIF
+*    IFI/I.EQ.ICOUNT/THEN
+*        PPP(1)=P48>SS,1
+*        PPP(2)=P48>SS,(NPO>SS)
+*        EE=E01>PPP,2
+*        TRA23,HROOT,EE,1,1
+*    ENDIF
 ENDDO
+
+HTIP =H02>(Q48>T(1),     1),(Q48>T(1),     (NPO>T(1)))
+HROOT=H02>(Q48>T(ICOUNT),1),(Q48>T(ICOUNT),(NPO>T(ICOUNT)))
 
 RETSUB
 END
