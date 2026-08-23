@@ -63,7 +63,12 @@ END
     assert pts == [(0.0, 0.0), (10.0, 0.0), (10.0, 10.0)], pts
     print("Zakladni INI/MOVE/CLOSE: OK - %r" % (pts,))
 
-    # --- 3) dve INI...CLOSE bloky za sebou se spoji sekvencne ---
+    # --- 3) dve INI...CLOSE bloky za sebou - zacina-li druhy blok '/'
+    #     (jako tady), spojeni na predchozi blok je NEVIDITELNE (mezera,
+    #     None) - viz zadani uzivatele o respektovani lomítka/nespojitosti
+    #     retezce. (Pred touto zmenou se oba bloky vzdy spojovaly
+    #     souvisle bez ohledu na pero zakladajiciho pohybu - to uz
+    #     neplati, viz i pripad 3b nize pro puvodni souvisle chovani.)
     src_multi = """
 SUBRO/TMULTI/out:DM
 P1=P00>0.0,0.0
@@ -85,9 +90,38 @@ END
     subdef3 = parse_program(src_multi)
     interp3 = Interpreter()
     interp3.run(subdef3, {})
-    pts3 = [(round(p.x, 6), round(p.y, 6)) for p in interp3.hidden_chain.points]
-    assert pts3 == [(0.0, 0.0), (1.0, 0.0), (5.0, 5.0), (6.0, 5.0)], pts3
-    print("Dve INI...CLOSE bloky za sebou (sekvencne): OK - %r" % (pts3,))
+    hc3 = interp3.hidden_chain
+    none_idx3 = [i for i, p in enumerate(hc3.points) if p is None]
+    assert none_idx3 == [2], hc3.points
+    defined3 = [(round(p.x, 6), round(p.y, 6)) for p in hc3.points if p is not None]
+    assert defined3 == [(0.0, 0.0), (1.0, 0.0), (5.0, 5.0), (6.0, 5.0)], defined3
+    print("Dve INI...CLOSE bloky, druhy zacina '/': OK - mezera - %r" % (hc3.points,))
+
+    # --- 3b) totez, ale druhy blok zacina '*' -> spojeni ZUSTAVA souvisle ---
+    src_multi_star = """
+SUBRO/TMULTISTAR/out:DM
+P1=P00>0.0,0.0
+P2=P00>1.0,0.0
+INI
+MOVE/P1
+MOVE*P2
+CLOSE
+P3=P00>5.0,5.0
+P4=P00>6.0,5.0
+INI
+MOVE*P3
+MOVE*P4
+CLOSE
+DM=1.0
+RETSUB
+END
+"""
+    subdef3b = parse_program(src_multi_star)
+    interp3b = Interpreter()
+    interp3b.run(subdef3b, {})
+    pts3b = [(round(p.x, 6), round(p.y, 6)) for p in interp3b.hidden_chain.points]
+    assert pts3b == [(0.0, 0.0), (1.0, 0.0), (5.0, 5.0), (6.0, 5.0)], pts3b
+    print("Dve INI...CLOSE bloky, druhy zacina '*' (souvisle): OK - %r" % (pts3b,))
 
     # --- 4) skryty retezec volane SUBRO se pripoji k volajicimu ---
     src_sub = """
@@ -120,9 +154,15 @@ END
     main_def = parse_program(src_main)
     interp4 = Interpreter(registry={"DRAWSQUARE": sub_def})
     interp4.run(main_def, {})
-    pts4 = [(round(p.x, 6), round(p.y, 6)) for p in interp4.hidden_chain.points]
-    assert pts4 == [(0.0, 0.0), (5.0, 0.0), (0.0, 0.0), (1.0, 0.0), (1.0, 1.0)], pts4
-    print("Skryty retezec volane SUBRO pripojen k volajicimu: OK - %r" % (pts4,))
+    hc4 = interp4.hidden_chain
+    # DRAWSQUARE zacina zakladajicim pohybem '/' (MOVE/Q1) -> spojeni s
+    # TMAIN je NEVIDITELNE (mezera, None) - viz zadani uzivatele o
+    # respektovani lomítka/nespojitosti i pri spojovani pres CALL.
+    none_idx4 = [i for i, p in enumerate(hc4.points) if p is None]
+    assert none_idx4 == [2], hc4.points
+    defined4 = [(round(p.x, 6), round(p.y, 6)) for p in hc4.points if p is not None]
+    assert defined4 == [(0.0, 0.0), (5.0, 0.0), (0.0, 0.0), (1.0, 0.0), (1.0, 1.0)], defined4
+    print("Skryty retezec volane SUBRO pripojen k volajicimu (s mezerou): OK - %r" % (hc4.points,))
 
     # --- 5) volana SUBRO, ktera nic nekresli, nema vliv na volajiciho ---
     src_nodraw = """
@@ -218,6 +258,153 @@ END
     except GL3RuntimeError as e:
         assert "CRE...ENDCRE" in str(e)
     print("INI uvnitr otevreneho CRE: OK - spravna chyba")
+
+    # --- 9) zakladajici fraze *E (cely retezec, pen down) - vsechny body,
+    #     ne jen posledni (drivejsi bug: E/S v kresleni "tise" skoncily) ---
+    src_founding_chain = """
+SUBRO/TFOUND1/out:DM
+P1=P00>0.0,0.0
+P2=P00>10.0,0.0
+P3=P00>10.0,10.0
+CRE,EE
+MOVE/P1
+MOVE*P2*P3
+ENDCRE
+INI
+MOVE*EE
+CLOSE
+DM=1.0
+RETSUB
+END
+"""
+    subdef9 = parse_program(src_founding_chain)
+    interp9 = Interpreter()
+    interp9.run(subdef9, {})
+    pts9 = [(round(p.x, 6), round(p.y, 6)) for p in interp9.hidden_chain.points]
+    assert pts9 == [(0.0, 0.0), (10.0, 0.0), (10.0, 10.0)], pts9
+    print("Zakladajici fraze *E (cely retezec, pero dolu): OK - %r" % (pts9,))
+
+    # --- 10) zakladajici fraze /E (cely retezec, pen up) - jen bod doskoku ---
+    src_founding_chain_up = """
+SUBRO/TFOUND2/out:DM
+P1=P00>0.0,0.0
+P2=P00>10.0,0.0
+P3=P00>10.0,10.0
+P4=P00>20.0,10.0
+CRE,EE
+MOVE/P1
+MOVE*P2*P3
+ENDCRE
+INI
+MOVE/EE
+MOVE*P4
+CLOSE
+DM=1.0
+RETSUB
+END
+"""
+    subdef10 = parse_program(src_founding_chain_up)
+    interp10 = Interpreter()
+    interp10.run(subdef10, {})
+    pts10 = [(round(p.x, 6), round(p.y, 6)) for p in interp10.hidden_chain.points]
+    # /EE bez predchoziho bodu bere retezec od PRVNIHO bodu -> koncovy bod je P3
+    assert pts10 == [(10.0, 10.0), (20.0, 10.0)], pts10
+    print("Zakladajici fraze /E (cely retezec, pero nahoru): OK - %r" % (pts10,))
+
+    # --- 11) pohyb "se zdviženym perem" (/) UPROSTRED bloku vytvori mezeru
+    #     (None) v skrytem retezci misto drivejsiho NotYetImplemented ---
+    src_gap_mid = """
+SUBRO/TGAP1/out:DM
+P1=P00>0.0,0.0
+P2=P00>10.0,0.0
+P3=P00>20.0,0.0
+P4=P00>30.0,0.0
+INI
+MOVE/P1*P2/P3*P4
+CLOSE
+DM=1.0
+RETSUB
+END
+"""
+    subdef11 = parse_program(src_gap_mid)
+    interp11 = Interpreter()
+    interp11.run(subdef11, {})
+    hc11 = interp11.hidden_chain
+    assert hc11.points[2] is None, hc11.points
+    defined11 = [(round(p.x, 6), round(p.y, 6)) for p in hc11.points if p is not None]
+    assert defined11 == [(0.0, 0.0), (10.0, 0.0), (20.0, 0.0), (30.0, 0.0)], defined11
+    print("Mezera (None) po pohybu se zdviženym perem uprostred bloku: OK")
+
+    # --- 12) spojeni s vnorenou SUBRO pres CALL: zacina-li volana SUBRO
+    #     lomítkem (/), spojeni je NEVIDITELNE (mezera) ---
+    src_call_child_up = """
+SUBRO/GAPCHILD/in:DUM
+P5=P00>40.0,0.0
+P6=P00>50.0,0.0
+INI
+MOVE/P5
+MOVE*P6
+CLOSE
+RETSUB
+END
+"""
+    src_call_main_up = """
+SUBRO/TGAP2/out:DM
+P1=P00>0.0,0.0
+P2=P00>10.0,0.0
+INI
+MOVE/P1
+MOVE*P2
+CLOSE
+DUM=1.0
+CALL/GAPCHILD/DUM
+DM=1.0
+RETSUB
+END
+"""
+    child_def = parse_program(src_call_child_up)
+    main_def_up = parse_program(src_call_main_up)
+    interp12 = Interpreter(registry={"GAPCHILD": child_def})
+    interp12.run(main_def_up, {})
+    hc12 = interp12.hidden_chain
+    none_idx12 = [i for i, p in enumerate(hc12.points) if p is None]
+    assert none_idx12 == [2], hc12.points
+    print("CALL - volana SUBRO zacina '/' -> spojeni je mezera: OK")
+
+    # --- 13) spojeni s vnorenou SUBRO pres CALL: zacina-li volana SUBRO
+    #     hvezdickou (*), spojeni je VIDITELNE (souvisle, beze zmeny) ---
+    src_call_child_down = """
+SUBRO/NOGAPCHILD/in:DUM
+P5=P00>40.0,0.0
+P6=P00>50.0,0.0
+INI
+MOVE*P5*P6
+CLOSE
+RETSUB
+END
+"""
+    src_call_main_down = """
+SUBRO/TGAP3/out:DM
+P1=P00>0.0,0.0
+P2=P00>10.0,0.0
+INI
+MOVE/P1
+MOVE*P2
+CLOSE
+DUM=1.0
+CALL/NOGAPCHILD/DUM
+DM=1.0
+RETSUB
+END
+"""
+    child_def2 = parse_program(src_call_child_down)
+    main_def_down = parse_program(src_call_main_down)
+    interp13 = Interpreter(registry={"NOGAPCHILD": child_def2})
+    interp13.run(main_def_down, {})
+    hc13 = interp13.hidden_chain
+    none_idx13 = [i for i, p in enumerate(hc13.points) if p is None]
+    assert none_idx13 == [], hc13.points
+    print("CALL - volana SUBRO zacina '*' -> spojeni je souvisle (beze zmeny): OK")
 
     print("\nVsechny testy INI/CLOSE (skryty retezec) OK.")
 

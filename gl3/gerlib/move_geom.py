@@ -251,7 +251,14 @@ def _resolve_arc_phrase(current_point, sep, values, accuracy=None):
 def _chain_points_oriented(curve, current_point):
     """Body retezce 'curve' orientovane tak, aby navazovaly na
     'current_point' (ktery musi lezet na jednom z jeho krajnich uzlu) -
-    fraze *E."""
+    fraze *E.
+
+    current_point == None znamena "zakladajici fraze bloku" (zadny
+    predchozi bod, od ktereho by mel navazovat) - v tom pripade se
+    vraci CELY retezec od sveho PRVNIHO bodu (v ulozenem poradi), bez
+    ohledu na kraj."""
+    if current_point is None:
+        return list(curve.points)
     first, last = curve.points[0], curve.points[-1]
     if math.hypot(current_point.x - first.x, current_point.y - first.y) < _TOL:
         return list(curve.points[1:])
@@ -345,11 +352,22 @@ def _classify_transition_phrase(sep, values):
 # Verejne API
 # ---------------------------------------------------------------------------
 
-def evaluate_move_phrase(current_point, last_direction, mode, sep, values, accuracy=None):
+def evaluate_move_phrase(current_point, last_direction, mode, sep, values, accuracy=None, founding=False):
     """Vyhodnoti jednu pohybovou frazi prikazu MOVE (jiz vyhodnocene
     argumenty 'values' + separator 'sep' pouzity v jeji syntaxi - None
     pro holou hodnotu, '#'/':'/',' podle toho, jaky oddelovac fraze v
     GL3 zdroji pouzila).
+
+    'founding=True' oznacuje UPLNE PRVNI frazi kresliciho bloku
+    (nema zadny skutecny predchozi bod - volajici pro 'current_point'
+    predava dohodnutou zastupnou hodnotu, pocatek souradnic). Pro
+    retezcove/krivkove fraze typu *E/*S (cely retezec/krivka), ktere
+    jinak vyzaduji, aby 'current_point' lezel na jejich kraji, to
+    znamena: nelze provest zadne smysluplne overeni napojeni, bere se
+    tedy cely retezec/krivka od sveho prvniho bodu (viz
+    _chain_points_oriented). Ostatni typy frazi (useckove, obloukove)
+    zastupnou hodnotu pocatku souradnic pouzivaji beze zmeny - to je
+    zamerne (odpovida absolutnimu zadani vuci pocatku souradnic).
 
     Vraci (novy_seznam_bodu, novy_smer):
       novy_seznam_bodu - neprazdny seznam bodu (Point) k pripojeni do
@@ -372,7 +390,8 @@ def evaluate_move_phrase(current_point, last_direction, mode, sep, values, accur
         last_seg_start = current_point if len(arc_points) == 1 else arc_points[-2]
         return arc_points, _unit_dir(last_seg_start, arc_points[-1])
 
-    chain_points = _resolve_chain_phrase(current_point, sep, values, accuracy)
+    chain_anchor = None if founding else current_point
+    chain_points = _resolve_chain_phrase(chain_anchor, sep, values, accuracy)
     if chain_points is not None:
         if not chain_points:
             raise MovePhraseError("retezcova/krivkova fraze vyprodukovala prazdny usek (P1 a P2 jsou stejny bod?)")

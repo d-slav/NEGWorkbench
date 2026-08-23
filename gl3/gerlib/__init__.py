@@ -90,7 +90,7 @@ from .c33 import tangent_to_line_and_circle
 from .c34 import tangent_to_two_circles
 from .circle_geom import line_circle_intersection, circle_circle_intersection
 
-from .e01 import make_chain, tangent_point_on_chain
+from .e01 import make_chain, make_chain_with_gaps, tangent_point_on_chain
 from .p85 import tangent_point
 from .p86 import tangent_point_from_line
 from .l46 import tangent_line
@@ -136,7 +136,7 @@ __all__ = [
     "tangent_line_parallel",
     "set_accuracy", "get_accuracy", "reset_accuracy", "discretize",
     "solve_nonlinear", "sgpat_nearest_distance", "offset_curve",
-    "make_chain", "tangent_point_on_chain",
+    "make_chain", "make_chain_with_gaps", "tangent_point_on_chain",
     "tangent_point", "tangent_point_from_line", "tangent_line",
     "make_spline", "make_spline1",
     "scale",

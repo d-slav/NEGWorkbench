@@ -40,7 +40,10 @@ from gl3_ops import (
 from geplib import define_coord_system3, transform3
 from gl3_analysis import get_param_directions, _is_identifier
 import gerlib.accur as _gerlib_accur
-from gerlib import make_chain as _gerlib_make_chain
+from gerlib import (
+    make_chain as _gerlib_make_chain,
+    make_chain_with_gaps as _gerlib_make_chain_with_gaps,
+)
 from gerlib.move_geom import (
     evaluate_move_phrase as _gerlib_evaluate_move_phrase,
     MovePhraseError, MovePhraseNotYetImplemented,
@@ -239,7 +242,9 @@ class Interpreter:
             top_level_points = self._pop_hidden_chain_frame(
                 parent_frame=None, suppress_dangling_check=had_error
             )
-            self.hidden_chain = _gerlib_make_chain(top_level_points) if top_level_points else None
+            self.hidden_chain = (
+                _gerlib_make_chain_with_gaps(top_level_points) if top_level_points else None
+            )
             for state in self.io_channels.values():
                 try:
                     state["file"].close()
@@ -254,8 +259,19 @@ class Interpreter:
     def _push_hidden_chain_frame(self):
         """Otevre novy zaznam skryteho retezce pro prave zacinajici
         volani SUBRO (hlavni program i kazdy vnoreny CALL) - viz
-        _hidden_chain_stack."""
-        self._hidden_chain_stack.append({"points": [], "ini_builder": None})
+        _hidden_chain_stack.
+
+        'starts_with_gap' - True, pokud UPLNE PRVNI nakreslena cast
+        teto SUBRO (prvni INI...CLOSE blok) zacala pohybem se zdviženym
+        perem (/) - viz _exec_close. Pouziva se pri navratu z CALL
+        (_pop_hidden_chain_frame) k rozhodnuti, jestli se spojeni s uz
+        nakreslenou casti volajiciho ma kreslit jako viditelna usecka
+        (default, zakladajici pohyb '*'), nebo jako mezera/nespojitost
+        (zakladajici pohyb '/') - viz zadani uzivatele: 'kdyz SUBRO
+        zacina lomítkem, tak prvni pohyb k nemu bude neviditelny'."""
+        self._hidden_chain_stack.append(
+            {"points": [], "ini_builder": None, "starts_with_gap": False}
+        )
 
     def _pop_hidden_chain_frame(self, parent_frame, suppress_dangling_check=False):
         """Uzavre zaznam skryteho retezce prave koncici SUBRO a vrati
@@ -263,7 +279,9 @@ class Interpreter:
         None na urovni hlavniho programu) - je-li zadan a tato SUBRO
         neco nakreslila, jeji body se do nej rovnou pripoji (viz zadani
         uzivatele: "skryty retezec [volane SUBRO] bude pripojeny k
-        vlastnimu skrytemu retezci [volajiciho]").
+        vlastnimu skrytemu retezci [volajiciho]") - pripadne pres
+        mezeru (None), zacinala-li tato SUBRO pohybem se zdviženym
+        perem (viz frame['starts_with_gap'] / _push_hidden_chain_frame).
 
         Chyba, byl-li blok INI ponechany otevreny bez CLOSE (obdoba
         existujici kontroly u CRE/ENDCRE) - POKUD 'suppress_dangling_check'
@@ -278,6 +296,8 @@ class Interpreter:
             )
         points = frame["points"]
         if parent_frame is not None and points:
+            if parent_frame["points"] and frame["starts_with_gap"]:
+                parent_frame["points"].append(None)
             parent_frame["points"].extend(points)
         return points
 
@@ -750,24 +770,27 @@ class Interpreter:
             "points": [],
             "current_point": None,
             "last_direction": None,
+            "founding_pen": None,
         }
 
     def _exec_endcre(self, stmt, env):
         """ENDCRE - uzavreni retezce zahajeneho prikazem CRE. Body
         nasbirane prikazy MOVE (viz _exec_move) se ulozi jako retezec
-        (Curve, stejna konstrukce jako opcode E01) do cile zadaneho
-        v CRE."""
+        (Curve) do cile zadaneho v CRE. Mid-block pohyby se zdviženym
+        perem (/) v mezicase vytvorily v 'points' mezery (None) - viz
+        _exec_move a gerlib.e01.make_chain_with_gaps."""
         builder = self._chain_builder
         if builder is None:
             raise GL3RuntimeError("ENDCRE bez odpovidajiciho predchoziho CRE")
-        if len(builder["points"]) < 2:
+        defined_count = sum(1 for p in builder["points"] if p is not None)
+        if defined_count < 2:
             raise GL3RuntimeError(
-                "CRE,%s...ENDCRE: retezec ma min nez 2 body - je potreba "
-                "aspon jeden pohyb MOVE 'se spustenym perem' (*) za "
-                "zakladajicim pohybem 'se zdviženym perem' (/)"
+                "CRE,%s...ENDCRE: retezec ma min nez 2 definovane (viditelne) "
+                "body - je potreba aspon jeden pohyb MOVE 'se spustenym "
+                "perem' (*) za zakladajicim pohybem 'se zdviženym perem' (/)"
                 % builder["target_name"]
             )
-        chain = _gerlib_make_chain(builder["points"])
+        chain = _gerlib_make_chain_with_gaps(builder["points"])
         self._assign_result(builder["target_name"], builder["target_index"], chain, builder["env"])
         self._chain_builder = None
 
@@ -790,25 +813,42 @@ class Interpreter:
                 "INI: nelze zahajit uvnitr otevreneho bloku CRE...ENDCRE "
                 "(kresleni se nesmi prolinat, viz G10.md)"
             )
-        frame["ini_builder"] = {"points": [], "current_point": None, "last_direction": None}
+        frame["ini_builder"] = {
+            "points": [], "current_point": None, "last_direction": None, "founding_pen": None,
+        }
         self._open_ini_count += 1
 
     def _exec_close(self, stmt, env):
         """CLOSE - uzavreni kresleni zahajeneho prikazem INI. Nasbirane
-        body se pripoji do skryteho retezce aktualni SUBRO (viz
-        _push_hidden_chain_frame/_pop_hidden_chain_frame pro pripojeni
-        pri navratu z CALL)."""
+        body (mohou obsahovat mezery/None - viz _exec_move) se pripoji
+        do skryteho retezce aktualni SUBRO (viz _push_hidden_chain_frame/
+        _pop_hidden_chain_frame pro pripojeni pri navratu z CALL).
+
+        Je-li tohle UPLNE PRVNI nakreslena cast teto SUBRO, jeji
+        zakladajici pohyb (viz builder['founding_pen']) urcuje
+        frame['starts_with_gap'] pro pozdejsi spojeni s volajicim.
+        Je-li to DALSI INI...CLOSE blok VE STEJNE SUBRO, stejne pravidlo
+        (zakladajici pohyb '/' => mezera) plati uz TADY, pro spojeni
+        s jiz nakreslenou casti teto SUBRO."""
         frame = self._hidden_chain_stack[-1]
         builder = frame["ini_builder"]
         if builder is None:
             raise GL3RuntimeError("CLOSE bez odpovidajiciho predchoziho INI")
-        if len(builder["points"]) < 2:
+        defined_count = sum(1 for p in builder["points"] if p is not None)
+        if defined_count < 2:
             raise GL3RuntimeError(
-                "INI...CLOSE: nakreslena cast ma min nez 2 body - je "
-                "potreba aspon jeden pohyb MOVE 'se spustenym perem' (*) "
-                "za zakladajicim pohybem 'se zdviženym perem' (/)"
+                "INI...CLOSE: nakreslena cast ma min nez 2 definovane "
+                "(viditelne) body - je potreba aspon jeden pohyb MOVE "
+                "'se spustenym perem' (*) za zakladajicim pohybem 'se "
+                "zdviženym perem' (/)"
             )
-        frame["points"].extend(builder["points"])
+        if not frame["points"]:
+            frame["starts_with_gap"] = (builder["founding_pen"] == "up")
+            frame["points"].extend(builder["points"])
+        else:
+            if builder["founding_pen"] == "up":
+                frame["points"].append(None)
+            frame["points"].extend(builder["points"])
         frame["ini_builder"] = None
         self._open_ini_count -= 1
 
@@ -847,15 +887,29 @@ class Interpreter:
                 # souradnice (*D1:D2 v rezimu ABSOL).
                 try:
                     points, direction = _gerlib_evaluate_move_phrase(
-                        Point(0.0, 0.0, 0.0), None, self.draw_mode, phrase.sep, values
+                        Point(0.0, 0.0, 0.0), None, self.draw_mode, phrase.sep, values,
+                        founding=True,
                     )
                 except MovePhraseNotYetImplemented as exc:
                     raise NotYetImplemented(str(exc))
                 except MovePhraseError as exc:
                     raise GL3RuntimeError("MOVE (zakladajici fraze): %s" % exc)
-                builder["points"].append(points[-1])
+                if phrase.pen == "down":
+                    # Zakladajici fraze 'se spustenym perem' - retezcove/
+                    # obloukove/krivkove fraze (napr. cely retezec *E nebo
+                    # cela krivka *S) vraceji VICE bodu; vsechny jsou soucasti
+                    # kreslene cesty (neni pred nimi zadny predchozi bod, ktery
+                    # by mel byt "od nej" viditelny/neviditelny - fraze sama
+                    # svym perem urcuje viditelnost cele sve delky).
+                    builder["points"].extend(points)
+                else:
+                    # 'se zdviženym perem' - jen pozice, bez kresleni (i kdyby
+                    # fraze vracela vic bodu - napr. /E:0 pohyb na zacatek
+                    # retezce E - zajima nas jen VYSLEDNA pozice).
+                    builder["points"].append(points[-1])
                 builder["current_point"] = points[-1]
                 builder["last_direction"] = direction
+                builder["founding_pen"] = phrase.pen
                 continue
 
             try:
@@ -871,16 +925,17 @@ class Interpreter:
             if phrase.pen == "down":
                 builder["points"].extend(points)
             else:
-                # Pohyb "se zdviženym perem" (/) uprostred bloku by
-                # vytvoril nesouvisly retezec (fiktivni spojeni, viz
-                # G10.md) - nas Curve typ jeden nesouvisly retezec
-                # (vice useku) zatim neumi reprezentovat.
-                raise NotYetImplemented(
-                    "MOVE/... (pohyb se zdviženym perem) uprostred bloku "
-                    "by vytvoril nesouvisly retezec - podporovano zatim "
-                    "jen pro UPLNE prvni frazi bloku (zalozeni "
-                    "pocatecniho bodu)"
-                )
+                # Pohyb "se zdviženym perem" (/) uprostred bloku -
+                # neviditelny pohyb (viz G18.md "MOVE"): jen posune
+                # aktualni bod, ale VYTVORI MEZERU (nespojitost) v
+                # kresleni. Zaznamenava se jako None v builder["points"]
+                # (pouzivano uz jinde jako "nedefinovana polozka pole" -
+                # gl3fc.gl3_export._build_curve mezi sousedy s None
+                # prosta preskoci hranu, viz gerlib.e01.make_chain_with_gaps),
+                # nasledovana skutecnym bodem doskoku (aby mel dalsi
+                # viditelny usek od ceho navazat).
+                builder["points"].append(None)
+                builder["points"].append(points[-1])
 
             builder["current_point"] = points[-1]
             builder["last_direction"] = direction

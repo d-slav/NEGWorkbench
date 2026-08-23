@@ -68,6 +68,54 @@ def make_chain(points, n=None, eps=0.0):
     return Curve(list(pts), closed=closed, indices=indices, is_end=is_end, eps=eps)
 
 
+def make_chain_with_gaps(points, eps=0.0):
+    """Jako make_chain(), ale povoluje 'None' polozky v 'points' -
+    oznacuji mezeru (nespojitost) v retezci, vzniklou pohybem MOVE se
+    zdviženym perem (/) uprostred kresliciho bloku (viz G18.md "MOVE" -
+    "/" = pohyb se zdviženym nastrojem), nebo spojenim s dalsim
+    kreslicim blokem/vnorenou SUBRO, ktera zacina takovym pohybem.
+
+    Toto NENI puvodni E01.FOR chovani (E01 vzdy vyzaduje vsechny body
+    definovane) - je to rozsireni pouzivane vyhradne interne pro
+    sestaveni 'skryteho retezce' (INI...CLOSE, vc. spojovani pres CALL)
+    a pojmenovanych retezcu (CRE...ENDCRE), NIKDY pro GL3 opcode E01
+    samotny.
+
+    Vysledny Curve.points obsahuje 'None' na miste kazde mezery -
+    Export modul (gl3fc.gl3_export._build_curve) uz takove mezery umi:
+    hranu mezi sousedy, kde je nektery z nich None, proste preskoci -
+    vysledny Part.Wire tak ma vic nesouvislych useku (vizualne presne
+    to, co GL3 program lomítkem pozadoval).
+
+    Vyzaduje aspon 2 DEFINOVANE (viditelne) body - jinak by nevznikla
+    zadna viditelna hrana (stejna podminka jako u puvodniho CRE/INI
+    bloku, jen pocitana pres definovane body, ne pres delku pole).
+    'closed' se urcuje jen z PRVNIHO a POSLEDNIHO definovaneho bodu
+    (mezery uprostred na uzavrenost nemaji vliv).
+    """
+    defined = [p for p in points if p is not None]
+    if len(defined) < 2:
+        raise ValueError(
+            "retezec ma min nez 2 definovane (viditelne) body - je "
+            "potreba aspon jeden pohyb MOVE 'se spustenym perem' (*)"
+        )
+    import math
+    first, last = defined[0], defined[-1]
+    closed = math.hypot(last.x - first.x, last.y - first.y) < 1e-3
+
+    n = len(points)
+    indices = []
+    is_end = []
+    for i in range(n):
+        if i == n - 1:
+            indices.append(max(n - 2, 0))
+            is_end.append(True)
+        else:
+            indices.append(i)
+            is_end.append(False)
+    return Curve(list(points), closed=closed, indices=indices, is_end=is_end, eps=eps)
+
+
 def tangent_point_on_chain(dir_xy, curve, k):
     """Jadro P85.FOR (a tedy i P86/L46, ktere na nem stoji): najde K-ty bod
     na retezci 'curve', kde je retezec "tecny" (rovnobezny) se smerovym
@@ -82,6 +130,15 @@ def tangent_point_on_chain(dir_xy, curve, k):
 
     Vraci (x, y, index) - souradnice bodu a jeho 1-based poradi v poli bodu
     krivky (odpovida IIN(7,JC1)=IR-2 v puvodnim P85.FOR).
+
+    POZOR: nepocita s mezerami (None) v curve.points - takovy retezec
+    muze vzniknout jen z CRE...ENDCRE s pohybem "se zdviženym perem" (/)
+    uprostred bloku (viz gl3_interpreter._exec_move a
+    make_chain_with_gaps() vyse); na retezec s mezerou tato funkce spadne
+    (AttributeError na None.x). Puvodni P85/P86/L46.FOR s takovou
+    moznosti nepocitaly vubec (E01 vzdy vsechny body mel definovane), a
+    zatim to neni potreba resit - az bude, patri sem explicitni kontrola
+    a jasna GL3RuntimeError misto AttributeError.
     """
     import math
 

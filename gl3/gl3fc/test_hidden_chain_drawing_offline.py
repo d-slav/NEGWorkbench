@@ -221,9 +221,13 @@ END
     prog_main.Proxy.execute(prog_main)
 
     assert isinstance(prog_main.Shape, FakeWire), prog_main.Shape
-    # 2 (hlavni) + 3 (volana SUBRO, pripojeno) = 5 bodu -> 4 usecky
-    assert len(prog_main.Shape.edges) == 4, len(prog_main.Shape.edges)
-    print("Skryty retezec volane SUBRO (CALL pres Library) se take vykresli primo: OK")
+    # 2 (hlavni) + 3 (volana SUBRO, pripojeno) = 5 bodu, ale DRAWSQUARE
+    # zacina zakladajicim pohybem '/' (MOVE/Q1) -> spojeni s TMAIN je
+    # NEVIDITELNE (mezera/None mezi P2 a Q1) - viz zadani uzivatele o
+    # respektovani lomítka/nespojitosti pri spojovani pres CALL. Vysledek
+    # jsou tedy 3 viditelne usecky (P1-P2, Q1-Q2, Q2-Q3), ne 4.
+    assert len(prog_main.Shape.edges) == 3, len(prog_main.Shape.edges)
+    print("Skryty retezec volane SUBRO (CALL pres Library) se take vykresli primo, s mezerou na spoji: OK")
 
     # --- 5) cache: opakovany execute() beze zmeny NEudela skutecny beh ---
     sentinel_shape = FakeShape()
