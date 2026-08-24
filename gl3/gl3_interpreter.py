@@ -564,6 +564,8 @@ class Interpreter:
         if isinstance(stmt, IfBlock):
             if self.eval_cond(stmt.cond, env):
                 self._exec_block(stmt.body, env)
+            elif stmt.else_body is not None:
+                self._exec_block(stmt.else_body, env)
             return
 
         if isinstance(stmt, IfShort):

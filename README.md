@@ -178,6 +178,7 @@ python3 -m gerlib.test_serialize       # serialization round-trip
 python3 -m gerlib.test_s01             # S01 (chordal) vs S03 (uniform) on real profile data
 python3 test_dcoos3_tra23.py           # DCOOS3/TRA23/Q00/U00 pure geometry (geplib)
 python3 test_dcoos3_tra23_interpreter.py # DCOOS3/TRA23 on real GL3 source (parse_program + Interpreter.run())
+python3 test_then_else_endif.py        # G12.md IFxx/.../THEN...ELSE...ENDIF (incl. nesting, backward-compat THEN-only)
 python3 -m gl3fc.test_offline          # GL3Library/GL3Program, mocked FreeCAD
 python3 -m gl3fc.test_props_offline    # add_property() Hidden/ReadOnly status wiring
 python3 -m gl3fc.test_parse_ref_offline # parse_ref() incl. array-index '(N)' syntax

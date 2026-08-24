@@ -170,6 +170,10 @@ class IfBlock:
     kind: str  # napr. "IFD"
     cond: Compare
     body: List[object]
+    # Blok ELSE (viz G12.md, treti varianta akce THEN-ELSE-ENDIF) - None
+    # znamena "zadny ELSE" (druha varianta akce, jen THEN-ENDIF, puvodni
+    # chovani). Provede se, jestlize podminka NENI splnena.
+    else_body: Optional[List[object]] = None
 
 
 @dataclass
@@ -827,9 +831,18 @@ def _parse_one(line, cursor):
     m = re.match(r"^IF([A-Z])/(.*)/(THEN)$", line)
     if m:
         kind, cond_text = m.group(1), m.group(2)
-        body = parse_block(cursor, stop_words=("ENDIF",))
-        cursor.advance()  # spotrebuj ENDIF
-        return IfBlock("IF" + kind, parse_condition(cond_text), body)
+        # Varianta 2 (jen THEN-ENDIF) i 3 (THEN-ELSE-ENDIF, viz G12.md) -
+        # nejdriv se parsuje "THEN blok" az po prvni ze dvou moznych stop
+        # slov, podle toho, ktere z nich to bylo, se pripadne parsuje
+        # jeste "ELSE blok".
+        then_body = parse_block(cursor, stop_words=("ELSE", "ENDIF"))
+        stop_word = cursor.peek()  # jeste NEKONZUMOVANE - viz parse_block
+        cursor.advance()  # spotrebuj ELSE nebo ENDIF
+        else_body = None
+        if stop_word == "ELSE":
+            else_body = parse_block(cursor, stop_words=("ENDIF",))
+            cursor.advance()  # spotrebuj ENDIF
+        return IfBlock("IF" + kind, parse_condition(cond_text), then_body, else_body)
 
     m = re.match(r"^IF([A-Z])/(.*)/(.*)$", line)
     if m:
