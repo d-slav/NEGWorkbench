@@ -132,7 +132,15 @@ docs/
   sees its own directory, not the top-level program's). An unrecognized
   `${...}` name, or a recognized one that makes no sense in that context
   (e.g. `${gl3_file_path}` in `SearchPaths`), raises a clear error rather
-  than silently doing the wrong thing.
+  than silently doing the wrong thing. A freshly created `GL3Library`
+  defaults `SearchPaths` to `["${workbench_path}/gl3sys"]` (kept as the
+  placeholder itself, not pre-resolved, so it still works after the addon
+  is moved/reinstalled elsewhere). `GL3Library.build_registry()` also
+  always searches `${fc_file_path}` *first*, ahead of every directory
+  listed in `SearchPaths` — so a `.GL3` file sitting next to the current
+  FreeCAD document shadows a same-named one in the library search paths.
+  If the document isn't saved yet, that step is silently skipped (no
+  error) and only `SearchPaths` is searched.
 
 ## Installing as a FreeCAD workbench
 

@@ -166,9 +166,53 @@ def main():
         assert "gl3_file_path" in str(e), e
         print("${gl3_file_path} v GL3Library.SearchPaths -> jasna chyba: OK -", e)
 
+    # --- 8) novy GL3Library ma vychozi SearchPaths = ["${workbench_path}/gl3sys"]
+    #     (jako ZASTUPNY TEXT, ne uz predem resolvovana absolutni cesta) ---
+    from gl3fc.gl3_library import _default_search_paths
+    lib_obj_fresh = FakeObj("GL3LibraryFresh", document=fc_doc)
+    GL3Library(lib_obj_fresh)
+    assert lib_obj_fresh.SearchPaths == ["${workbench_path}/gl3sys"], lib_obj_fresh.SearchPaths
+    assert lib_obj_fresh.SearchPaths == _default_search_paths()
+    print("Novy GL3Library: vychozi SearchPaths == "
+          "['${workbench_path}/gl3sys']: OK - %r" % (lib_obj_fresh.SearchPaths,))
+
+    # --- 9) ${fc_file_path} se automaticky prohledava JAKO PRVNI, pred
+    #     adresari z SearchPaths (stejnojmenna SUBRO na obou mistech -
+    #     musi vyhrat ta z ${fc_file_path}) ---
+    fc_doc_prio = FakeDocument(
+        file_name=os.path.join(fixtures_dir, "fc_dir", "MyOpenModel.FCStd")
+    )
+    lib_obj3 = FakeObj("GL3Library3", document=fc_doc_prio)
+    GL3Library(lib_obj3)
+    lib_obj3.SearchPaths = ["${workbench_path}/gl3test/placeholder_test"]
+    registry = lib_obj3.Proxy.build_registry(lib_obj3)
+    prio_def = registry["PRIOTEST"]
+    assert prio_def.body, "PRIOTEST nenalezeno vubec"
+    # over primo obsahem D1=999.0 (z ${fc_file_path}/PRIOTEST.GL3), ne
+    # D1=111.0 (z SearchPaths/PRIOTEST.GL3)
+    assert os.path.dirname(prio_def.source_path) == os.path.join(fixtures_dir, "fc_dir"), (
+        prio_def.source_path
+    )
+    print("${fc_file_path} ma prednost pred SearchPaths pri hledani CALL: OK - "
+          "nalezeno v %r" % (prio_def.source_path,))
+
+    # --- 10) neulozeny dokument (FileName=="") -> ${fc_file_path} se pri
+    #     hledani TISE preskoci (zadna chyba), hleda se jen v SearchPaths ---
+    lib_obj4 = FakeObj("GL3Library4", document=unsaved_doc)
+    GL3Library(lib_obj4)
+    lib_obj4.SearchPaths = ["${workbench_path}/gl3test/placeholder_test"]
+    registry2 = lib_obj4.Proxy.build_registry(lib_obj4)
+    prio_def2 = registry2["PRIOTEST"]
+    # tady uz JEN SearchPaths verze (D1=111.0) - ${fc_file_path} adresar
+    # neexistuje/nema smysl, tise se vynechal
+    assert os.path.dirname(prio_def2.source_path) == fixtures_dir, prio_def2.source_path
+    print("Neulozeny dokument -> ${fc_file_path} se tise vynecha (jen "
+          "SearchPaths se prohledavaji): OK - nalezeno v %r" % (prio_def2.source_path,))
+
     print()
     print("VSE OK - ${workbench_path}/${fc_file_path}/${gl3_file_path} funguji "
-          "v GL3Program.SourceFile, GL3Library.SearchPaths i IDEV.")
+          "v GL3Program.SourceFile, GL3Library.SearchPaths i IDEV; vychozi "
+          "SearchPaths i priorita ${fc_file_path} pred SearchPaths tez OK.")
 
 
 if __name__ == "__main__":

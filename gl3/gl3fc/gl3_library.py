@@ -40,18 +40,21 @@ from gl3fc.gl3_props import add_property, icon_path
 from gl3fc.gl3_placeholder_context import static_placeholders
 
 
-def _default_search_dirs():
-    """Vychozi adresar pro hledani CALL-ovatelnych SUBRO:
-    <doplnek>/gl3sys - systemove GL3 subrutiny (HLO, SCARA, HLOCUT...).
+def _default_search_paths():
+    """Vychozi obsah SearchPaths pro novy GL3Library objekt: zastupny
+    text ${workbench_path}/gl3sys (systemove GL3 subrutiny - HLO, SCARA,
+    HLOCUT...), NEnI predem resolvovany na absolutni cestu - viz zadani
+    uzivatele: ma zustat jako ${workbench_path}, aby fungoval i po
+    presunuti/preinstalaci doplnku jinam. Neresi se tu, jestli adresar
+    fyzicky existuje (build_registry/Gl3FileRegistry stejne neexistujici
+    adresare v SearchPaths tise ignoruji).
 
     gl3examples/ (ukazkove programy) se ZAMERNE nenabizi jako vychozi -
     uzivatel si je muze pripojit rucne pres SearchPaths, pokud potrebuje
     CALL i mezi ukazkovymi programy navzajem. gl3test/ (interni testovaci
     programy pro Python regresni sadu) se nenabizi vubec - neni urcene
     pro bezne pouziti ve FreeCADu."""
-    # tenhle soubor: <doplnek>/gl3/gl3fc/gl3_library.py
-    addon_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    return [os.path.join(addon_dir, "gl3sys")]
+    return ["${workbench_path}/gl3sys"]
 
 
 class GL3Library(object):
@@ -70,9 +73,7 @@ class GL3Library(object):
         if obj.SearchPaths is None:
             obj.SearchPaths = []
         if not obj.SearchPaths:
-            default_dirs = [d for d in _default_search_dirs() if os.path.isdir(d)]
-            if default_dirs:
-                obj.SearchPaths = default_dirs
+            obj.SearchPaths = _default_search_paths()
 
     def add_path(self, obj, path):
         entries = list(obj.SearchPaths or [])
@@ -86,9 +87,19 @@ class GL3Library(object):
         ${fc_file_path} (viz gl3_placeholders.py) - ${gl3_file_path}
         tu nedava smysl (adresare pro hledani jsou pro cely beh
         nezavisle na tom, ktera konkretni SUBRO se prave provadi), pri
-        pouziti vyhodi jasnou chybu misto tiche spatne hodnoty."""
+        pouziti vyhodi jasnou chybu misto tiche spatne hodnoty.
+
+        Adresar OTEVRENEHO FreeCAD dokumentu (${fc_file_path}) se navic
+        VZDY automaticky prohledava JAKO PRVNI, pred vsemi adresari ze
+        SearchPaths (zadani uzivatele: '.GL3' soubory vedle aktualne
+        rozpracovaneho modelu maji prednost pred systemovymi/knihovnimi).
+        Neni-li dokument (jeste) ulozeny na disk, tenhle krok se tise
+        preskoci (zadna chyba) - hleda se jen v adresarich SearchPaths."""
         values = dict(static_placeholders(obj), gl3_file_path=None)
         entries = []
+        fc_dir = values.get("fc_file_path")
+        if fc_dir:
+            entries.append(fc_dir)
         for entry in (obj.SearchPaths or []):
             try:
                 entries.append(gl3_placeholders.substitute(entry, values))

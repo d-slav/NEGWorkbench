@@ -1,0 +1,9 @@
+*
+*   Stejnojmenna SUBRO v "knihovnim" adresari (SearchPaths) - pokud by
+*   se nasla tahle misto te v ${fc_file_path}, poradi hledani by bylo
+*   spatne.
+*
+SUBRO/PRIOTEST/out:D1
+D1=111.0
+RETSUB
+END

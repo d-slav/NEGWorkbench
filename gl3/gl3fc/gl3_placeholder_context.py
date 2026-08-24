@@ -17,7 +17,7 @@ import os
 def workbench_path():
     """Absolutni cesta k adresari, kde je nainstalovany cely doplnek
     (<doplnek>/) - stejny vypocet, jaky uz pouziva gl3_props.icon_path()
-    a gl3_library._default_search_dirs()."""
+    a gl3_library._default_search_paths()."""
     # tenhle soubor: <doplnek>/gl3/gl3fc/gl3_placeholder_context.py
     return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

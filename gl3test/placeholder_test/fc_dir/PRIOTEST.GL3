@@ -1,0 +1,8 @@
+*
+*   Fixture pro overeni poradi hledani: ${fc_file_path} MA prednost pred
+*   adresari z GL3Library.SearchPaths.
+*
+SUBRO/PRIOTEST/out:D1
+D1=999.0
+RETSUB
+END

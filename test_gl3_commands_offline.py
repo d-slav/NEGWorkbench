@@ -192,15 +192,14 @@ def main():
 
     import gl3fc.gl3_library as gl3_library_mod
 
-    expected_default = [d for d in gl3_library_mod._default_search_dirs() if os.path.isdir(d)]
-    assert obj.SearchPaths == expected_default, (
-        "SearchPaths se ma po vytvoreni inicializovat na vychozi "
-        "adresar gl3sys dodavany s doplnkem, misto: %r" % (obj.SearchPaths,)
+    assert obj.SearchPaths == gl3_library_mod._default_search_paths(), (
+        "SearchPaths se ma po vytvoreni inicializovat na zastupny text "
+        "${workbench_path}/gl3sys, misto: %r" % (obj.SearchPaths,)
     )
     assert obj.Proxy.Type == "GL3Library"
     print(
         "Activated(): OK - vytvoren GL3Library objekt '%s' s vychozimi cestami %s"
-        % (obj.Name, expected_default)
+        % (obj.Name, obj.SearchPaths)
     )
 
     print()
