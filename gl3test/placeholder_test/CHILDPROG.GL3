@@ -1,0 +1,10 @@
+*
+*   Volana SUBRO - overuje, ze ${gl3_file_path} uvnitr CALL ukazuje na
+*   adresar TETO SUBRO (child_data.txt lezi vedle CHILDPROG.GL3), ne na
+*   adresar hlavniho programu.
+*
+SUBRO/CHILDPROG/out:D1
+IDEV,'${gl3_file_path}/child_data.txt',1
+READ1,D1
+RETSUB
+END

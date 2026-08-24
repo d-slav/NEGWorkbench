@@ -1,0 +1,9 @@
+*
+*   Testovaci fixture pro ${workbench_path}/${fc_file_path}/${gl3_file_path}
+*
+SUBRO/MAINPROG/out:D1,out:D2
+IDEV,'${workbench_path}/gl3test/placeholder_test/main_data.txt',1
+READ1,D1
+CALL/CHILDPROG/D2
+RETSUB
+END

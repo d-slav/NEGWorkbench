@@ -286,6 +286,15 @@ class SubroutineDef:
     name: str
     params: List[Tuple[str, Optional[int], str]]  # (jmeno, velikost pole nebo None, "in"/"out")
     body: List[object]
+    # Absolutni cesta k .GL3 souboru, ze ktereho tenhle SUBRO pochazi -
+    # NENI soucasti parsovani (parse_program cestu vubec nezna), nastavuje
+    # ji az volajici kod PO parsovani (Gl3FileRegistry.__getitem__ pro
+    # SUBRO nactene pres CALL, GL3Program.execute() pro hlavni program).
+    # Pouziva interpret pro zastupny text ${gl3_file_path} (viz
+    # gl3_placeholders.py) - kazdemu bezicimu SUBRO (vc. vnorenych CALL)
+    # tak odpovida adresar souboru, ve kterem je napsany, ne jen adresar
+    # hlavniho programu.
+    source_path: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------

@@ -40,6 +40,7 @@ from gl3_ops import (
 from geplib import define_coord_system3, transform3
 from gl3_analysis import get_param_directions, _is_identifier
 import gerlib.accur as _gerlib_accur
+import gl3_placeholders
 from gerlib import (
     make_chain as _gerlib_make_chain,
     make_chain_with_gaps as _gerlib_make_chain_with_gaps,
@@ -127,7 +128,8 @@ def _build_data_object(prefix, chunk):
 
 
 class Interpreter:
-    def __init__(self, registry=None, operations=None, commands=None, io_base_dir="."):
+    def __init__(self, registry=None, operations=None, commands=None, io_base_dir=".",
+                 path_placeholders=None):
         """
         registry   - dict {jmeno_podprogramu: SubroutineDef}, vcetne HLO
                      az ji dodas (bez ni CALL/HLO/... vyhodi jasnou chybu,
@@ -138,11 +140,23 @@ class Interpreter:
                      souboru z IDEV (puvodni VMS konvence s automatickym
                      pripojenim pripony napr. '.RDT' zamerne NEreplikujeme -
                      jmeno souboru z IDEV se pouzije doslovne).
+        path_placeholders - dict {jmeno: retezec nebo None} s hodnotami
+                     zastupnych textu ${workbench_path}/${fc_file_path}
+                     (viz gl3_placeholders.py) - pro cely beh KONSTANTNI
+                     (na rozdil od ${gl3_file_path}, ktery se dopocitava
+                     dynamicky podle prave bezici SUBRO, viz
+                     _source_path_stack/run()/_exec_call). Typicky je
+                     dodava GL3Program.execute() (workbench_path =
+                     adresar doplnku, fc_file_path = adresar otevreneho
+                     FreeCAD dokumentu) - bez FreeCADu (napr. v testech)
+                     zustavaji nedostupne (pouziti vyhodi jasnou chybu,
+                     ne tichou spatnou hodnotu).
         """
         self.registry = registry or {}
         self.operations = operations if operations is not None else OPERATIONS
         self.commands = commands if commands is not None else COMMANDS
         self.io_base_dir = io_base_dir
+        self._static_placeholders = dict(path_placeholders or {})
         self.io_channels = {}  # {0/1/2: {"file": fh, "path": str}} - nastaveno IDEV
         self._directions_cache = {}
         # Souradnicove soustavy definovane DCOOS3 (viz gerlib.dcoos3) -
@@ -198,6 +212,15 @@ class Interpreter:
         # Zasobnik jmen aktualne bezicich SUBRO (kvuli vnorenym CALL) -
         # pro hlaseni "[Warning] jmeno_programu/cislo_radku/operace: ...".
         self._program_name_stack = []
+        # Zasobnik cest k .GL3 souborum aktualne bezicich SUBRO (soubezne
+        # s _program_name_stack, stejny zivotni cyklus - viz run()/
+        # _exec_call) - vrchol udava adresar pro zastupny text
+        # ${gl3_file_path} (viz gl3_placeholders.py a _resolve_path()
+        # nize). Prvek muze byt None (SUBRO bez zname puvodni cesty -
+        # napr. testy volajici run()/registry primo bez nastaveni
+        # SubroutineDef.source_path) - pak pouziti ${gl3_file_path}
+        # vyhodi jasnou chybu, ne tichou spatnou hodnotu.
+        self._source_path_stack = []
         # Cislo radku prave provadeneho statementu (pro totez hlaseni) -
         # nastavuje se v _exec_stmt pred vyhodnocenim, cte se pri
         # zachyceni NoSolution v eval_expr.
@@ -226,6 +249,7 @@ class Interpreter:
         self._input_names_by_env[id(env)] = set(inputs.keys())
         self.io_channels = {}
         self._program_name_stack.append(subdef.name)
+        self._source_path_stack.append(getattr(subdef, "source_path", None))
         self._push_hidden_chain_frame()
         try:
             self._exec_block(subdef.body, env)
@@ -238,6 +262,7 @@ class Interpreter:
             )
         finally:
             self._program_name_stack.pop()
+            self._source_path_stack.pop()
             had_error = sys.exc_info()[0] is not None
             top_level_points = self._pop_hidden_chain_frame(
                 parent_frame=None, suppress_dangling_check=had_error
@@ -1080,6 +1105,7 @@ class Interpreter:
         self._input_names_by_env[id(local_env)] = local_input_names
 
         self._program_name_stack.append(stmt.name)
+        self._source_path_stack.append(getattr(callee, "source_path", None))
         saved_line_no = self.current_line_no
         self._push_hidden_chain_frame()
         try:
@@ -1094,6 +1120,7 @@ class Interpreter:
             )
         finally:
             self._program_name_stack.pop()
+            self._source_path_stack.pop()
             self.current_line_no = saved_line_no
             # stack je [..., parent_frame, callee_frame] - callee_frame
             # (prave dobehnuvsi) je na vrcholu, parent_frame je pod nim.
@@ -1111,6 +1138,23 @@ class Interpreter:
                 # jinak (literal na miste vystupu) - neni kam zapsat, ignoruj
 
     # ------------------------------------------------------------------
+    # Zastupne texty v cestach (${workbench_path}/${fc_file_path}/
+    # ${gl3_file_path}) - viz gl3_placeholders.py.
+    # ------------------------------------------------------------------
+
+    def _resolve_path(self, text):
+        """Nahradi zastupne texty v 'text' (viz gl3_placeholders.substitute)
+        - ${workbench_path}/${fc_file_path} jsou konstantni pro cely beh
+        (self._static_placeholders, viz __init__), ${gl3_file_path} je
+        adresar .GL3 souboru PRAVE BEZICI SUBRO (vrchol
+        _source_path_stack - meni se pres vnorene CALL, viz run()/
+        _exec_call)."""
+        values = dict(self._static_placeholders)
+        current_source = self._source_path_stack[-1] if self._source_path_stack else None
+        values["gl3_file_path"] = os.path.dirname(current_source) if current_source else None
+        return gl3_placeholders.substitute(text, values)
+
+    # ------------------------------------------------------------------
     # IDEV + GET/READ - vstup ze souboru
     # ------------------------------------------------------------------
 
@@ -1121,6 +1165,7 @@ class Interpreter:
                 "IDEV ocekava jmeno souboru jako retezec (napr. 'A'), "
                 "dostal: %r" % (filename,)
             )
+        filename = self._resolve_path(filename)
         channel = (
             int(round(self.eval_expr(stmt.channel, env)))
             if stmt.channel is not None else 0

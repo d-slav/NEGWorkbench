@@ -34,8 +34,10 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+import gl3_placeholders
 from gl3fc.gl3_registry import Gl3FileRegistry
 from gl3fc.gl3_props import add_property, icon_path
+from gl3fc.gl3_placeholder_context import static_placeholders
 
 
 def _default_search_dirs():
@@ -78,8 +80,22 @@ class GL3Library(object):
         obj.SearchPaths = entries
 
     def build_registry(self, obj, extra=None):
-        """Vrati Gl3FileRegistry pripraveny k pouziti jako Interpreter(registry=...)."""
-        entries = list(obj.SearchPaths or [])
+        """Vrati Gl3FileRegistry pripraveny k pouziti jako Interpreter(registry=...).
+
+        Kazda polozka SearchPaths smi obsahovat ${workbench_path}/
+        ${fc_file_path} (viz gl3_placeholders.py) - ${gl3_file_path}
+        tu nedava smysl (adresare pro hledani jsou pro cely beh
+        nezavisle na tom, ktera konkretni SUBRO se prave provadi), pri
+        pouziti vyhodi jasnou chybu misto tiche spatne hodnoty."""
+        values = dict(static_placeholders(obj), gl3_file_path=None)
+        entries = []
+        for entry in (obj.SearchPaths or []):
+            try:
+                entries.append(gl3_placeholders.substitute(entry, values))
+            except ValueError as e:
+                raise ValueError(
+                    "GL3Library '%s': SearchPaths polozka %r - %s" % (obj.Name, entry, e)
+                )
         return Gl3FileRegistry(search_entries=entries, extra=extra)
 
     def execute(self, obj):

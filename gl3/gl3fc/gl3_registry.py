@@ -62,6 +62,7 @@ class Gl3FileRegistry(object):
                     "(nazev souboru musi odpovidat jmenu SUBRO)"
                     % (path, subdef.name, name)
                 )
+            subdef.source_path = os.path.abspath(path)  # pro ${gl3_file_path}
             self._cache[name] = subdef
         return self._cache[name]
 

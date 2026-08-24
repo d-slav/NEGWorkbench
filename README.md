@@ -121,6 +121,18 @@ docs/
   length), `Spline` also supports per-segment tangent pairs
   (`segment_tangents`) in addition to the simpler shared per-node
   `tangents` (which remains sufficient for `S03`).
+- **Path placeholders** (`gl3_placeholders.py`): any string used as a
+  file/directory path — `GL3Program.SourceFile`, `GL3Library.SearchPaths`
+  entries, and the filename argument of `IDEV` inside a `.GL3` program's
+  own source — may contain `${workbench_path}` (this addon's install
+  directory), `${fc_file_path}` (directory of the currently open FreeCAD
+  document; error if the document was never saved), and, inside `IDEV`
+  only, `${gl3_file_path}` (directory of the `.GL3` file *currently
+  executing* — resolves per `CALL`, so a called subroutine's own `IDEV`
+  sees its own directory, not the top-level program's). An unrecognized
+  `${...}` name, or a recognized one that makes no sense in that context
+  (e.g. `${gl3_file_path}` in `SearchPaths`), raises a clear error rather
+  than silently doing the wrong thing.
 
 ## Installing as a FreeCAD workbench
 
@@ -165,6 +177,8 @@ python3 -m gl3fc.test_export_offline   # GL3Export dispatch + Bezier math (build
 python3 -m gl3fc.test_gl3_export_offline    # GL3Export.execute() end-to-end ('Objekt.Vystup' reference + JSON parsing)
 python3 -m gl3fc.test_claim_children_offline    # GL3Export shows as GL3Program's tree child, incl. document-restore ordering race
 python3 -m gl3fc.test_composite_input_offline   # composite in: params (e.g. HLOCUT.gl3 'P') - reference + shadow Link
+python3 -m gl3fc.test_hidden_chain_drawing_offline  # INI...CLOSE hidden chain drawn directly onto GL3Program.Shape, incl. CALL joins/gaps
+python3 -m gl3fc.test_path_placeholders_offline     # ${workbench_path}/${fc_file_path}/${gl3_file_path} in SourceFile/SearchPaths/IDEV
 cd ..
 python3 test_gl3_commands_offline.py   # workbench commands (Library/Program/Export creation), mocked FreeCAD/FreeCADGui
 python3 test_init_no_file_offline.py    # Init.py registers gl3fc.* in sys.modules at startup, simulates real FreeCAD exec()

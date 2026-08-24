@@ -76,6 +76,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from gl3_lang import parse_program
 from gl3_interpreter import Interpreter
 from gl3_ops import classify
+import gl3_placeholders
+from gl3fc.gl3_placeholder_context import static_placeholders
 from gerlib.serialize import dump_json, load_json, serialize
 from gerlib.types import Point
 from gl3fc.gl3_registry import Gl3FileRegistry
@@ -141,7 +143,18 @@ class GL3Program(object):
     # Hlavni vypocet
     # -----------------------------------------------------------------
     def execute(self, obj):
-        path = obj.SourceFile
+        placeholder_values = static_placeholders(obj)
+        raw_path = obj.SourceFile
+        try:
+            # ${gl3_file_path} tu nedava smysl (je to CESTA K TOMUTO
+            # souboru, ktery se prave zjistuje) - kdyby ho nekdo presto
+            # pouzil, vyhodi jasnou chybu "neni v tomto kontextu k
+            # dispozici", ne tichy spatny vysledek.
+            path = gl3_placeholders.substitute(
+                raw_path, dict(placeholder_values, gl3_file_path=None)
+            )
+        except ValueError as e:
+            raise ValueError("GL3Program '%s': SourceFile - %s" % (obj.Name, e))
         if not path or not os.path.isfile(path):
             raise ValueError(
                 "GL3Program '%s': SourceFile neni nastaven na existujici .GL3 soubor"
@@ -189,13 +202,14 @@ class GL3Program(object):
 
         with open(path, "r", encoding="utf-8", errors="replace") as f:
             subdef = parse_program(f.read())
+        subdef.source_path = path  # pro ${gl3_file_path} v IDEV/CALL - viz gl3_interpreter.py
 
         self._sync_properties(obj, subdef)
 
         inputs = self._gather_inputs(obj, subdef)
         registry = self._build_registry(obj, subdef)
 
-        interp = Interpreter(registry=registry)
+        interp = Interpreter(registry=registry, path_placeholders=placeholder_values)
         result = interp.run(subdef, inputs=inputs)
 
         self._store_outputs(obj, subdef, result)
