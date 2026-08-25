@@ -185,6 +185,59 @@ def main():
     assert kind == "Wire"
     print("Curve s nedefinovanou mezerou -> Wire, %d hran (mezera preskocena): OK" % len(edges))
 
+    # --- Pole retezcu (Array of Curve) -> Compound jednotlivych Wire ---
+    curve_a = make_chain([Point(0, 0), Point(1, 0)])
+    curve_b = make_chain([Point(0, 1), Point(1, 1), Point(2, 1)])
+    slot = serialize([curve_a, curve_b])
+    kind, shapes = build_shape(slot)
+    assert kind == "Compound", "pole retezcu musi vyrobit Compound"
+    assert len(shapes) == 2, "oba retezce pole se maji objevit v Compound"
+    assert shapes[0][0] == "Wire" and len(shapes[0][1]) == 1, shapes[0]
+    assert shapes[1][0] == "Wire" and len(shapes[1][1]) == 2, shapes[1]
+    print("Array(Curve) -> Compound, %d retezcu: OK" % len(shapes))
+
+    # --- Pole retezcu s jednim nedefinovanym prvkem (IFN idiom) -> preskoci se ---
+    slot = serialize([curve_a, None, curve_b])
+    kind, shapes = build_shape(slot)
+    assert kind == "Compound"
+    assert len(shapes) == 2, "nedefinovany prvek pole (None) se ma preskocit"
+    print("Array(Curve) s nedefinovanym prvkem -> Compound, %d retezcu "
+          "(1 preskocen): OK" % len(shapes))
+
+    # --- Pole retezcu, kde jeden prvek sam ma mezeru -> vnoreny Compound
+    #     (kazdy prvek se stavi UPLNE STEJNYM builderem jako samostatny
+    #     export, vc. jeho vlastniho deleni na nesouvisle useky) ---
+    curve_c = make_chain([Point(5, 5), Point(6, 5), Point(7, 5)])
+    curve_c.points[1] = None  # mezera uprostred - _build_curve z toho udela Compound 2 Wire
+    slot = serialize([curve_a, curve_c])
+    kind, shapes = build_shape(slot)
+    assert kind == "Compound"
+    assert len(shapes) == 2
+    assert shapes[1][0] == "Compound", "prvek s vlastni mezerou musi zustat jako vnoreny Compound"
+    print("Array(Curve), jeden prvek ma vlastni mezeru -> vnoreny Compound "
+          "zachovan beze zmeny: OK")
+
+    # --- Pole krivek (Array of Spline) -> Compound jednotlivych vysledku ---
+    spline_a = Spline([Point(0, 0), Point(1, 0)], [Vector(1, 0), Vector(1, 0)], closed=False)
+    spline_b = Spline([Point(0, 2), Point(1, 2)], [Vector(1, 0), Vector(1, 0)], closed=False)
+    slot = serialize([spline_a, spline_b])
+    kind, shapes = build_shape(slot)
+    assert kind == "Compound", "pole krivek musi vyrobit Compound"
+    assert len(shapes) == 2
+    assert shapes[0][0] == "BSplineEdge", "kazdy prvek pole se ma stavet stejne jako samostatna Spline"
+    print("Array(Spline) -> Compound, %d krivek (kazda jako samostatna "
+          "BSplineCurve hrana): OK" % len(shapes))
+
+    # --- Pole, kde VSECHNY prvky jsou nedefinovane -> typ prvku se neda
+    #     urcit vubec (stejne existujici omezeni jako u pole bodu -
+    #     item_kind detekce vyzaduje aspon jeden definovany prvek) ---
+    slot = serialize([None, None])
+    try:
+        build_shape(slot)
+        assert False, "ocekavana chyba pro pole bez jedineho definovaneho prvku"
+    except NotImplementedError as e:
+        print("Pole (vsechny prvky None, typ nelze urcit) -> jasna chyba: OK -", e)
+
     print()
     print("VSE OK - build_shape() spravne dispatchuje podle typu a Hermite->Bezier")
     print("matematika sedi na uz drive numericky overeny vzorec.")

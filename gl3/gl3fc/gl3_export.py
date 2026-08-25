@@ -39,6 +39,10 @@ Podporovane typy vystupu (podle slot["type"]):
     Point   -> Part.Vertex
     Array (prvky Point) -> compound vrcholu (nedefinovane/None prvky se
               preskoci)
+    Array (prvky Curve nebo Spline) -> compound jednotlivych vysledku
+              (kazdy prvek pole se postavi stejnym zpusobem jako
+              samostatny Curve/Spline nize, nedefinovane prvky pole se
+              preskoci)
     Curve   -> polyline (Part.Wire) skrz definovane body v poradi (uzavrenost
               je uz dana shodou prvniho/posledniho bodu - viz E01, zadna
               extra "uzaviraci" hrana neni potreba)
@@ -141,6 +145,27 @@ def _build_point_array(slot):
     if not vectors:
         raise ValueError("GL3Export: pole neobsahuje zadny definovany bod")
     return Part.makeCompound([Part.Vertex(v) for v in vectors])
+
+
+def _build_shape_array(slot, item_kind):
+    """Pole retezcu (Curve) nebo krivek (Spline) -> Part.Compound
+    jednotlivych vysledku - kazdy definovany prvek pole se postavi
+    UPLNE STEJNYM builderem jako pri exportu jednoho samostatneho
+    retezce/krivky (viz _build_curve/_build_spline nize, vc. jejich
+    vlastniho osetreni mezer/nedefinovanych uzlu u kazdeho prvku
+    zvlast), analogicky _build_point_array vyse. Nedefinovane prvky
+    pole (viz IFN idiom) se preskoci, stejne jako u pole bodu."""
+    builder = _BUILDERS[item_kind]
+    shapes = []
+    for item in _array_items(slot):
+        if not _is_defined(item):
+            continue
+        shapes.append(builder(item))
+    if not shapes:
+        raise ValueError(
+            "GL3Export: pole neobsahuje zadny definovany prvek typu '%s'" % (item_kind,)
+        )
+    return Part.makeCompound(shapes)
 
 
 def _build_curve(slot):
@@ -312,6 +337,8 @@ def build_shape(slot):
         item_kind = next((it.get("type") for it in items if _is_defined(it)), None)
         if item_kind == "Point":
             return _build_point_array(slot)
+        if item_kind in ("Curve", "Spline"):
+            return _build_shape_array(slot, item_kind)
         raise NotImplementedError(
             "GL3Export: export pole typu '%s' zatim neni podporovan" % (item_kind,)
         )
