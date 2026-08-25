@@ -70,6 +70,7 @@ objekt).
 
 import sys
 import os
+import json
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -139,6 +140,60 @@ class GL3Program(object):
             "pokud vlastni SUBRO nekoho vola)",
         )
 
+        # RecomputeOnOpenDoc (vychozi True = puvodni chovani beze zmeny) -
+        # viz diskuze s uzivatelem: self._exec_cache prezije jen v ramci
+        # jedne session (neni soucasti __getstate__/__setstate__ nize -
+        # zamerne, viz jejich komentar), takze prvni execute() po KAZDEM
+        # otevreni dokumentu vzdy udela plny (mozna drahy) beh, i kdyz se
+        # od ulozeni nezmenilo vubec nic - to je bezpecny vychozi stav
+        # (zachyti zmeny v .GL3 zavislostech pres CALL i zmeny samotneho
+        # interpretu/doplnku, ktere cache nesleduje).
+        #
+        # Vypnutim (False) na VLASTNI ZODPOVEDNOST uzivatel rika "vim, ze
+        # jsem od posledniho ulozeni nic needitoval, preskakuj prepocet po
+        # otevreni, pokud se fakticky nic nezmenilo" - k tomu navic
+        # potrebujeme signaturu posledniho uspesneho behu, ktera PREZIJE
+        # ulozeni/otevreni (viz _ExecCache nize - narozdil od
+        # self._exec_cache je to skutecna FC property).
+        is_new = not hasattr(obj, "RecomputeOnOpenDoc")
+        add_property(
+            obj,
+            "App::PropertyBool",
+            "RecomputeOnOpenDoc",
+            "GL3 Options",
+            "Po otevreni dokumentu VZDY prepocitat, i kdyz se od ulozeni "
+            "nic nezmenilo (bezpecny vychozi stav - zachyti zmeny .GL3 "
+            "zavislosti pres CALL i zmeny doplnku samotneho, ktere "
+            "nasledujici kontrola nesleduje). Vypni jen pokud vis jiste, "
+            "ze od ulozeni nic (vc. zavislosti pres CALL) needitoval - pak "
+            "se prepocet po otevreni preskoci, pokud se obsah SourceFile "
+            "(mtime), Library ani hodnoty in: parametru nezmenily.",
+        )
+        if is_new:
+            obj.RecomputeOnOpenDoc = True
+
+        # Interni (Hidden) - JSON signatura posledniho uspesneho execute()
+        # (viz konec execute()), na rozdil od self._exec_cache PREZIJE
+        # ulozeni/otevreni dokumentu (skutecna FC property) - cte se jen
+        # kdyz je RecomputeOnOpenDoc == False (viz execute()). Skupina
+        # "GL3 Options" (NE "GL3"!) - "GL3" je ve trigger setu onChanged()
+        # (viz nize), a zapis do teto property se deje PRIMO UVNITR
+        # execute(), takze by ve skupine "GL3" zpusobil dalsi zbytecny
+        # (nebo cyklicky) prepocet pri kazdem uspesnem behu.
+        if not hasattr(obj, "_ExecCache"):
+            obj.addProperty(
+                "App::PropertyString",
+                "_ExecCache",
+                "GL3 Options",
+                "Interni: JSON signatura posledniho uspesneho behu - "
+                "nemenit rucne.",
+            )
+            try:
+                obj.setPropertyStatus("_ExecCache", "Hidden")
+            except AttributeError:
+                pass
+            obj._ExecCache = ""
+
     # -----------------------------------------------------------------
     # Hlavni vypocet
     # -----------------------------------------------------------------
@@ -188,6 +243,19 @@ class GL3Program(object):
         library_name = getattr(getattr(obj, "Library", None), "Name", None)
 
         cache = getattr(self, "_exec_cache", None)
+        if cache is None and not getattr(obj, "RecomputeOnOpenDoc", True):
+            # self._exec_cache je jen v pameti (nulovana pri kazdem
+            # otevreni dokumentu - viz __getstate__/__setstate__ nize) -
+            # RecomputeOnOpenDoc == False rika, ze uzivatel na vlastni
+            # zodpovednost chce zkusit obnovit signaturu POSLEDNIHO
+            # uspesneho behu z _ExecCache (skutecna FC property, tu uz
+            # otevreni dokumentu prezije).
+            persisted = getattr(obj, "_ExecCache", "") or ""
+            if persisted:
+                try:
+                    cache = json.loads(persisted)
+                except ValueError:
+                    cache = None
         if (
             cache is not None
             and cache["path"] == path
@@ -198,6 +266,7 @@ class GL3Program(object):
                 for name, value in cache["inputs"].items()
             )
         ):
+            self._exec_cache = cache
             return
 
         with open(path, "r", encoding="utf-8", errors="replace") as f:
@@ -241,6 +310,16 @@ class GL3Program(object):
                 if direction == "in"
             },
         }
+        # Stejna signatura navic i jako skutecna FC property (_ExecCache) -
+        # ta na rozdil od self._exec_cache PREZIJE ulozeni/otevreni
+        # dokumentu, viz RecomputeOnOpenDoc vyse. Selhani serializace
+        # (nemelo by nastat - "inputs" jsou vzdy scalar/string hodnoty
+        # FC properties, viz _gather_inputs) se tise ignoruje - v
+        # nejhorsim pripade se priste jen provede plny beh znovu.
+        try:
+            obj._ExecCache = json.dumps(self._exec_cache)
+        except (TypeError, ValueError):
+            pass
 
         # POZOR: zde uz NENASTAVUJEME vobj.Visibility = True (drive se tu
         # opakovane nastavovalo na kazdem execute(), z duvodu "objekt
@@ -265,6 +344,12 @@ class GL3Program(object):
         # vyse) vynechavame - to je interni bookkeeping, ne uzivatelska
         # zmena, a uz se vyresilo pri resyncu radek vyse.
         if prop.endswith("_Link"):
+            return
+        if prop == "_ExecCache":
+            # Interni bookkeeping (viz __init__) - zapisuje se PRIMO
+            # uvnitr execute(), nikdy uzivatelska zmena; navic uz je ve
+            # skupine mimo trigger set nize, tohle je jen pro jistotu
+            # explicitni (kdyby se skupina nekdy prehodila).
             return
         try:
             group = obj.getGroupOfProperty(prop)

@@ -141,6 +141,25 @@ docs/
   FreeCAD document shadows a same-named one in the library search paths.
   If the document isn't saved yet, that step is silently skipped (no
   error) and only `SearchPaths` is searched.
+- **`RecomputeOnOpenDoc`** (`GL3Program`, default `True`): `execute()`'s
+  short-circuit cache (`self._exec_cache` — skip re-running the interpreter
+  if `SourceFile`'s mtime, `Library`, and every `in:` value are unchanged
+  since the last successful run) lives only on the Python `Proxy` instance
+  — `__getstate__`/`__setstate__` intentionally return `None`, so nothing
+  about it survives a save. Practically this means the *first* `execute()`
+  after opening any document with a `GL3Program` always does a full
+  re-run, even if literally nothing changed since it was last saved —
+  which matters for programs with a multi-minute recompute time. This is
+  the deliberate, safe default: since `SourceFile` is only ever read fresh
+  from disk (never embedded in the `.FCStd`), it also catches edits made
+  externally to the `.GL3` file, to a `CALL`-dependency file, or to the
+  interpreter/addon code itself — none of which the cache signature
+  tracks. Setting `RecomputeOnOpenDoc = False` opts out on the user's own
+  judgment: the same signature is *also* persisted as a real (hidden)
+  `_ExecCache` string property, which — unlike `self._exec_cache` — does
+  survive save/reload, so the recompute-on-open is skipped if it still
+  matches. Any actual input change (including editing `SourceFile` itself,
+  or its mtime changing) still forces a real run regardless of this flag.
 
 ## Installing as a FreeCAD workbench
 
@@ -188,6 +207,7 @@ python3 -m gl3fc.test_claim_children_offline    # GL3Export shows as GL3Program'
 python3 -m gl3fc.test_composite_input_offline   # composite in: params (e.g. HLOCUT.gl3 'P') - reference + shadow Link
 python3 -m gl3fc.test_hidden_chain_drawing_offline  # INI...CLOSE hidden chain drawn directly onto GL3Program.Shape, incl. CALL joins/gaps
 python3 -m gl3fc.test_path_placeholders_offline     # ${workbench_path}/${fc_file_path}/${gl3_file_path} in SourceFile/SearchPaths/IDEV
+python3 -m gl3fc.test_recompute_on_open_offline     # RecomputeOnOpenDoc - skip recompute-on-open when signature unchanged, via persisted _ExecCache
 cd ..
 python3 test_gl3_commands_offline.py   # workbench commands (Library/Program/Export creation), mocked FreeCAD/FreeCADGui
 python3 test_init_no_file_offline.py    # Init.py registers gl3fc.* in sys.modules at startup, simulates real FreeCAD exec()
