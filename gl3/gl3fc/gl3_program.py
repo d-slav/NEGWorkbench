@@ -112,6 +112,58 @@ def _looks_like_vector_list(raw):
     return all(hasattr(v, "x") and hasattr(v, "y") and hasattr(v, "z") for v in raw)
 
 
+def resolve_source_file_path(obj):
+    """Vyresi obj.SourceFile (${workbench_path}/${fc_file_path} - viz
+    gl3_placeholders.py) na absolutni cestu k .GL3 souboru. Sdileno mezi
+    execute() (hlavni beh) a NEG_EditProgram prikazem (gl3_commands.py -
+    potrebuje stejnou cestu k sestaveni ${gl3_file_path}/${gl3_file_name}
+    pro EditCommand), aby se logika resolvovani nedublovala a
+    nerozjizdela.
+
+    Vyhazuje ValueError se srozumitelnou zpravou (vc. jmena objektu),
+    je-li SourceFile prazdny, neresolvovatelny (neznamy/nedostupny
+    zastupny text), nebo nevede-li na existujici soubor na disku."""
+    placeholder_values = static_placeholders(obj)
+    raw_path = obj.SourceFile
+    try:
+        # ${gl3_file_path}/${gl3_file_name} tu nedavaji smysl (je to
+        # CESTA/JMENO TOHOTO souboru, ktery se prave zjistuje) - kdyby je
+        # nekdo presto pouzil, vyhodi jasnou chybu "neni v tomto kontextu
+        # k dispozici", ne tichy spatny vysledek.
+        path = gl3_placeholders.substitute(
+            raw_path, dict(placeholder_values, gl3_file_path=None, gl3_file_name=None)
+        )
+    except ValueError as e:
+        raise ValueError("GL3Program '%s': SourceFile - %s" % (obj.Name, e))
+    if not path or not os.path.isfile(path):
+        raise ValueError(
+            "GL3Program '%s': SourceFile neni nastaven na existujici .GL3 soubor"
+            % (obj.Name,)
+        )
+    return path
+
+
+def resolve_edit_command(obj):
+    """Vyresi obj.EditCommand (zadani uzivatele - shellovy prikaz pro
+    NEG_EditProgram, viz gl3_commands.py) na finalni retezec pripraveny
+    ke spusteni: ${workbench_path}/${fc_file_path} jako obvykle (viz
+    static_placeholders), navic ${gl3_file_path}/${gl3_file_name} -
+    adresar/jmeno AKTUALNIHO (jiz vyreseneho - viz resolve_source_file_path)
+    SourceFile teto SUBRO. Na rozdil od stejnojmennych zastupnych textu
+    uvnitr IDEV (viz gl3_interpreter.py) tu NEJDE o bezici interpret
+    (SUBRO/CALL) - vzdy jde jen o SourceFile TOHOTO objektu."""
+    source_path = resolve_source_file_path(obj)
+    values = dict(
+        static_placeholders(obj),
+        gl3_file_path=os.path.dirname(source_path),
+        gl3_file_name=os.path.basename(source_path),
+    )
+    try:
+        return gl3_placeholders.substitute(obj.EditCommand, values)
+    except ValueError as e:
+        raise ValueError("GL3Program '%s': EditCommand - %s" % (obj.Name, e))
+
+
 class GL3Program(object):
     """Proxy pro Part::FeaturePython objekt typu GL3Program."""
 
@@ -172,6 +224,26 @@ class GL3Program(object):
         if is_new:
             obj.RecomputeOnOpenDoc = True
 
+        # EditCommand (zadani uzivatele) - shellovy prikaz, kterym
+        # NEG_EditProgram (gl3_commands.py) otevre SourceFile v externim
+        # editoru po stisku tlacitka; ${gl3_file_path}/${gl3_file_name}
+        # (viz resolve_source_file_path + gl3_placeholders.py) se resolvuji
+        # z JIZ vyresene absolutni cesty SourceFile (ne z bezicicho
+        # interpretu - tahle property s zadnym behem programu nesouvisi).
+        is_new = not hasattr(obj, "EditCommand")
+        add_property(
+            obj,
+            "App::PropertyString",
+            "EditCommand",
+            "GL3 Options",
+            "Shellovy prikaz spousteny tlacitkem 'Edit GL3 Program' - "
+            "${workbench_path}/${fc_file_path}/${gl3_file_path}/"
+            "${gl3_file_name} se nahradi (posledni dva jsou adresar/jmeno "
+            "AKTUALNIHO SourceFile, vc. pripony).",
+        )
+        if is_new:
+            obj.EditCommand = "edit ${gl3_file_path}\\${gl3_file_name}"
+
         # Interni (Hidden) - JSON signatura posledniho uspesneho execute()
         # (viz konec execute()), na rozdil od self._exec_cache PREZIJE
         # ulozeni/otevreni dokumentu (skutecna FC property) - cte se jen
@@ -199,22 +271,7 @@ class GL3Program(object):
     # -----------------------------------------------------------------
     def execute(self, obj):
         placeholder_values = static_placeholders(obj)
-        raw_path = obj.SourceFile
-        try:
-            # ${gl3_file_path} tu nedava smysl (je to CESTA K TOMUTO
-            # souboru, ktery se prave zjistuje) - kdyby ho nekdo presto
-            # pouzil, vyhodi jasnou chybu "neni v tomto kontextu k
-            # dispozici", ne tichy spatny vysledek.
-            path = gl3_placeholders.substitute(
-                raw_path, dict(placeholder_values, gl3_file_path=None)
-            )
-        except ValueError as e:
-            raise ValueError("GL3Program '%s': SourceFile - %s" % (obj.Name, e))
-        if not path or not os.path.isfile(path):
-            raise ValueError(
-                "GL3Program '%s': SourceFile neni nastaven na existujici .GL3 soubor"
-                % (obj.Name,)
-            )
+        path = resolve_source_file_path(obj)
 
         # Rychla kontrola PRED drahym znovunactenim/parsovanim souboru a
         # behem cele interpretu: zmenilo se od posledniho USPESNEHO behu

@@ -1147,13 +1147,14 @@ class Interpreter:
     def _resolve_path(self, text):
         """Nahradi zastupne texty v 'text' (viz gl3_placeholders.substitute)
         - ${workbench_path}/${fc_file_path} jsou konstantni pro cely beh
-        (self._static_placeholders, viz __init__), ${gl3_file_path} je
-        adresar .GL3 souboru PRAVE BEZICI SUBRO (vrchol
-        _source_path_stack - meni se pres vnorene CALL, viz run()/
-        _exec_call)."""
+        (self._static_placeholders, viz __init__), ${gl3_file_path}/
+        ${gl3_file_name} jsou adresar/jmeno souboru (vc. pripony) .GL3
+        souboru PRAVE BEZICI SUBRO (vrchol _source_path_stack - meni se
+        pres vnorene CALL, viz run()/_exec_call)."""
         values = dict(self._static_placeholders)
         current_source = self._source_path_stack[-1] if self._source_path_stack else None
         values["gl3_file_path"] = os.path.dirname(current_source) if current_source else None
+        values["gl3_file_name"] = os.path.basename(current_source) if current_source else None
         return gl3_placeholders.substitute(text, values)
 
     # ------------------------------------------------------------------
