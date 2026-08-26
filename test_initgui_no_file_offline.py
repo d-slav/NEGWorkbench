@@ -103,9 +103,9 @@ def main():
     registered.appendMenu = lambda name, cmds: setattr(registered, "_menu", (name, cmds))
     registered.Initialize()
 
-    assert registered.command_list == ["NEG_CreateLibrary", "NEG_CreateProgram", "NEG_CreateExport", "NEG_ReloadProgram"]
-    assert registered._toolbar[1] == ["NEG_CreateLibrary", "NEG_CreateProgram", "NEG_CreateExport", "NEG_ReloadProgram"]
-    assert registered._menu[1] == ["NEG_CreateLibrary", "NEG_CreateProgram", "NEG_CreateExport", "NEG_ReloadProgram"]
+    assert registered.command_list == ["NEG_CreateLibrary", "NEG_CreateProgram", "NEG_CreateExport", "NEG_ReloadProgram", "NEG_EditProgram"]
+    assert registered._toolbar[1] == ["NEG_CreateLibrary", "NEG_CreateProgram", "NEG_CreateExport", "NEG_ReloadProgram", "NEG_EditProgram"]
+    assert registered._menu[1] == ["NEG_CreateLibrary", "NEG_CreateProgram", "NEG_CreateExport", "NEG_ReloadProgram", "NEG_EditProgram"]
     print("Initialize() probehla bez vyjimky a spravne zaregistrovala prikaz: OK")
 
     print()

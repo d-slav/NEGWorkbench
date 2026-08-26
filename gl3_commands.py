@@ -376,7 +376,7 @@ class ReloadGL3ProgramCommand(object):
 
     def GetResources(self):
         return {
-            "Pixmap": os.path.join(_ICON_DIR, "program.svg"),
+            "Pixmap": os.path.join(_ICON_DIR, "program_refresh.svg"),
             "MenuText": QT_TRANSLATE_NOOP("NEG_ReloadProgram", "Reload GL3 Program"),
             "ToolTip": QT_TRANSLATE_NOOP(
                 "NEG_ReloadProgram",
@@ -419,3 +419,72 @@ class ReloadGL3ProgramCommand(object):
 
 
 Gui.addCommand("NEG_ReloadProgram", ReloadGL3ProgramCommand())
+
+
+class EditGL3ProgramCommand(object):
+    """Spusti obj.EditCommand (zadani uzivatele) vybraneho GL3Program -
+    shellovy prikaz s vyresenymi zastupnymi texty (viz
+    gl3fc.gl3_program.resolve_edit_command/gl3_placeholders.py),
+    vychozi 'edit ${gl3_file_path}\\${gl3_file_name}' - otevre SourceFile
+    v externim editoru bez nutnosti hledat cestu k souboru rucne.
+
+    Prikaz se spousti NEBLOKUJICE (subprocess.Popen) - FreeCAD nesmi
+    cekat, az uzivatel editor zavre."""
+
+    def GetResources(self):
+        return {
+            "Pixmap": os.path.join(_ICON_DIR, "program_edit.svg"),
+            "MenuText": QT_TRANSLATE_NOOP("NEG_EditProgram", "Edit GL3 Program"),
+            "ToolTip": QT_TRANSLATE_NOOP(
+                "NEG_EditProgram",
+                "Runs the selected GL3Program's EditCommand (with "
+                "${workbench_path}/${fc_file_path}/${gl3_file_path}/"
+                "${gl3_file_name} resolved) - by default opens SourceFile "
+                "in an external editor.",
+            ),
+        }
+
+    def Activated(self):
+        sel = Gui.Selection.getSelection()
+        programs = [
+            o
+            for o in sel
+            if getattr(getattr(o, "Proxy", None), "Type", None) == "GL3Program"
+        ]
+        if len(programs) != 1:
+            App.Console.PrintError(
+                "NEG_EditProgram: vyber v Model strome prave jeden GL3Program "
+                "objekt (aktualne vybrano: %d).\n" % len(programs)
+            )
+            return None
+
+        obj = programs[0]
+        from gl3fc.gl3_program import resolve_edit_command
+        import subprocess
+
+        try:
+            command = resolve_edit_command(obj)
+        except ValueError as e:
+            App.Console.PrintError("NEG_EditProgram: %s\n" % (e,))
+            return None
+
+        if not command.strip():
+            App.Console.PrintError(
+                "NEG_EditProgram: GL3Program '%s' ma prazdny EditCommand.\n" % (obj.Name,)
+            )
+            return None
+
+        try:
+            subprocess.Popen(command, shell=True)
+        except OSError as e:
+            App.Console.PrintError(
+                "NEG_EditProgram: spusteni prikazu %r selhalo - %s\n" % (command, e)
+            )
+            return None
+        return obj
+
+    def IsActive(self):
+        return True
+
+
+Gui.addCommand("NEG_EditProgram", EditGL3ProgramCommand())

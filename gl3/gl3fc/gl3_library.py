@@ -84,10 +84,11 @@ class GL3Library(object):
         """Vrati Gl3FileRegistry pripraveny k pouziti jako Interpreter(registry=...).
 
         Kazda polozka SearchPaths smi obsahovat ${workbench_path}/
-        ${fc_file_path} (viz gl3_placeholders.py) - ${gl3_file_path}
-        tu nedava smysl (adresare pro hledani jsou pro cely beh
-        nezavisle na tom, ktera konkretni SUBRO se prave provadi), pri
-        pouziti vyhodi jasnou chybu misto tiche spatne hodnoty.
+        ${fc_file_path} (viz gl3_placeholders.py) - ${gl3_file_path}/
+        ${gl3_file_name} tu nedavaji smysl (adresare pro hledani jsou pro
+        cely beh nezavisle na tom, ktera konkretni SUBRO se prave
+        provadi), pri pouziti vyhodi jasnou chybu misto tiche spatne
+        hodnoty.
 
         Adresar OTEVRENEHO FreeCAD dokumentu (${fc_file_path}) se navic
         VZDY automaticky prohledava JAKO PRVNI, pred vsemi adresari ze
@@ -95,7 +96,7 @@ class GL3Library(object):
         rozpracovaneho modelu maji prednost pred systemovymi/knihovnimi).
         Neni-li dokument (jeste) ulozeny na disk, tenhle krok se tise
         preskoci (zadna chyba) - hleda se jen v adresarich SearchPaths."""
-        values = dict(static_placeholders(obj), gl3_file_path=None)
+        values = dict(static_placeholders(obj), gl3_file_path=None, gl3_file_name=None)
         entries = []
         fc_dir = values.get("fc_file_path")
         if fc_dir:

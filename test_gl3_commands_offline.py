@@ -389,6 +389,97 @@ def main():
     print()
     print("VSE OK - gl3_commands.ReloadGL3ProgramCommand funguje (offline, bez realneho FreeCADu).")
 
+    print()
+    print("--- EditGL3ProgramCommand ---")
+
+    import subprocess
+
+    captured_commands = []
+    orig_popen = subprocess.Popen
+
+    def fake_popen(command, **kwargs):
+        captured_commands.append(command)
+        class _FakeProc(object):
+            pass
+        return _FakeProc()
+
+    subprocess.Popen = fake_popen
+    try:
+        edit_cmd = gl3_commands.EditGL3ProgramCommand()
+        res = edit_cmd.GetResources()
+        assert "Pixmap" in res and os.path.isfile(res["Pixmap"]), "ikona program_edit.svg musi existovat"
+        assert "MenuText" in res and "ToolTip" in res
+        print("GetResources(): OK (ikona nalezena na disku)")
+        assert edit_cmd.IsActive() is True
+
+        # nic neni vybrano -> jasna chyba, zadny prikaz spusten
+        FakeSelection._selection = []
+        assert edit_cmd.Activated() is None
+        assert not captured_commands
+        print("Activated() bez vyberu: OK - nic se nespustilo")
+
+        # vybran objekt, ktery neni GL3Program -> stejne tak
+        lib_obj = cmd.Activated()  # cmd = CreateGL3LibraryCommand z testu vyse
+        FakeSelection._selection = [lib_obj]
+        assert edit_cmd.Activated() is None
+        assert not captured_commands
+        print("Activated() s vyberem GL3Library (ne GL3Program): OK - nic se nespustilo")
+
+        # skutecny GL3Program se SourceFile ukazujicim na existujici .GL3 soubor
+        root_dir = _HERE
+        fixtures_dir = os.path.join(root_dir, "gl3test", "placeholder_test")
+        src_path = os.path.join(fixtures_dir, "MAINPROG.GL3")
+        assert os.path.isfile(src_path)
+
+        edit_prog = FakeObj("EditProg1")
+        from gl3fc.gl3_program import GL3Program
+
+        GL3Program(edit_prog)
+        assert edit_prog.EditCommand == "edit ${gl3_file_path}\\${gl3_file_name}", (
+            "vychozi EditCommand musi byt presne 'edit ${gl3_file_path}\\${gl3_file_name}'"
+        )
+        edit_prog.SourceFile = src_path
+        FakeSelection._selection = [edit_prog]
+
+        result = edit_cmd.Activated()
+        assert result is edit_prog
+        assert len(captured_commands) == 1
+        assert captured_commands[0] == "edit %s\\MAINPROG.GL3" % fixtures_dir, captured_commands[0]
+        print("Activated() s vychozim EditCommand: OK - spusteno %r" % (captured_commands[0],))
+
+        # vlastni EditCommand (uzivatelska hodnota) se ma pouzit misto vychozi
+        captured_commands.clear()
+        edit_prog.EditCommand = "notepad++ ${gl3_file_path}\\${gl3_file_name} -multiInst"
+        edit_cmd.Activated()
+        assert captured_commands == ["notepad++ %s\\MAINPROG.GL3 -multiInst" % fixtures_dir]
+        print("Activated() s vlastnim EditCommand: OK - spusteno %r" % (captured_commands[0],))
+
+        # neplatny SourceFile -> jasna chyba, zadny prikaz spusten
+        captured_commands.clear()
+        edit_prog.EditCommand = "edit ${gl3_file_path}\\${gl3_file_name}"
+        edit_prog.SourceFile = os.path.join(fixtures_dir, "NEEXISTUJE.GL3")
+        assert edit_cmd.Activated() is None
+        assert not captured_commands
+        print("Activated() s neplatnym SourceFile: OK - jasna chyba, nic se nespustilo")
+
+        # neznamy zastupny text v EditCommand -> jasna chyba, zadny prikaz spusten
+        edit_prog.SourceFile = src_path
+        edit_prog.EditCommand = "edit ${nesmysl}"
+        assert edit_cmd.Activated() is None
+        assert not captured_commands
+        print("Activated() s neznamym zastupnym textem v EditCommand: OK - jasna chyba, nic se nespustilo")
+
+        # prazdny EditCommand -> jasna chyba, zadny prikaz spusten
+        edit_prog.EditCommand = "   "
+        assert edit_cmd.Activated() is None
+        assert not captured_commands
+        print("Activated() s prazdnym EditCommand: OK - jasna chyba, nic se nespustilo")
+    finally:
+        subprocess.Popen = orig_popen
+
+    print()
+    print("VSE OK - gl3_commands.EditGL3ProgramCommand funguje (offline, bez realneho FreeCADu).")
+
 
 if __name__ == "__main__":
     main()

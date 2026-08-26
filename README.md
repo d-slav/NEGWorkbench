@@ -160,6 +160,18 @@ docs/
   survive save/reload, so the recompute-on-open is skipped if it still
   matches. Any actual input change (including editing `SourceFile` itself,
   or its mtime changing) still forces a real run regardless of this flag.
+- **`EditCommand`** (`GL3Program`, default `'edit ${gl3_file_path}\${gl3_file_name}'`):
+  a shell command line run by the "Edit GL3 Program" toolbar button
+  (`NEG_EditProgram`, `gl3fc.gl3_program.resolve_edit_command`) —
+  typically used to open `SourceFile` in an external editor. All four
+  placeholders are available here: `${workbench_path}`/`${fc_file_path}`
+  as usual, plus `${gl3_file_path}`/`${gl3_file_name}` (new — directory
+  and filename-with-extension) resolved from this `GL3Program`'s own,
+  already-resolved `SourceFile` — a separate, simpler resolution than the
+  interpreter's per-`CALL`-frame one used inside `IDEV`, since no
+  interpreter is running when this button is pressed. Runs non-blocking
+  (`subprocess.Popen(..., shell=True)`) so FreeCAD doesn't wait for the
+  editor to close.
 
 ## Installing as a FreeCAD workbench
 

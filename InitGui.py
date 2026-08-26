@@ -97,7 +97,7 @@ class NEGWorkbench(Gui.Workbench):
 
         self.command_list = [
             "NEG_CreateLibrary", "NEG_CreateProgram", "NEG_CreateExport",
-            "NEG_ReloadProgram",
+            "NEG_ReloadProgram", "NEG_EditProgram",
         ]
         # Kontext "Workbench" je FreeCAD konvence pro appendMenu/appendToolbar
         # nazvy (viz Translating_an_external_workbench) - jednotlivé
