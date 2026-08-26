@@ -160,7 +160,7 @@ docs/
   survive save/reload, so the recompute-on-open is skipped if it still
   matches. Any actual input change (including editing `SourceFile` itself,
   or its mtime changing) still forces a real run regardless of this flag.
-- **`EditCommand`** (`GL3Program`, default `'edit ${gl3_file_path}\${gl3_file_name}'`):
+- **`EditCommand`** (`GL3Program`, default `'edit ${gl3_file_path}/${gl3_file_name}'`):
   a shell command line run by the "Edit GL3 Program" toolbar button
   (`NEG_EditProgram`, `gl3fc.gl3_program.resolve_edit_command`) —
   typically used to open `SourceFile` in an external editor. All four

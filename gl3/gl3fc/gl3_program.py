@@ -242,7 +242,7 @@ class GL3Program(object):
             "AKTUALNIHO SourceFile, vc. pripony).",
         )
         if is_new:
-            obj.EditCommand = "edit ${gl3_file_path}\\${gl3_file_name}"
+            obj.EditCommand = "edit ${gl3_file_path}/${gl3_file_name}"
 
         # Interni (Hidden) - JSON signatura posledniho uspesneho execute()
         # (viz konec execute()), na rozdil od self._exec_cache PREZIJE
