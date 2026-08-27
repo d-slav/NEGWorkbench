@@ -172,6 +172,18 @@ docs/
   interpreter is running when this button is pressed. Runs non-blocking
   (`subprocess.Popen(..., shell=True)`) so FreeCAD doesn't wait for the
   editor to close.
+- **`gl3_keywords.json`** (`gl3/`, FreeCAD-independent — sits next to
+  `gl3_lang.py`/`gl3_ops.py`): per-keyword/opcode hover documentation
+  (`type`, `syntax`, `comment`, `menu`, `html_help_file`), converted from
+  a historical C++/MFC editor's own tooltip data (`Gl3_Keywords.h`/`.cpp`
+  + `Gl3Key.dat`, see `gl3/tools/gl3key_import/README.md` for the binary
+  format, provenance, and how to re-run the one-off conversion). Kept
+  deliberately separate from the `_op_*` docstrings in `gerlib`/`geplib`,
+  which document implementation details (original Fortran line numbers,
+  internal variable names) for maintainers, not end-user syntax help —
+  two different audiences, two different texts. Intended primarily for a
+  future editor/language-server integration (hover, autocomplete), not
+  currently read by the addon or interpreter at runtime.
 
 ## Installing as a FreeCAD workbench
 
@@ -220,6 +232,7 @@ python3 -m gl3fc.test_composite_input_offline   # composite in: params (e.g. HLO
 python3 -m gl3fc.test_hidden_chain_drawing_offline  # INI...CLOSE hidden chain drawn directly onto GL3Program.Shape, incl. CALL joins/gaps
 python3 -m gl3fc.test_path_placeholders_offline     # ${workbench_path}/${fc_file_path}/${gl3_file_path} in SourceFile/SearchPaths/IDEV
 python3 -m gl3fc.test_recompute_on_open_offline     # RecomputeOnOpenDoc - skip recompute-on-open when signature unchanged, via persisted _ExecCache
+python3 test_gl3_keywords_data.py       # gl3_keywords.json structure + consistency with gl3_ops.OPERATIONS/COMMANDS
 cd ..
 python3 test_gl3_commands_offline.py   # workbench commands (Library/Program/Export creation), mocked FreeCAD/FreeCADGui
 python3 test_init_no_file_offline.py    # Init.py registers gl3fc.* in sys.modules at startup, simulates real FreeCAD exec()
