@@ -1,0 +1,4300 @@
+{
+  "A10": {
+    "comment": "Úhel dvou rovinných vektorů,\n K=0-mezi souhlasnými směry, K=1-nesouhlasnými.",
+    "html_help_file": "/A_Procedury/A10.htm",
+    "menu": "A10> Úhel dvou rovinných vektorů.",
+    "syntax": "AM=A10>V1,V2,K",
+    "type": "A"
+  },
+  "A11": {
+    "comment": "Úhel dvou přímek v rovině, \n K=0-mezi souhlasnými směry, K=1-nesouhlasnými.",
+    "html_help_file": "/A_Procedury/A11.htm",
+    "menu": "A11> Úhel dvou přímek v rovině.",
+    "syntax": "AM=A11>L1,L2,K",
+    "type": "A"
+  },
+  "A12": {
+    "comment": "Úhel ve vrcholu rovinného  trojúhelníka daného třemi body.\n(Je měřen u prostředního zadaného bodu)",
+    "html_help_file": "/A_Procedury/A12.htm",
+    "menu": "A12> Úhel ve vrcholu rovinného trojúhelníka daného body.",
+    "syntax": "AM=A12>P1,P2,P3",
+    "type": "A"
+  },
+  "A20": {
+    "comment": "Úhel rovinné přímky s kladným směrem osy x.\n Nabýva hodnot z  intervalu <0, 180).",
+    "html_help_file": "/A_Procedury/A20.htm",
+    "menu": "A20> Úhel rovinné přímky s osou x.",
+    "syntax": "AM=A20>L",
+    "type": "A"
+  },
+  "A21": {
+    "comment": "Úhel mezi kladným směrem rovinného vektoru a kladnou osou x.\nNabývá hodnot z intervalu <0, 360)",
+    "html_help_file": "/A_Procedury/A21.htm",
+    "menu": "A21> Úhel rovinného vektoru s osou x.",
+    "syntax": "AM=A21>V",
+    "type": "A"
+  },
+  "A70": {
+    "comment": "Úhel dvou prostorových vektorů.\n K=0-mezi souhlasnými směry, K=1-nesouhlasnými.",
+    "html_help_file": "/A_Procedury/A70.htm",
+    "menu": "A70> Úhel dvou prostorových vektorů.",
+    "syntax": "AM=A70>U1,U2,K",
+    "type": "A"
+  },
+  "A71": {
+    "comment": "Úhel dvou prostorových přímek.\n K=0-mezi souhlasnými směry, K=1-nesouhlasnými.",
+    "html_help_file": "/A_Procedury/A71.htm",
+    "menu": "A71> Úhel dvou prostorových přímek. ",
+    "syntax": "AM=A71>M1,M2,K",
+    "type": "A"
+  },
+  "A72": {
+    "comment": "Úhel přímky s rovinou. Nabývá hodnot  (-90, 90>",
+    "html_help_file": "/A_Procedury/A72.htm",
+    "menu": "A72> Úhel přímky s rovinou.",
+    "syntax": "AM=A72>M,R",
+    "type": "A"
+  },
+  "A73": {
+    "comment": "Úhel dvou rovin. Nabývá hodnot <0, 180)",
+    "html_help_file": "/A_Procedury/A73.htm",
+    "menu": "A73> Úhel dvou rovin.",
+    "syntax": "AM=A73>R1,R2",
+    "type": "A"
+  },
+  "A74": {
+    "comment": "Úhel roviny R s tečnou rovinou plochy F ve společném bodě Q.",
+    "html_help_file": "/A_Procedury/A74.htm",
+    "menu": "A74> Úhel roviny R s tečnou rovinou plochy v bodě.",
+    "syntax": "AM=A74>Q,R,F",
+    "type": "A"
+  },
+  "ABS": {
+    "comment": "Absolutní hodnota racionálního čísla.\n( DM = | D1| )",
+    "html_help_file": "/Funkce/ABS.htm",
+    "menu": "ABS> Absolutní hodnota čísla.",
+    "syntax": "DM=ABS>D1",
+    "type": "D"
+  },
+  "ABSOL": {
+    "comment": "Zapnutí režimu absolutního  kreslení. Ruší se příkazen INCRE.\n(Pro  příkazy MOVE*D1:D2  a MOVE3*D1:D2:D3)",
+    "html_help_file": "/Kresleni/ABSOL.htm",
+    "menu": "ABSOL Zapnutí režimu absolutního kreslení.",
+    "syntax": "ABSOL",
+    "type": null
+  },
+  "ACCUR": {
+    "comment": "Přesnost nahrazení křivky sekvencí úseček při generování řetězce (E, H )\n nebo při generování kresby. Zadává se v mm, (Default 0.01 mm).",
+    "html_help_file": "/Kresleni/ACCUR.htm",
+    "menu": "ACCUR  Přesnost nahrazení křivky lomenou čarou.",
+    "syntax": "ACCUR[, D]",
+    "type": null
+  },
+  "ACOS": {
+    "comment": "Funkce arkuskosinus. (Definována pro D z < -1,1 >)",
+    "html_help_file": "/Funkce/ACOS.htm",
+    "menu": "ACOS> Arkuskosinus.",
+    "syntax": "DM=ACOS>D",
+    "type": "D"
+  },
+  "ADIM": {
+    "comment": "Kreslení kóty úhlu. \n      Body P1, P2, P3 určují úhel ,\n      číslo  DR poloměr oblouku kóty,\n      K4=0 | 1  -    potlačí | kreslí se první pomocná čára,\n      K3            -    číslo první hraniční značky,\n                            (0-nic, 1-tečka, 2-čárka, 3-šipka uvnitř, 4-šipka vně,\n                             5-šipka základny uvnitř, 6-šipka základny vně),\n      K2=0 | 1  -    potlačí | kreslí se druhá pomocná. čára,\n      K1            -    číslo druhé hraniční značky,\n      A | text    -    číselná hodnota nebo textový zápis kóty,\n      DP parametr umístění kóty (default lze nastavit příkazem PARM).",
+    "html_help_file": null,
+    "menu": "ADIM  Kótování úhlu.",
+    "syntax": "ADIM, P1, P2, P3 [, DR, KKKK, A|text, DP]",
+    "type": null
+  },
+  "AINT": {
+    "comment": "Funkce odřezává zlomkovou část racionálního čísla D.",
+    "html_help_file": "/Funkce/AINT.htm",
+    "menu": "AINT> Odřezání zlomkové části racionálního čísla.",
+    "syntax": "DM=AINT>D",
+    "type": "D"
+  },
+  "ANGL": {
+    "comment": " Nastavení úhlu sklonu pomocných kótovacích čar\npro příkazy  PDIM,  RDIM a DDIM.\n( Default 0 stupňů.)",
+    "html_help_file": null,
+    "menu": "ANGL Nastavení úhlu sklonu pomocných kótovacích čar.",
+    "syntax": "ANGL[,A]",
+    "type": null
+  },
+  "ASIN": {
+    "comment": "Funkce arkussinus. (Definována pro D z < -1,1 >)",
+    "html_help_file": "/Funkce/ASIN.htm",
+    "menu": "ASIN> Arkussinus.",
+    "syntax": "DM=ASIN>D",
+    "type": "D"
+  },
+  "ATAN": {
+    "comment": "Funkce arkustangens. (Definována pro D v oboru reálných čísel).",
+    "html_help_file": "/Funkce/ATAN.htm",
+    "menu": "ATAN> Arkustangens.",
+    "syntax": "DM=ATAN>D",
+    "type": "D"
+  },
+  "AXISX": {
+    "comment": " Kreslení a popis vodorovné souřadnicové osy (rovinné kreslení).\n    P   -   počátek osy,\n    D1 -  délka osy,\n    D2  -  délka značící úsečky,\n    D3  -  rozteč značících úseček\n    D4  -  číslo vypsané u první značky,\n    D5  -  krok číslování dalších značek\n    K     =0   - číslování nad osou (default),   =1 - pod osou, ",
+    "html_help_file": "/Kresleni/AXISX.htm",
+    "menu": "AXISX  Kreslení a popis vodorovné souřadnicové osy .",
+    "syntax": "AXISX, P, D1[, D2, D3[, D4, D5[, K]]]",
+    "type": null
+  },
+  "AXISY": {
+    "comment": " Kreslení a popis svislé souřadnicové osy (rovinné kreslení).\n    P   -   počátek osy,\n    D1 -  délka osy,\n    D2  -  délka značící úsečky,\n    D3  -  rozteč značících úseček\n    D4  -  číslo vypsané u první značky,\n    D5  -  krok číslování dalších značek\n    K     =0   - číslování vpravo od osy (default),   =1 - vlevo, ",
+    "html_help_file": "/Kresleni/AXISY.htm",
+    "menu": "AXISY   Kreslení a popis svislé souřadnicové osy .",
+    "syntax": "AXISY, P, D1[, D2, D3[, D4, D5[, K]]]",
+    "type": null
+  },
+  "BOUND": {
+    "comment": "Zjištění souřadnicového rozměru souboru .CL2.\n   Q(I)  - dvojrozměrné pole, jež body Q(1) a Q(2)\n            se naplní souřadnicemi konců úhlopříčky\n            okamžitého omezujícího hranolu kresby.\n            (Kresba musí být ozevřená). \n   Pro rovinnou kresbu možno použít rovinné pole P(I)",
+    "html_help_file": "/Kresleni/BOUND.htm",
+    "menu": "BOUND Zjištění souřadnicového rozměru souboru .CL2.",
+    "syntax": "BOUND, Q(I)",
+    "type": null
+  },
+  "C00": {
+    "comment": "Kružnice zadaná souřadnicemi středu a poloměrem,\n   x = D1,  y = D2,  r = D3.",
+    "html_help_file": "/C_Procedury/C00.htm",
+    "menu": "C00> 2D kružnice souřadnicemi středu a poloměrem.",
+    "syntax": "CM=C00>D1,D2,D3",
+    "type": "C"
+  },
+  "C01": {
+    "comment": "Kružnice  má střed v bodě P a poloměr D ",
+    "html_help_file": "/C_Procedury/C01.htm",
+    "menu": "C01> 2D kružnice středem a poloměrem.",
+    "syntax": "CM=C01>P,D",
+    "type": "C"
+  },
+  "C02": {
+    "comment": "Kružnice procházející třemi body.\n    P1, P2, P3  -  průchozí body",
+    "html_help_file": "/C_Procedury/C02.htm",
+    "menu": "C02> 2D kružnice třemi body.",
+    "syntax": "CM=C02>P1,P2,P3",
+    "type": "C"
+  },
+  "C03": {
+    "comment": "Kružnice která prochází dvěma body a má daný  poloměr.\n   P1, P2  -  průchozí  body,\n   K      =0 - střed kružnice je vlevo,   =1 - vpravo od spojnice P1,P2.",
+    "html_help_file": "/C_Procedury/C03.htm",
+    "menu": "C03> 2D kružnice dvěma body a poloměrem.",
+    "syntax": "CM=C03>P1,P2,D,K",
+    "type": "C"
+  },
+  "C04": {
+    "comment": "Kružnice CM je zrcadlový obraz kružnice C podle přímky L",
+    "html_help_file": "/C_Procedury/C04.htm",
+    "menu": "C04> 2D kružnice symetrická podle přímky.",
+    "syntax": "CM=C04> C, L",
+    "type": "C"
+  },
+  "C07": {
+    "comment": "Kružnice CM je posunutá oproti kružnici  C  o vektor V.",
+    "html_help_file": "/C_Procedury/C07.htm",
+    "menu": "C07> 2D kružnice posunutím dané  kružnice o vektor.",
+    "syntax": "CM=C07>C,V",
+    "type": "C"
+  },
+  "C08": {
+    "comment": "Kružnice CM vznikne rotací kružnice C kolem bodu P o úhel A.\nSmysl rotace:  K=0 - proti směru hodin. ručiček (default),  K=1 - po směru.",
+    "html_help_file": "/C_Procedury/C08.htm",
+    "menu": "C08> 2D kružnice rotací kružnice kolem bodu o daný úhel.",
+    "syntax": "CM=C08>C,P,A[,K]",
+    "type": "C"
+  },
+  "C29": {
+    "comment": "Kružnice CM má střed v bodě P a dotýká se přímky L.",
+    "html_help_file": "/C_Procedury/C29.htm",
+    "menu": "C29> 2D kružnice se středem v bodě tečná k přímce.",
+    "syntax": "CM=C29>P,L",
+    "type": "C"
+  },
+  "C30": {
+    "comment": "Kružnice o poloměru D prochází bodem P a dotýká se přímky L.\nVýběr ze dvou řešení:\n  K=0 - první kružnice, K=1 - druhá ve směru smluvní orientace  L.",
+    "html_help_file": "/C_Procedury/C30.htm",
+    "menu": "C30> 2D kružnice daná poloměrem, procházející bodem a dotýkající se přímky.",
+    "syntax": "CM=C30>P, L, D, K",
+    "type": "C"
+  },
+  "C31": {
+    "comment": "Kružnice o poloměru D prochází bodem P a dotýká se kružnice C.\nVýběr řešení:\n   Je-li  bod P vně kružnice C:\n           K2=0 - CM je vůči C vnější, K2=1 - vnitřní,\n           K1=0 -  bod dotyku kružnic leží vlevo od spojnice středu C a bodu P,\n                =1 - leží  vpravo.\n   Je-li bod P uvnitř kružnice C:\n           K2  bez významu,\n           K1=0 - bod dotyku kružnic leží vlevo od spojnice středu C a bodu P,\n                =1 - leží vpravo.",
+    "html_help_file": "/C_Procedury/C31.htm",
+    "menu": "C31> 2D kružnice daná poloměrem, procházející bodem a dotýkající se jine kružnice.",
+    "syntax": "CM=C31>P, C, D, KK",
+    "type": "C"
+  },
+  "C32": {
+    "comment": "Kružnice o poloměru D, dotýkající se přímek L1 a  L2.\nVýběr řešení:\n    K2=0 - vlevo od přímky L1, K2=1 - vpravo,\n    K1=0 - vlevo od přímky L2, K2=1 - vpravo.",
+    "html_help_file": "/C_Procedury/C32.htm",
+    "menu": "C32> 2D kružnice daná poloměrem, dotýkající se dvou přímek.",
+    "syntax": "CM=C32>L1,L2,D,KK",
+    "type": "C"
+  },
+  "C33": {
+    "comment": "Kružnice CM má poloměr D, dotýká se přímky L a kružnice C.\nVýběr řešení:\n   K3=0 - CM leží vlevo od smluvně orientované přímky L,  K3=1 - vpravo od L,\n   K2=0 - CM leží uvnitř kružnice C, K2=1 - vně C, \n   K1=0 - první ve směru přímky L, K2=1 - druhá ve směru  L.",
+    "html_help_file": "/C_Procedury/C33.htm",
+    "menu": "C33> 2D kružnice daná poloměrem,  dotýkající se přímky a jiné kružnice.",
+    "syntax": "CM=C33>L,C,D,KKK",
+    "type": "C"
+  },
+  "C34": {
+    "comment": "Kružnice CM má poloměr D a dotýká se kružnic C1 a C2.\nVýběr řešení:\n   K3=0 - kružnice CM má vnitřní dotyk s kružnicí C1,  K3=1  -vnější dotyk,,\n   K2=0 - kružnice CM má vnitřní dotyk s kružnicí C2,  K2=1 - vnější dotyk,\n   K1=0 - střed kružnice CM je vlevo od spojnice středů C1 a C2,  K1=1 - vpravo .",
+    "html_help_file": "/C_Procedury/C34.htm",
+    "menu": "C34> 2D kružnice určená poloměrem, dotýkající se dvou jiných kružnic.",
+    "syntax": "CM=C34>C1,C2,D,KKK",
+    "type": "C"
+  },
+  "C37": {
+    "comment": "Kružnice CM má střed v bodě P a dotýká se kružnice C.\nVýběr řešení:  K=0 - větší z obou možných kružnic, K=1 - menší.",
+    "html_help_file": "/C_Procedury/C37.htm",
+    "menu": "C37> 2D kružnice daná středem, dotýkající se jiné kružnice.",
+    "syntax": "CM=C37>P,C,K",
+    "type": "C"
+  },
+  "C38": {
+    "comment": "Kružnice  má střed P1 a prochází bodem P2.",
+    "html_help_file": "/C_Procedury/C38.htm",
+    "menu": "C38> 2D kružnice daná středem a bodem, kterým prochází.",
+    "syntax": "CM=C38>P1,P2",
+    "type": "C"
+  },
+  "C49": {
+    "comment": "Kružnice CM je totožná s kružnicí C.",
+    "html_help_file": "/C_Procedury/C49.htm",
+    "menu": "C49> Kopie 2D kružnice.",
+    "syntax": "CM=C49>C",
+    "type": "C"
+  },
+  "CALL": {
+    "comment": "Volání vnějšího podprogramu.\n   XXX         - jméno podprogramu,\n   seznam - seznam skutečných parametrů\n                       (parametry jsou odděleny čárkami) ",
+    "html_help_file": null,
+    "menu": "CALL Volání vnějšího podprogramu.",
+    "syntax": "CALL/XXX/[seznam ]",
+    "type": null
+  },
+  "CDIM": {
+    "comment": "Kreslení kóty oblouku.\n    P1 - počátek oblouku,\n    P2 - konec oblouku   ( kóta se kreslí vždy proti směru hodin. ručiček),\n    P3 - střed oblouku,\n    D1 -  vzdálenost kóty od oblouku (kladná hodnota -  vně oblouku),\n    K4 = 0 | 1  -   potlačí | kreslí se první pomocná čára,\n    K3              -   číslo první hraniční značky,\n                           (0-nic, 1-tečka, 2-čárka, 3-šipka uvnitř, 4-šipka vně,\n                            5-šipka základny uvnitř, 6-šipka základny vně),\n    K2 = 0 | 1  -  potlačí | kreslí se druhá pomocná čára,\n    K1              -  číslo druhé hraniční značky,\n    D2 | text    -  číselná hodnota nebo text kóty.",
+    "html_help_file": null,
+    "menu": "CDIM Kótování oblouku",
+    "syntax": "CDIM, P1, P2, P3[, D1, KKKK, D2|text]",
+    "type": null
+  },
+  "CLOSE": {
+    "comment": "Uzavření objektového bloku kresby.",
+    "html_help_file": "/Kresleni/CLOSE.htm",
+    "menu": "CLOSE Uzavření objektového bloku kresby.",
+    "syntax": "CLOSE",
+    "type": null
+  },
+  "CLSIGS": {
+    "comment": "Uzavření souboru IGES. (Pouze ve verzi VMS - VAX)",
+    "html_help_file": null,
+    "menu": "CLSIGS Uzavření souboru IGES. (Implementován pouze ve verzi VMS - VAX)",
+    "syntax": "CLSIGS",
+    "type": null
+  },
+  "CMAC": {
+    "comment": "Volání 2D kreslícího makra,\n    P1  -  vztažný bod makra,\n    vg  -  natočení makra,\n                  D1 - úhel natočení od kladné osy x proti směru hodin. ručiček,\n                  P2 - natočení rovnoběžně s orientovanou spojnicí bodů P1 a P2,\n                  V   -  natočení rovnoběžně s vektorem V,\n                  L    -  natočení rovnoběžné se smluvní orientací přímky L,\n    D2  - měřítko makra,\n    K2  = 0 | 1   -  normální |  zrcadlový obraz podle osy x,\n    K1  = 0 | 1   -  normální |  zrcadlový obraz podle osy y,\n    B    -  jméno makra (default typ souboru  .MC2).",
+    "html_help_file": null,
+    "menu": "CMAC Volání 2D kreslícího makra.",
+    "syntax": "CMAC, P1, vg(D1| P2| V| L),  D2, KK, B",
+    "type": null
+  },
+  "CMAC3": {
+    "comment": "Volání 3D kreslícího makra,\n    Q1    -  vztažný bod makra,\n    vg2  -  prostorové natočení osy x makra,\n                 Q2 - natočení rovnoběžně s orientovanou spojnicí bodů Q1 a Q2,\n                 U2 - natočení rovnoběžně s vektorem U2,\n                 M2 - natočení rovnoběžné s vektorem přímky M2,\n    vg3  -  prostorové natočení osy y makra,\n                 Q3 - natočení rovnoběžně s orientovanou spojnicí bodů Q1 a Q3,\n                 U3 - natočení rovnoběžně s vektorem U3,\n                 M3 - natočení rovnoběžné s vektorem přímky M3,\n    D2   -  měřítko makra,\n    K3   = 0 | 1   -  normální |  zrcadlový obraz podle roviny YZ,\n    K2   = 0 | 1   -  normální |  zrcadlový obraz podle roviny XZ,\n    K1   = 0 | 1   -  normální |  zrcadlový obraz podle roviny XY,\n    B     -   jméno makra (default typ souboru  .MC3).",
+    "html_help_file": null,
+    "menu": "CMAC3 Volání 3D kreslicího makra.",
+    "syntax": "CMAC3, Q1, vg2(Q2| U2| M2), vg3(Q3| U3| M3), D, KKK, B",
+    "type": null
+  },
+  "CONTIN": {
+    "comment": "Nevykoná žádnou činnost a předá řízení dalšímu příkazu.",
+    "html_help_file": null,
+    "menu": "CONTIN Pokračuj.",
+    "syntax": "CONTIN",
+    "type": null
+  },
+  "COOS": {
+    "comment": "Aktivování 2D souřadnicové soustavy definované příkazem DCOOS pro čtení a zápis.\n     I  -  číslo aktivované souřadnicové soustavy,   (možná čísla soustav  <1, 5> ),\n     I = 0   -  vypnutí dosud aktivní soustavy.",
+    "html_help_file": null,
+    "menu": "COOS Aktivování 2D souřadnicove soustavy pro čtení a zápis.",
+    "syntax": "COOS, I",
+    "type": null
+  },
+  "COOS3": {
+    "comment": "Aktivování 3D souřadnicové soustavy definované příkazem DCOOS3 pro čtení a zápis.\n    I  -  číslo aktivované souřadnicové soustavy,   (možná čísla soustav  <1, 10> ),\n    I = 0   -  vypnutí dosud aktivní soustavy.",
+    "html_help_file": null,
+    "menu": "COOS3 Aktivování 3D souřadnicove soustavy pro čtení a zápis.",
+    "syntax": "COOS3, I",
+    "type": null
+  },
+  "COS": {
+    "comment": "Funkce kosinus. (Definována pro D v oboru reálných čísel).",
+    "html_help_file": "/Funkce/COS.htm",
+    "menu": "COS> Kosinus.",
+    "syntax": "DM=COS>D",
+    "type": "D"
+  },
+  "CRE": {
+    "comment": "Otevření tvorby řetězce pomocí kreslících příkazů.\n    pg  -  identifikátor řetězce, který má být vytvořen,\n           E  -  pro vytvoření rovinného řetězce ,\n           H  -  pro vytvoření prostorového řetězce. ",
+    "html_help_file": null,
+    "menu": "CRE Otevření tvorby řetězce pomocí kreslících příkazů.",
+    "syntax": "CRE, pg(E | H)",
+    "type": null
+  },
+  "D10": {
+    "comment": "DM je vzdálenost bodů P1 a P2.",
+    "html_help_file": "/D_Procedury/D10.htm",
+    "menu": "D10> Vzdálenost dvou 2D bodů.",
+    "syntax": "DM=D10>P1,  P2",
+    "type": "D"
+  },
+  "D11": {
+    "comment": "DM je vzdálenost bodu P od přímky L.",
+    "html_help_file": "/D_Procedury/D11.htm",
+    "menu": "D11> Vzdálenost 2D bodu od přímky.",
+    "syntax": "DM=D11>P,  L",
+    "type": "D"
+  },
+  "D12": {
+    "comment": "DM je vzdálenost bodu P od středu kružnice C.",
+    "html_help_file": "/D_Procedury/D12.htm",
+    "menu": "D12> Vzdálenost 2D bodu od středu kružnice.",
+    "syntax": "DM=D12>P,  C",
+    "type": "D"
+  },
+  "D13": {
+    "comment": "DM je vzdálenost bodu P od křivky S.\nVýpočet se provede pro  K-tý patní bod kolmice spuštěné z P na S.\nPatní body počítáme ve směru definování křivky S.",
+    "html_help_file": "/D_Procedury/D13.htm",
+    "menu": "D13> Vzdálenost 2D bodu od křivky.",
+    "syntax": "DM=D13>P,  S,  K",
+    "type": "D"
+  },
+  "D14": {
+    "comment": "DM je nejmenší vzdálenost bodu P od řetězce E.\nNelze-li s bodu P spustit na řetězec E kolmici, je vypočtena\n vzdálenost bodu P od nejbližšího konce řetězce.",
+    "html_help_file": "/D_Procedury/D14.htm",
+    "menu": "D14> Minimální vzdálenost 2D bodu od řetězce.",
+    "syntax": "DM=D14>P,  E",
+    "type": "D"
+  },
+  "D20": {
+    "comment": "DM je délka vektoru V.",
+    "html_help_file": "/D_Procedury/D20.htm",
+    "menu": "D20> Délka 2D vektoru.",
+    "syntax": "DM=D20>V",
+    "type": "D"
+  },
+  "D27": {
+    "comment": "DM je délka oblouku na kružnici C určeného body P1 a P2.\n(Oba body na kružnici nemusí ležet, oblouk vymezují patní body kolmic,\n které jsou z těchto bodů na kružnici spuštěny).\nVýběr řešení:\n     K=0  -  proti směru hodin ručiček od P1, \n     K=1  -  po směru,\nJsou-li body P1 P2 totožné, platí:\n     L=0  -  DM=0 (default),\n     L=1  -  DM=obvod kružnice C.",
+    "html_help_file": "/D_Procedury/D27.htm",
+    "menu": "D27> Délka oblouku na 2D kružnici vymezená dvěma  body.",
+    "syntax": "DM=D27>C,P1,P2,K[,L]",
+    "type": "D"
+  },
+  "D28": {
+    "comment": "DM je délka řetězce E.\n  Neni-li uveden žadný z bodů P1,  P2  -  délka od počátku do konce E,\n  je-li uveden jen bod P1  -  od bodu P1 do konce E,\n  je-li uveden jen bod P2  -  od počátku E do bodu P2,\n  jsou-li uvedeny oba body  -  délka mezi oběma body (bez ohledu na jejich pořadí).\n  Podrobnosti pro uzavřený řetězec E - viz nápověda klávesou F1.",
+    "html_help_file": "/D_Procedury/D28.htm",
+    "menu": "D28> Délka 2D řetězce (v intervalu).",
+    "syntax": "DM=D28>E[, [P1][, P2]]",
+    "type": "D"
+  },
+  "D29": {
+    "comment": "DM je délka křivky S.\n  Neni-li uveden žadný z bodů P1,  P2  -  délka od počátku do konce S,\n  je-li uveden jen bod P1  -  od bodu P1 do konce S,\n  je-li uveden jen bod P2  -  od počátku S do bodu P2,\n  jsou-li uvedeny oba body  -  délka mezi oběma body (bez ohledu na pořadí).\n  Podrobnosti pro uzavřenou křivku S - viz nápověda klávesou F1.",
+    "html_help_file": "/D_Procedury/D29.htm",
+    "menu": "D29> Délka 2D křivky (v intervalu).",
+    "syntax": "DM=D29>S[,[ P1][, P2]]",
+    "type": "D"
+  },
+  "D30": {
+    "comment": "DM je složka jednoduchého geometrického objektu pg.\n  K - pořadí složky v definici objektu\n         (geometrický význam závisí na typu objektu),\n  Možné typy objektů: pg  =  P | V | C | L | Q | U | G | M | R.\n  Příklad:   DM=D30>PP, 2    -  DM je y-souřadnice bodu PP. ",
+    "html_help_file": "/D_Procedury/D30.htm",
+    "menu": "D30> Vyjmutí složky z 2D nebo 3D geometrického objektu.",
+    "syntax": "DM=D30>pg,K",
+    "type": "D"
+  },
+  "D31": {
+    "comment": "DM je hodnota indexparametru bodu P, ležícího na  řetězci E nebo na křivce S.",
+    "html_help_file": "/D_Procedury/D31.htm",
+    "menu": "D31> Indexparametr bodu 2D řetězce nebo křivky.",
+    "syntax": "DM=D31>pg(E| S), P",
+    "type": "D"
+  },
+  "D40": {
+    "comment": "DM je plošný obsah trojúhelníka určeného body P1, P2 a P3.\nVypočtená hodnota je vždy kladná.",
+    "html_help_file": "/D_Procedury/D40.htm",
+    "menu": "D40> Plošný obsah 2D trojúhelníka daného třemi body. (Pořadí vrcholů nemá vliv).",
+    "syntax": "DM=D40>P1, P2, P3",
+    "type": "D"
+  },
+  "D41": {
+    "comment": "DM je plošný obsah trojúhelníka určeného přímkami L1, L2 a L3.",
+    "html_help_file": "/D_Procedury/D41.htm",
+    "menu": "D41> Plošný obsah 2D trojúhelníka daného třemi přímkami.",
+    "syntax": "DM=D41>L1, L2, L3",
+    "type": "D"
+  },
+  "D42": {
+    "comment": "DM je plošný obsah trojúhelníka určeného body P1, P2 a P3.\nDM nabývá kladných hodnot pro pořadí vrcholů po směru hodin. ručiček.\nDM je záporné pro pořadí proti směru hodin. ručiček.",
+    "html_help_file": "/D_Procedury/D42.htm",
+    "menu": "D42> Plošný obsah 2D trojúhelníka daného třemi body. (Pořadí vrcholů má vliv).",
+    "syntax": "DM=D42>P1,  P2,  P3",
+    "type": "D"
+  },
+  "D43": {
+    "comment": "DM je plošný obsah kruhu vymezeného kružnicí C.",
+    "html_help_file": "/D_Procedury/D43.htm",
+    "menu": "D43> Plošný obsah 2D kruhu.",
+    "syntax": "DM=D43>C",
+    "type": "D"
+  },
+  "D44": {
+    "comment": "DM je plošný obsah uzavřeného řetězce E.\nDM nabývá kladných hodnot pro řetězce se smyslem definování po směru hodin. ručiček.\nDM je záporné pro řetězce definované pro směru hodin. ručiček.",
+    "html_help_file": "/D_Procedury/D44.htm",
+    "menu": "D44> Plošný obsah uzavřeného 2D řetězce. (Vliv orientace)",
+    "syntax": "DM=D44>E",
+    "type": "D"
+  },
+  "D50": {
+    "comment": "DM je poloměr křivosti křivky S v bodě P.",
+    "html_help_file": "/D_Procedury/D50.htm",
+    "menu": "D50> Poloměr křivosti 2D křivky v daném bodě.",
+    "syntax": "DM=D50>S, P",
+    "type": "D"
+  },
+  "D70": {
+    "comment": "DM je délka vektoru U.",
+    "html_help_file": "/D_Procedury/D70.htm",
+    "menu": "D70> Délka 3D vektoru.",
+    "syntax": "DM=D70>U",
+    "type": "D"
+  },
+  "D72": {
+    "comment": "Dm je vzdálenost mezi body Q1 a Q2.",
+    "html_help_file": "/D_Procedury/D72.htm",
+    "menu": "D72> Vzdálenost dvou 3D bodů.",
+    "syntax": "DM=D72>Q1,Q2",
+    "type": "D"
+  },
+  "D73": {
+    "comment": "DM je vzdálenost bodu Q od přímky M.",
+    "html_help_file": "/D_Procedury/D73.htm",
+    "menu": "D73> Vzdálenost 3D bodu od přímky.",
+    "syntax": "DM=D73>Q, M",
+    "type": "D"
+  },
+  "D74": {
+    "comment": "DM je vzdálenost bodu Q od roviny R.",
+    "html_help_file": "/D_Procedury/D74.htm",
+    "menu": "D74> Vzdálenost 3D bodu od roviny.",
+    "syntax": "DM=D74>Q, R",
+    "type": "D"
+  },
+  "D76": {
+    "comment": "DM je vzdálenost mezi rovnoběžnými přímkami M1 a M2.",
+    "html_help_file": "/D_Procedury/D76.htm",
+    "menu": "D76> Vzdálenost 3D rovnoběžných přímek.",
+    "syntax": "DM=D76>M1,M2",
+    "type": "D"
+  },
+  "D77": {
+    "comment": "DM je délka příčky mimoběžek M21 a M2.",
+    "html_help_file": "/D_Procedury/D77.htm",
+    "menu": "D77> Délka příčky mimoběžek.",
+    "syntax": "DM=D77>M1, M2",
+    "type": "D"
+  },
+  "D78": {
+    "comment": "DM je vzdálenost mezi rovnoběžnými rovinami R1 a R2.",
+    "html_help_file": "/D_Procedury/D78.htm",
+    "menu": "D78> Vzdálenost rovnoběžných rovin.",
+    "syntax": "DM=D78>R1, R2",
+    "type": "D"
+  },
+  "D80": {
+    "comment": "DM je skalární součin vektorů U1 a U2.",
+    "html_help_file": "/D_Procedury/D80.htm",
+    "menu": "D80> Skalární součin vektorů.",
+    "syntax": "DM=D80>U1, U2",
+    "type": "D"
+  },
+  "D81": {
+    "comment": "DM je hodnota indexparametru bodu Q, ležícího na  řetězci H nebo na křivce T.",
+    "html_help_file": "/D_Procedury/D81.htm",
+    "menu": "D81> Indexparametr bodu 3D řetězce nebo křivky.",
+    "syntax": "DM=D81>pg(H| T),  Q",
+    "type": "D"
+  },
+  "D82": {
+    "comment": "DM je indexparametr bodu Q ležícího na ploše F.\nVolba izočary na níž indexparametr počítán:\n   K=1  -  izočára (I, u),\n   K=2  -  izočára (J, v).",
+    "html_help_file": "/D_Procedury/D82.htm",
+    "menu": "D82> Indexparametr bodu plochy.",
+    "syntax": "DM=D82>Q,F,K",
+    "type": "D"
+  },
+  "D83": {
+    "comment": "DM je vzdálenost bodu Q od křivky T.\nVýpočet se provede pro  K-tý patní bod kolmice spuštěné z Q na T.\nPatní body počítáme ve směru definování křivky T.",
+    "html_help_file": "/D_Procedury/D83.htm",
+    "menu": "D83> Vzdálenost 3D bodu od křivky.",
+    "syntax": "DM=D83>Q, T, K",
+    "type": "D"
+  },
+  "D84": {
+    "comment": "DM je nejmenší vzdálenost bodu Q od řetězce H.\nNelze-li s bodu Q spustit na řetězec H kolmici, je vypočtena\nvzdálenost bodu Q od nejbližšího konce řetězce.",
+    "html_help_file": "/D_Procedury/D84.htm",
+    "menu": "D84> Minimální vzdálenost 3D bodu od řetězce.",
+    "syntax": "DM=D84>Q, H",
+    "type": "D"
+  },
+  "D88": {
+    "comment": "DM je délka řetězce H.\n  Neni-li uveden žadný z bodů Q1,  Q2  -  délka od počátku do konce H,\n  je-li uveden jen bod Q1  -  od bodu Q1 do konce H,\n  je-li uveden jen bod Q2  -  od počátku H do bodu Q2,\n  jsou-li uvedeny oba body  -  délka mezi oběma body (bez ohledu na jejich pořadí).\n  Podrobnosti pro uzavřený řetězec H - viz nápověda klávesou F1.",
+    "html_help_file": "/D_Procedury/D88.htm",
+    "menu": "D88> Délka 3D řetězce (v intervalu).",
+    "syntax": "DM=D88>H[,[ Q1][, Q2]]",
+    "type": "D"
+  },
+  "D89": {
+    "comment": "DM je délka křivky T.\n  Neni-li uveden žadný z bodů Q1,  Q2  -  délka od počátku do konce T,\n  je-li uveden jen bod Q1  -  od bodu Q1 do konce T,\n  je-li uveden jen bod Q2  -  od počátku T do bodu Q2,\n  jsou-li uvedeny oba body  -  délka mezi oběma body (bez ohledu na pořadí).\n  Podrobnosti pro uzavřenou křivku T - viz nápověda klávesou F1.",
+    "html_help_file": "/D_Procedury/D89.htm",
+    "menu": "D89> Délka 3D křivky (v intervalu).",
+    "syntax": "DM=D89>T[,[ Q1][, Q2]]",
+    "type": "D"
+  },
+  "D90": {
+    "comment": "DM je poloměr křivosti křivky T v bodě Q.",
+    "html_help_file": "/D_Procedury/D90.htm",
+    "menu": "D90> Poloměr křivosti 3D křivky v daném bodě.",
+    "syntax": "DM=D90>T, Q",
+    "type": "D"
+  },
+  "D91": {
+    "comment": "Plošný obsah plochy F,\n  K  -   stupeň přesnosti výpočtu (číslo z <1,10> ,default=4),\n         ( pro větší K je výpočet přesnější, ale pomalejší).\n  N  -  číslo oblasti plochy (default N=0  -  všechny oblasti).",
+    "html_help_file": "/D_Procedury/D91.htm",
+    "menu": "D91> Plošný obsah plochy.",
+    "syntax": "DM=D91>F[, K][, N]",
+    "type": "D"
+  },
+  "DATA": {
+    "comment": "Přiřazení hodnot objektům - tvar úplného příkazu:\n  DATA, pg(A | D | P | V | L | C | Q | U | R | M | I | B), J\n blok parametrů\n\n   pg  -  identifikátor pole nebo množiny objektů daného typu,\n  J     -  počet objektů, které příkaz do pole nebo množiny naplní\n            ( počínaje proměnnou pg),\n  blok parametrů  -  odpovídající počet konstant  - J*K (v jednom nebo více řádcích)\n                                     (konstanty jsou odděleny čárkami, mezerami nebo tabulátory)\n  K  -  dle typu objeku:\n  K=1  pro  A | D | I | B,    K=2 pro P | V ,    K=3 pro C | Q | U,\n  K=4  pro L | R,                K=6 pro M,          K=7 pro G.",
+    "html_help_file": null,
+    "menu": "DATA Přiřazení hodnot objektům.",
+    "syntax": "DATA, pg, J",
+    "type": null
+  },
+  "DATE": {
+    "comment": "Informace o dni, datu a času,\n    B  -  textová proměnná, v níž příkaz vrací výsledek, \n    K3 = 0 | 1  -  potlačeno | vráceno jméno dne v týdnu (default 0),\n    K2 = 0 | 1  -  potlačeno | vráceno datum (default 1),\n    K1 = 0 | 1  -  potlačen  | vrácen čas (default 0), .",
+    "html_help_file": null,
+    "menu": "DATE Informace o dni, datu a času,.",
+    "syntax": "DATE, B[, KKK]",
+    "type": null
+  },
+  "DCOOS": {
+    "comment": "Definice 2D souřadnicové soustavy.\n    I     -  číslo aktivované souřadnicové soustavy,  (možná čísla soustav  <1, 5> ),\n    P1 -  počátek nové souřadnicové soustavy,\n    vg -  určuje směr nové osy x',\n          P2 - kladná osa x' prochází bode P2,\n          V   - směr osy x' je totožný se směrem vektoru V,\n          L    - směr osy x' je rovnoběžný s kladným směrem přímky L,\n          D   - kladná osy x' svírá s kladnou osou x úhel D.",
+    "html_help_file": null,
+    "menu": "DCOOS Definice 2D souřadnicové soustavy.",
+    "syntax": "DCOOS, I, P1, vg(P2 | V | L | D)",
+    "type": null
+  },
+  "DCOOS3": {
+    "comment": "Definice 3D souřadnicové soustavy.\n    I     -  číslo aktivované souřadnicové soustavy,  (možná čísla soustav  <1, 10> ),\n   Q1 -  počátek nové souřadnicové soustavy,\n   vg  -  určuje směr nové osy x',\n         Q2 - kladná osa x' prochází bodem Q2,\n         U   - směr osy x' je totožný se směrem vektoru U,\n         M    - směr osy x' je rovnoběžný s kladným směrem přímky M,.",
+    "html_help_file": null,
+    "menu": "DCOOS3 Definice 3D souřadnicové soustavy.",
+    "syntax": "DCOOS3, I, Q1, vg1(Q2 | U2 | M2 ), vg2(Q3 | U3 | M3 )",
+    "type": null
+  },
+  "DDIM": {
+    "comment": "Kóta průměru kružnice C,\n    D1 | text   -  hodnota nebo text kóty,\n    K2 = 0 | 1 | 2 -  kreslí se  bez praporku | s praporkem | s pomocnými čarami (default 0),\n    K1 = 3 | 4      -   šipky vnitřní | vnější (default 3),\n    A   -   úhel natoceni kótovací čáry od osy x priti směru hodin. ručiček,\n               (default nastaveni příkazem  ANGL),\n    D2 -  odsunutí ze zákl. polohy,\n    D3 -  vzdálenost  kótovací čáry od středu pro K2=2.",
+    "html_help_file": null,
+    "menu": "DDIM Kóta průměru kružnice.",
+    "syntax": "DDIM, C[, D1|text, KK, A, D2, D3]",
+    "type": null
+  },
+  "DFORMI": {
+    "comment": "Nastavení implicitního formátu kreslení celých čísel pro přikaz DNUMI.\n   I  -  počet míst vykreslovaného číska včetně znaménka,\n         (default  4).",
+    "html_help_file": "/Kresleni/DFORMI.htm",
+    "menu": "DFORMI Formát kreslení celých čísel (default I4).",
+    "syntax": "DFORMI[, I ]",
+    "type": null
+  },
+  "DFORMR": {
+    "comment": "Nastavení implicitního formátu kreslení racionálních čísel pro přikaz DNUMR.\n    I1  -  celkový počet míst vykreslovaného číska včetně zaménka a desetinné tečky\n             (default  4).\n    I2  -  počet míst za desetinou tečkou (default 1)",
+    "html_help_file": "/Kresleni/DFORMR.htm",
+    "menu": "DNUMR Formát kreslení racionálních čísel.",
+    "syntax": "DFORMR[, [ I1][, I2] ]",
+    "type": null
+  },
+  "DIMEN": {
+    "comment": "Deklarace polí a umístění objektů v paměti.\n   parametry  -  posloupnost  identifikátorů proměnných jakehokoliv  typu.\n                             Proměnné mohou být  bez indexu (prostá proměnná),\n                             nebo s čiselným indexem (pole proměnných).\n                            Jednotlivé parametry v seznamu jsou odděleny čárkami.",
+    "html_help_file": null,
+    "menu": " DIMEN Deklarace polí a umístění objektů v paměti.",
+    "syntax": "DIMEN, parametry",
+    "type": null
+  },
+  "DISZ": {
+    "comment": "D je výška písma ( v mm) vykreslovaných kót a technických značek\nkótovacími příkazy  ADIM, CDIM, DDIM, PDIM.",
+    "html_help_file": null,
+    "menu": "DISZ Nastavení výšky písma při vykreslování kót a technických  značek.",
+    "syntax": "DISZ[, D]",
+    "type": null
+  },
+  "DNUMI": {
+    "comment": "Vykreslení celého čísla v režimu 2D kreslení,\n   vg1 - umístění kresleného textu\n         D1 - kreslený text pokračuje za koncem textu předešle vykresleného\n         P1 - počátek kresleného textu\n   vg2 - sklon kresleného textu\n        D2 - úhel natočení od kladné osy x proti směru hodin. ručiček,\n        P2 - natočení rovnoběžně s orientovanou spojnicí bodů P1 a P2,\n        V   -  natočení rovnoběžně s vektorem V,\n        L    -  natočení rovnoběžné se smluvní orientací přímky L,\n   I  - celočíselný  výraz vyjadřující hodnotu kresleného čísla,\n  J  - celočíselný výraz určující formát čísla - počet  vykreslených míst.\n         Není-li formát v příkazu uveden, je implicitně nastavena hodnota \n         určená příkazem DFORMI ",
+    "html_help_file": "/Kresleni/DNUMI.htm",
+    "menu": "DNUMI Vykreslení celého čísla v režimu 2D kreslení.",
+    "syntax": "DNUMI, vg1(D1 |P1), vg2(D2| P2| V| L), I[, J]",
+    "type": null
+  },
+  "DNUMI3": {
+    "comment": "Vykreslení celého čísla v režimu 3D kreslení,\n   vg  - umístění kresleného textu\n         D  - kreslený text pokračuje za koncem textu předešle vykresleného\n         Q  - počátek kresleného textu\n   I  - celočíselný  výraz vyjadřující hodnotu kresleného čísla,\n  J  - celočíselný výraz určující formát čísla - počet  vykreslených míst.\n         Není-li formát v příkazu uveden, je implicitně nastavena hodnota \n         určená příkazem DFORMI ",
+    "html_help_file": "/Kresleni/DNUMI3.htm",
+    "menu": "DNUMI3 Vykreslení celého čísla v režimu 3D kreslení.",
+    "syntax": "DNUMI3, vg(D |Q),  I[, J]",
+    "type": null
+  },
+  "DNUMR": {
+    "comment": "Vykreslení racionálního čísla v režimu 2D kreslení,\n   vg1 - umístění kresleného textu\n         D1 - kreslený text pokračuje za koncem textu předešle vykresleného\n         P1 - počátek kresleného textu\n   vg2 - sklon kresleného textu\n        D2 - úhel natočení od kladné osy x proti směru hodin. ručiček,\n        P2 - natočení rovnoběžně s orientovanou spojnicí bodů P1 a P2,\n        V   -  natočení rovnoběžně s vektorem V,\n        L    -  natočení rovnoběžné se smluvní orientací přímky L,\n  D3 - racionální  výraz vyjadřující hodnotu kresleného čísla,\n  J1  - celočíselný výraz určující formát čísla - celkový počet  vykreslených míst.\n  J2  - celočíselný výraz - počet míst za desetinou tečkou,\n          Nejsouí-li parametry formátu v příkazu uvedeny, jsou implicitně nastaveny hodnoty\n          určená příkazem DFORMR. ",
+    "html_help_file": "/Kresleni/DNUMR.htm",
+    "menu": "DNUMR Vykreslení racionálního čísla v režimu 2D kreslení.",
+    "syntax": "DNUMR, vg1(D1 |P1), vg2(D2| P2| V| L), D3[, J1, J2]",
+    "type": null
+  },
+  "DNUMR3": {
+    "comment": "Vykreslení racionálního čísla v režimu 3D kreslení,\n  vg  - umístění kresleného textu\n         D1  - kreslený text pokračuje za koncem textu předešle vykresleného\n         Q1  - počátek kresleného textu\n  D2 - racionální  výraz vyjadřující hodnotu kresleného čísla,\n J1   - celočíselný výraz určující formát čísla - celkový počet  vykreslených míst.\n J2   - celočíselný výraz - počet míst za desetinou tečkou,\n          Nejsouí-li parametry formátu v příkazu uvedeny, jsou implicitně nastaveny hodnoty\n          určená příkazem DFORMR. ",
+    "html_help_file": "/Kresleni/DNUMR3.htm",
+    "menu": "DNUMR3 Vykreslení racionálního čísla v režimu 3D kreslení.",
+    "syntax": "DNUMR3, vg(D1 |Q1),  D2[, J1, J2]",
+    "type": null
+  },
+  "DO": {
+    "comment": "Příkaz cyklu (synonymum k  FOR).\n     pc  -  počítadlo cyklu - proměnna( I1 |D1 ),\n     v2  -  počáteční hodnota cyklu - výraz( I2 |D2 ),\n     v3  - koncová hodnota cyklu - výraz( I3 |D3 ),\n     v4  - krok cyklu - výraz( I4 |D4 ), default v4 = 1.  ",
+    "html_help_file": null,
+    "menu": "DO Příkaz cyklu (synonymum k FOR).",
+    "syntax": "DO, pc = v2, v3 [, v4]",
+    "type": null
+  },
+  "DRACS": {
+    "comment": "Aktivování 2D souřadnicové soustavy definované příkazem DCOOS pro kreslení.\n     I  -  číslo aktivované souřadnicové soustavy,   (možná čísla soustav  <1, 5> ),\n     I = 0   -  vypnutí dosud aktivní soustavy.",
+    "html_help_file": null,
+    "menu": "DRACS Aktivování 2D souřadnicové soustavy pro kreslení.",
+    "syntax": "DRACS, I",
+    "type": null
+  },
+  "DRACS3": {
+    "comment": "Aktivování 3D souřadnicové soustavy definované příkazem DCOOS3 pro kreslení.\n    I  -  číslo aktivované souřadnicové soustavy,   (možná čísla soustav  <1, 10> ),\n    I = 0   -  vypnutí dosud aktivní soustavy.",
+    "html_help_file": null,
+    "menu": "DRACS3 Aktivování 3D souřadnicové soustavy pro kreslení.",
+    "syntax": "DRACS3, I",
+    "type": null
+  },
+  "DRBLK": {
+    "comment": "Příkaz uzavře otevřený kreslící blok a otevření nový.\n   vi1 - vi6    -  výběrové kreslicí klíče,\nDefault:\n   vi1 = 1,\n   vi2 = vi3 = vi4 = vi5 = vi6 = 0,  (nedefinovaný klíč).",
+    "html_help_file": "/Kresleni/DRBLK.htm",
+    "menu": "DRBLK Otevření nového kreslícího bloku.",
+    "syntax": "DRBLK[, vi1[, vi2[,v i3[,v i4[, i5[, vi6]]]]]]",
+    "type": null
+  },
+  "DRELM": {
+    "comment": "Příkaz uzavře otevřený kreslící element a otevření nový.",
+    "html_help_file": "/Kresleni/DRELM.htm",
+    "menu": "DRELM Otevření nového kreslícího elementu.",
+    "syntax": "DRELM",
+    "type": null
+  },
+  "DSPEED": {
+    "comment": "Nastavení stupně rychlosti kreslení \nHodnota  I  z intervalu <0-9>, \nnejvyšší rychlost  I = 9,  nejnižší  I = 0, (default 9).",
+    "html_help_file": "/Kresleni/DSPEED.htm",
+    "menu": "DSPEED Nastavení stupně rychlosti kreslení.",
+    "syntax": "DSPEED[, I]",
+    "type": null
+  },
+  "DTB": {
+    "comment": "Příkaz vyjme 3D geometrický objekt  z knihovny DTB.\n    pg  -  geometrická proměnná (libovolný 3D objekt,\n               který má ¨být z knihovny načten),\n    B1 -  textový výraz  -  jméno knihovny,\n    B2 -  textový výraz  -  knihovní identifikátor objektu,\n    I1  -  1. knihovní index - celočíselný výraz,\n    I2  -  2. knihovní index,\nDalší parametry platí jen pro objekt pg(F) - načítání plochy, \n    I3  -  typ plochy  ( 0 - stará plocha,  1 - nová (default I3=1),\n    I4  -  číslo oblasti plochy, (pro I4=0  načítá se celá plocha - default),\n    I5 - I8  - meze plochy ( v pořadí IMIN, IMAX, JMIN, JMAX),\n                   (nejsou-li uvedeny, celá plocha). ",
+    "html_help_file": null,
+    "menu": "DTB Vyjmutí geometrických objektů z knihovny DTB.",
+    "syntax": "DTB, pg, B1[, B2[, I1[, I2]]], [I3], [I4], [I5], [I6], [I7], [I8]",
+    "type": null
+  },
+  "DTEXT": {
+    "comment": "Vykreslení grafického textu v režimu 2D kreslení.\n   vg1 - umístění kresleného textu\n         D1 - kreslený text pokračuje za koncem textu předešle vykresleného\n         P1 - počátek kresleného textu\n   vg2 - sklon kresleného textu\n        D2 - úhel natočení od kladné osy x proti směru hodin. ručiček,\n        P2 - natočení rovnoběžně s orientovanou spojnicí bodů P1 a P2,\n        V   -  natočení rovnoběžně s vektorem V,\n        L    -  natočení rovnoběžné se smluvní orientací přímky L,\n  B  - textový výraz obsahující text, který má být vykreslen.",
+    "html_help_file": "/Kresleni/DTEXT.htm",
+    "menu": "DTEXT Vykreslení grafického textu v režimu 2D kreslení.",
+    "syntax": "DTEXT, vg1(D1| P1), vg2(D2| P2| V| L), B",
+    "type": null
+  },
+  "DTEXT3": {
+    "comment": "Vykreslení grafického textu v režimu 3D kreslení.\n   vg  - umístění kresleného textu\n         D  - kreslený text pokračuje za koncem textu předešle vykresleného\n         Q  - počátek kresleného textu\n   B  - textový výraz obsahující text, který má být vykreslen.",
+    "html_help_file": "/Kresleni/DTEXT3.htm",
+    "menu": "DTEXT3  Vykreslení grafického textu v režimu 3D kreslení.",
+    "syntax": "DTEXT3, vg(D |Q), B",
+    "type": null
+  },
+  "DTSYM": {
+    "comment": "Kreslení grafického symbolu v režimu 2D kreslení.\n   vg1 - umístění kresleného symbolu\n         D1 - kreslený symbol je umístěn za koncem textu předešle vykresleného\n         P1 - vztažný bod kresleného symbolu\n   vg2 - sklon kresleného textu\n        D2 - úhel natočení od kladné osy x proti směru hodin. ručiček,\n        P2 - natočení rovnoběžně s orientovanou spojnicí bodů P1 a P2,\n        V   -  natočení rovnoběžně s vektorem V,\n        L    -  natočení rovnoběžné se smluvní orientací přímky L,\n   I1 - číslo symbolu, který má být vykreslen. (Čísla centrovaných symbolů 0 - 15)\n   I2 - způsob spojení symbolů,\n              (I2=0  symboly se nespojují (default),\n              (I2=1  k symbolu je vedena plná čára) ",
+    "html_help_file": "/Kresleni/DTSYM.htm",
+    "menu": "DTSYM Kreslení grafického symbolu v režimu 2D kreslení.",
+    "syntax": "DTSYM, vg1(D1| P1), vg2(D2| P2| V| L), I1[, I2]",
+    "type": null
+  },
+  "DTSYM3": {
+    "comment": "Kreslení grafického symbolu v režimu 3D kreslení.\n   vg  - umístění kresleného symbolu\n         D  - kreslený symbol je umístěn za koncem textu předešle vykresleného\n         Q  - vztažný bod  kresleného symbolu\n   I1 - číslo symbolu, který má být vykreslen. (Čísla centrovaných symbolů 0 - 15)\n   I2 - způsob spojení symbolů,\n              (I2=0  symboly se nespojují (default),\n              (I2=1  k symbolu je vedena plná čára) ",
+    "html_help_file": "/Kresleni/DTSYM3.htm",
+    "menu": "DTSYM3 Kreslení grafického symbolu v režimu 3D kreslení.",
+    "syntax": "DTSYM3, vg(D |Q), I1[, I2]",
+    "type": null
+  },
+  "E01": {
+    "comment": "EM je rovinný řetězec proložený K body. \n  P(i)  - první bod množiny nebo pole bodů.\n               (Pole nebo množina definována příkazem DIMEN). ",
+    "html_help_file": "/E_Procedury/E01.htm",
+    "menu": "E01> 2D řetězec polem (množinou)  bodů.",
+    "syntax": "EM=E01> P(I), K",
+    "type": "E"
+  },
+  "E02": {
+    "comment": "EM je rovinný řetězec proložený vyjmenovanými body.\n P1 až P7  -  seznam vyjmenovaných bodů.\n                           (P1 a P2 jsou povinné - nejmenší možný počet bodů jsou 2,\n                             nejvyšší možný počet je 7) ",
+    "html_help_file": "/E_Procedury/E02.htm",
+    "menu": "E02> 2D řetězec vyjmenovanými body.",
+    "syntax": "EM=E02> P1, P2[, P3]...[, P7]",
+    "type": "E"
+  },
+  "E04": {
+    "comment": "Řetezec EM je zrcadlový obraz řetězce E podle přímky L",
+    "html_help_file": "/E_Procedury/E04.htm",
+    "menu": "E04> 2D řetězec symetrický podle přímky.",
+    "syntax": "EM=E04> E, L",
+    "type": "E"
+  },
+  "E07": {
+    "comment": "Řetězec EM je posunutý oproti řetězci E  o vektor V.",
+    "html_help_file": "/E_Procedury/E07.htm",
+    "menu": "E07> Posunutí 2D řetězce o vektor.",
+    "syntax": "EM=E07> E, V",
+    "type": "E"
+  },
+  "E08": {
+    "comment": "Otočení řetězce E o úhel A  kolem bodu P.\n     K=0 - proti směru hodinových ručiček (default),\n     K=1 - po směru.",
+    "html_help_file": "/E_Procedury/E08.htm",
+    "menu": "E08> Otočení 2D řetězce o daná úhel okolo daného  bodu.",
+    "syntax": "EM=E08> E, P, A[, K]",
+    "type": "E"
+  },
+  "E43": {
+    "comment": "EM je řetězec definovaný jako podmnožina řetězce E.\n  Neni-li uveden žadný z bodů P1,  P2  -  kopie řetězce  E,\n  je-li uveden jen bod P1  -  od bodu P1 do konce E,\n  je-li uveden jen bod P2  -  od počátku E do bodu P2,\n  jsou-li uvedeny oba body  -  řetězec mezi oběma body.",
+    "html_help_file": "/E_Procedury/E43.htm",
+    "menu": "E43> 2D řetězec jako podmnožina řetězce vymezená dvěma body.",
+    "syntax": "EM=E43> E[, [P1][, P2]]",
+    "type": "E"
+  },
+  "E44": {
+    "comment": "EM je podmnožina řetězce E.\nVýběr řešení:\n    K=0  -  EM leží vlevo od přímky L (vzhledem k smluvní orientaci),\n    K=1  -  EM leží vpravo.",
+    "html_help_file": "/E_Procedury/E44.htm",
+    "menu": "E44> 2D řetězec jako podmnožina v polorovině vymezené přímkou.",
+    "syntax": "EM=E44> E, L, K",
+    "type": "E"
+  },
+  "E45": {
+    "comment": "EM je řetězec nahrazující úsek křivky S vymezený body P1 a P2.\n  Neni-li uveden žadný z bodů P1,  P2  -  EM nahrazuje celou křívku S,\n  je-li uveden jen bod P1  -  od bodu P1 do konce S,\n  je-li uveden jen bod P2  -  od počátku S do bodu P2,\n  jsou-li uvedeny oba body  -  řetězec nahradí úsek mezi oběma body.",
+    "html_help_file": "/E_Procedury/E45.htm",
+    "menu": "E45> Řetězec nahrazující úsek křivky vymezený dvěma body (s přesností).",
+    "syntax": "EM=E45> S[, [P1][, P2]]",
+    "type": "E"
+  },
+  "E46": {
+    "comment": "EM je podmnožina řetězce E vymezená průsečíky s přímkami L1 a L2.\n  Dvojice L1, K1  -  K1-tý průsečík přímky L1 s řetězcem E,\n  Dvojice L2, K2  -  K2-tý průsečík L2 s E.\n  Neni-li uvedena žadná z dvojic L, K  -  EM je kopie řetězce  E,\n  je-li uvedena  jen dvojice L1, K1  -  od určeného průsečíku s L1 do konce E,\n  je-li uvedena  jen dvojice L1, K1  -  od počátku E do určeného průsečíku s L2,\n  jsou-li uvedeny obě dvojice  -  řetězec mezi danými průsečíky.",
+    "html_help_file": "/E_Procedury/E46.htm",
+    "menu": "E46> 2D řetězec jako podmnožina řetězce omezená dvěma přímkami.",
+    "syntax": "EM=E46> E[, [L1, K1][, L2, K2]]",
+    "type": "E"
+  },
+  "E47": {
+    "comment": "EM vznikne připojením řetězce E2 k řetězci E1.\nJe-li některý z okrajových bodů E2 totožný s koncovým bodem E1,\npřípojí se E2 k E1 tímto okrajovým bodem.\nNení-li žadný z okrajů E2 totožný s koncem E1,\nvznikne fiktivní spojení mezi koncem E1 a počátkem E2",
+    "html_help_file": "/E_Procedury/E47.htm",
+    "menu": "E47> 2D řetězec jako spojení dvou řetězců.",
+    "syntax": "EM=E47> E1, E2",
+    "type": "E"
+  },
+  "E48": {
+    "comment": "EM je řetězec shodný s E, ale má opačnou orientaci.",
+    "html_help_file": "/E_Procedury/E48.htm",
+    "menu": "E48> 2D řetězec opačné orientace.",
+    "syntax": "EM=E48> E",
+    "type": "E"
+  },
+  "E49": {
+    "comment": "Řetězec EM je totožný s řetězcem E.",
+    "html_help_file": "/E_Procedury/E49.htm",
+    "menu": "E49> Kopie 2D řetězce.",
+    "syntax": "EM=E49> E",
+    "type": "E"
+  },
+  "E51": {
+    "comment": "EM je řetězec ekvidistantní k řetězci E ve vzdálenosti D.\nVýběr řešení:\n   K=0     -  EM je vlevo od E (vzhledem ke orientaci E) - default,\n   K=1     -  vpravo od E,\n   N1=0  - pseudotechnologická ekvidistanta (dráha obráběcího nástroje) - default,\n   N1=1  - pseudomatematická ekvidistanta, (definována vždy),\n   N2=0  - při tvorbě pseudotechnologické ekvidistanty nejsou hlášeny\n                  geometrické úpravy oproti ekvidistantě pseudomatematické,\n   N2=1  - jsou hlášeny úpravy (default).",
+    "html_help_file": "/E_Procedury/E51.htm",
+    "menu": "E51> 2D řetězec ekvidistantní k řetězci.",
+    "syntax": "EM=E51> E, D[, [K][, N1][, N2]]",
+    "type": "E"
+  },
+  "E85": {
+    "comment": "EM je řetězec ohraničující rozvinutý tvar lemu plechového dílce.\n     D1  -  šířka lemu,\n     D2  -  tloušťka plechu,\n     D3  -  poloměr ohybu,\n     A    -  úhel ohybu lemu (default 90 stupňů).",
+    "html_help_file": "/E_Procedury/E85.htm",
+    "menu": "E85> 2D řetězec - rozvinutý tvar plechového s dílce s lemem.",
+    "syntax": "EM=E85> E, D1, D2, D3[, A]",
+    "type": "E"
+  },
+  "E98": {
+    "comment": "EM je nesouvislý řetězec - šrafování obrazce ohraničeného uzavřeným řetězcem E.\n   A  - úhel sklonu šraf (vzhledem ke kladné ose x),\n   D  - hustota šrafování. ",
+    "html_help_file": "/E_Procedury/E98.htm",
+    "menu": "E98> 2D nesouvislý řetězec - šrafování uzavřeným  řetězcem ohraničeného obrazce",
+    "syntax": "EM=E98> E, A, D",
+    "type": "E"
+  },
+  "ELSE": {
+    "comment": "Uvedení bloku podmíněného příkazu (IF), který se realizuje,\nnení-li splněna podmínka v příkazu deklarovaná.",
+    "html_help_file": null,
+    "menu": "ELSE Uvedení druhého bloku podmíněného příkazu.",
+    "syntax": "ELSE",
+    "type": null
+  },
+  "END": {
+    "comment": "Fyzický konec programu.",
+    "html_help_file": null,
+    "menu": "END Fyzický konec programu.",
+    "syntax": "END",
+    "type": null
+  },
+  "ENDCRE": {
+    "comment": " Ukončení tvorby řetězce iniciovaného příkazem CRE.",
+    "html_help_file": null,
+    "menu": "ENDCRE Ukončení tvorby řetězce iniciovaného příkazem CRE.",
+    "syntax": "ENDCRE",
+    "type": null
+  },
+  "ENDDO": {
+    "comment": "Uzavření cyklu (synonymum NEXT).",
+    "html_help_file": null,
+    "menu": "ENDDO Uzavření cyklu (synonymum NEXT).",
+    "syntax": "ENDDO",
+    "type": null
+  },
+  "ENDIF": {
+    "comment": "Uzavření pomíněného příkazu IF.",
+    "html_help_file": null,
+    "menu": "ENDIF Uzavření pomíněného příkazu IF",
+    "syntax": "ENDIF",
+    "type": null
+  },
+  "ENDMC": {
+    "comment": "Uzavření kreslícího makra, otevřeného příkazem MACRO nebo  MACRO3.",
+    "html_help_file": null,
+    "menu": "ENDMC Uzavření kreslícího makra.",
+    "syntax": "ENDMC",
+    "type": null
+  },
+  "EXP": {
+    "comment": "Exponenciální funkce e**x. (Definovaná v oboru reálných čísel).",
+    "html_help_file": "/Funkce/EXP.htm",
+    "menu": "EXP> Výpočet exponenciální funkce e**x.",
+    "syntax": "DM=EXP>D",
+    "type": "D"
+  },
+  "F01": {
+    "comment": "FM je přímková B-spline plocha určená průchozími body  okrajových křivek.\n    Q1(I)  - pole bodů první okrajové křivky,\n    Q2(i)  - pole bodů druhé okrajové křivky,\n                   (Pro uzavřené křivky musí být jejich první a poslední body totožné)\n    K1      - počet uzlových bodů obou křivek,\n    U1(I)  - pole dvou vektorů, okrajové podmínky první křivky,\n    U2(I)  - pole dvou vektorů, okrajové podmínky druhé křivky,\n                  (Pro uzavřenou křivkuje příslušné pole vektorů vynecháno)\n    K2      - orientace sítě plochy \n                 pro K2=0 - přímky ve směru (I,u)=konst,\n                 pro K2=1 - ve směru (J,v)=konst. (default),\n    K3      - index významné  povrchové přímky, (nemusí být definován)\n    K4      - počet pásů napříč přímek. Default K4=1.",
+    "html_help_file": "/F_Procedury/F01.htm",
+    "menu": "F01> Přímková plocha (B-spline) určená průchzími body okrajových křivek.",
+    "syntax": "FM=F01>Q1(I), Q2(I), K1[, [U1(I)], [U2(I)], [K2], [K3], [K4]]",
+    "type": "F"
+  },
+  "F02": {
+    "comment": "FM je Hermitova přímková plocha okrajovými křivkami T1 a T2.\n (křivky T1, T2 musí být definovány pomocí  T02, T03 nebo T09)\n    K1 -  počet segmentů křivek.\n    K2 - orientace sítě plochy \n             pro K2=0 - přímky ve směru (I,u)=konst,\n             pro K2=1 - ve směru (J,v)=konst. (default),\n    K3  - index významné  povrchové přímky, (Nemusí být definován)\n    K4  - počet pásů napříč přímek. Default K4=1.",
+    "html_help_file": "/F_Procedury/F02.htm",
+    "menu": "F02> Přímková plocha (Hermit) okrajovými křivkami.",
+    "syntax": "FM=F02>T1, T2[, [K1], [K2], [K3], [K4]]",
+    "type": "F"
+  },
+  "F03": {
+    "comment": "FM je přímková plocha (B-spline) určená řidicími body okrajových křivek.\n    Q1(I)  - pole řidicích bodů první okrajové křivky,\n    Q2(i)  - pole řidicích bodů druhé okrajové křivky,\n    K1 počet řídicích bodů obou křivek (včetně okraj. podmínek). Možný rozsah  4,130>,\n    K2 - orientace sítě plochy \n             pro K2=0 - přímky ve směru (I,u)=konst,\n             pro K2=1 - ve směru (J,v)=konst. (default),\n    K3  - index významné  povrchové přímky. Povolený rozsah <1,K1-2>. (Nemusí být definován)\n    K4  - počet pásů napříč přímek. Default K4=1.",
+    "html_help_file": "/F_Procedury/F03.htm",
+    "menu": "F03> Přímková plocha (B-spline) určená řidicími body okrajových křivek.",
+    "syntax": "FM=F03>Q1(I), Q2(I), K1[, [K2], [K3], [K4]]",
+    "type": "F"
+  },
+  "F05": {
+    "comment": "FM je podmnožina plochy F , (kopie v případě vynechaných ostatních parametrů),\n     K1 - mez IMIN, \n     K2 - mez IMAX,\n     K3 - mez JMIN,\n     K4 - mez JMAX,\n              (default pro hodnoty mezí dle plochy F),\n     K5 - číslo oblasti plochy. (Default = 1,  oblast 1).",
+    "html_help_file": "/F_Procedury/F05.htm",
+    "menu": "F05> Vyjmutí části plochy z plochy již definované.",
+    "syntax": "FM=F05>F[, [K1], [K2], [K3], [K4], [K5]]",
+    "type": "F"
+  },
+  "F10": {
+    "comment": "FM je plocha B-spline definovaná polem řidicích bodů Q(i).\n(matice K1*K2 řidicích bodů je uspořádaná po řádcích  I=konst. - K2 bodů v řádku),\n     K1 - počet bodů ve směru J=konst.,\n             ( včetně okrajových podmínek - možný rozsah <4,130>),\n     K2 - počet bodů ve směru  I=konst\n             ( včetně okrajových podmínek - možný rozsah <4,130>).",
+    "html_help_file": "/F_Procedury/F10.htm",
+    "menu": "F10> Plocha B-spline určená řídícími body.",
+    "syntax": "FM=F10>Q(I), K1, K2",
+    "type": "F"
+  },
+  "F11": {
+    "comment": "FM je plocha B-spline proložená sítí bodů Q(I) na ploše.\n(maticeQ(K1*K2) bodů je uspořádaná po řádcích  I=konst. - K2 bodů v řádku),\nBody představují vrcholy plátů budoucí plochy.\n     K1 - počet bodů ve směru J=konst.,\n             ( možný rozsah <3,128> pro plochu v dané směru otevřenou,\n     K2 - počet bodů ve směru  I=konst.,  (rozsahy dtto K1).\nPole vektorů definují okrajové podmínky.\nJejich velikosti budou UI1(K1), UI2(K1), UJ(K2+2), UJ(K2+2).\n     UI1(i)  - okrajové podmínky na hranici I=1,\n     UI2(i)  - na hranici I=K1,\n     UJ1(i) - na hranici J=1,\n     UJ2(i) - na hranici J=K2.\nPodrobnější informace a informace o uzavřených plochách viz nápověda klávesou F1. ",
+    "html_help_file": "/F_Procedury/F11.htm",
+    "menu": "F11> Plocha B-spline proložena sítí bodů",
+    "syntax": "FM=F11>Q(I), K1, K2[, [UI1(I)], [UI2(I)], [UJ1(I)], [UJ2(I)]]",
+    "type": "F"
+  },
+  "F12": {
+    "comment": "FM je Hermitova plocha proložená sítí křivek T(I).\n Smíšené derivace (twisty) v rozích plátů jsou nulové.\n (Všechny křivky T(I) musí být definovány pomocí  T02, T03 nebo T09)\nPrvní  osnova pro I=konst. - křivky T(1) až T(K1),\nDruhá osnova pro J=konst. - křivky T(K1+1) až T(K1+K2),\nObě osnovy křivek se musí vzájemně protínat v uzlových bodech.\n    K1 - počet křivek I=konst.,\n    K2 - počet křivek J=konst. ",
+    "html_help_file": "/F_Procedury/F12.htm",
+    "menu": "F12> Hermitova plocha sítí křivek (nulové twisty).",
+    "syntax": "FM=F12>T(I),K1,K2",
+    "type": "F"
+  },
+  "F13": {
+    "comment": "FM je Hermitova plocha proložená sítí křivek T(I).\nOperace vypočítává smíšené derivace (twisty) v rozích plátů.\n(Všechny křivky T(I) musí být definovány pomocí  T02, T03 nebo T09)\nPrvní  osnova pro I=konst. - křivky T(1) až T(K1),\nDruhá osnova pro J=konst. - křivky T(K1+1) až T(K1+K2),\nObě osnovy křivek se musí vzájemně protínat v uzlových bodech.\n    K1 - počet křivek I=konst.,\n    K2 - počet křivek J=konst.,\n    K3 - směr interpolace  tečných vektorů  pro výpočet zkrouceni (twistů).\n           K3=1 -  upřednostněn směr I=konst. (default),\n           K3=2 -  směr J=konst.\n   K4  - způsob výpočtu smíšených derivací,\n          K4=1 Besselova metoda (default),\n          K4=2 metoda spline.",
+    "html_help_file": "/F_Procedury/F13.htm",
+    "menu": "F13> Hermitova plocha sítí křivek (nenulové twisty).",
+    "syntax": "FM=F13>T(I), K1, K2[, [K3], [K4]]",
+    "type": "F"
+  },
+  "F15": {
+    "comment": "Plocha obecný B-spline. Q(I) řídící body plochy (uložené ve směru (J,v)=konst.), K1 počet bodů pro (J,v)=konst., K2 pro (I,u)=konst. D1(J1) a D2(J2) jsou vektory parametrů.",
+    "html_help_file": "/F_Procedury/F15.htm",
+    "menu": "Plocha obecný B-spline. Q(I) řídící body plochy (uložené ve směru (J,v)=konst.), K1 počet bodů pro (J,v)=konst., K2 pro (I,u)=konst. D1(J1) a D2(J2) jsou vektory parametrů.",
+    "syntax": "FM=F15>Q(I),K1,K2[,D1(J1),D2(J2)]",
+    "type": "F"
+  },
+  "F20": {
+    "comment": "Plocha (Coons) jednoplátová hraničními křivkami. T1-u0, T2-1v, T3-u1, T4-0v, K - typ váh. funkce 1-lin., 2-kvadr., 3-kub. (default K=3).",
+    "html_help_file": "/F_Procedury/F20.htm",
+    "menu": "Plocha (Coons) jednoplátová hraničními křivkami. T1-u0, T2-1v, T3-u1, T4-0v, K - typ váh. funkce 1-lin., 2-kvadr., 3-kub. (default K=3).",
+    "syntax": "FM=F20>T1,T2,T3,T4[,K]",
+    "type": "F"
+  },
+  "F30": {
+    "comment": "Plocha otáčením řetězce H kolem přímky M v rozsahu úhlů A1,A2. JN počet plátů ve směru (I,u)=konst. Default A1=0, A2=360, JN=4.",
+    "html_help_file": "/F_Procedury/F30.htm",
+    "menu": "Plocha otáčením řetězce H kolem přímky M v rozsahu úhlů A1,A2. JN počet plátů ve směru (I,u)=konst. Default A1=0, A2=360, JN=4.",
+    "syntax": "FM=F30>M,H[,A1][,A2][,JN]",
+    "type": "F"
+  },
+  "F31": {
+    "comment": "Válcová plocha (nebo její část). Podstavu válce určují vektory U1,U2 a střed podstavy Q. D1 poloměr válce, D2 výška válce, A1,A2 omezující úhly válcové plochy měře né kladně od U1 ccw při pohledu proti směru osy válce. JN počet plátů ve směru indexu J. Default A1=0, A2=360, JN=4.",
+    "html_help_file": "/F_Procedury/F31.htm",
+    "menu": "Válcová plocha (nebo její část). Podstavu válce určují vektory U1,U2 a střed podstavy Q. D1 poloměr válce, D2 výška válce, A1,A2 omezující úhly válcové plochy měře né kladně od U1 ccw při pohledu proti směru osy válce. JN počet plátů ve směru indexu J. Default A1=0, A2=360, JN=4.",
+    "syntax": "FM=F31>Q,U1,U2,D1,D2[,A1][,A2][,JN]",
+    "type": "F"
+  },
+  "F32": {
+    "comment": "FM je plocha anuloidu (nebo jeho části).\n   Q   - střed anuloidu, ktrerý spolu s vektory U1 a U2 definuje vztažnou rovinu.\n            dále s vektorovým součinem U1xU2 určuje  osu rotace,\n            Kolem té se otáčí  tvořící  kružnice nebo její segment.\n   D1 - poloměr kružnice - množiny středů tvořících kružnic, jež leží ve vztažné rovině\n            (střední poloměr anuloidu).\n   D2 - poloměr tvořicí kružnice, Rovina této kružnice prochází osou anuloidu.\n   A1 - počáteční úhel měřený od U1, omezující výseč z anuloidu ve vztažné rovině\n           (parametrizace I). Default A1=0. \n   A2 - koncový omezující úhel ve vztažné rovině. Default A2=360. \n   A3 - počáteční úhel měřený od vztažné roviny, omezující segment tvořící kružnice\n           (parametrizace J).  Default A3=0.\n   A4 - koncový úhel omezující segment. Default A4=360.\n   IN  - počet plátů ve směru parametrizace I. Default IN=2\n  JN - počet plátů ve směru J.  Default JN=4.",
+    "html_help_file": "/F_Procedury/F32.htm",
+    "menu": "F32> Plocha anuloidu nebo jeho části.",
+    "syntax": "FM=F32>Q,U1,U2,D1,D2[,A1][,A2][,A3][,A4][,IN][,JN]",
+    "type": "F"
+  },
+  "F33": {
+    "comment": "FM je plocha koule (nebo její části).\n   Q   - střed koule, který spolu s vektory U1 a U2 definuje rovinu rovníku,\n            dále s vektorovým součinem U1xU2 určuje  osu koule,\n   D   - poloměr koule,\n   A1 - počáteční úhel měřený od U1, vymezující segment kružnice rovníku\n           (parametrizace I), Default A1=0.\n   A2 - koncový úhel vymezující segment v rovině rovníku. Musí být A2>A1 . Default A2=360.\n   A3 - počáteční úhel měřený od roviny rovníku, vymezující segment kružnice poledníku.\n           (parametrizace J). Default=-90.\n   A4 - koncový úhel vymezující segment poledníku. Musí být A4>A3. Default A4=90.\n   IN  - počet plátů ve směru parametrizace I. Default IN=2\n  JN - počet plátů ve směru J.  Default JN=2.",
+    "html_help_file": "/F_Procedury/F33.htm",
+    "menu": "F33> Plocha koule nebo její části.",
+    "syntax": "FM=F33>Q, U1, U2, D[, [A1], [A2], [A3], [A4], [IN], [JN]]",
+    "type": "F"
+  },
+  "F34": {
+    "comment": "Plocha ohýbané tyče nebo trubky. H je řetězec charakterizující osu tyče, D1 je poloměr ohybu vzhledem k ose a D2 je poloměr tyče.",
+    "html_help_file": "/F_Procedury/F34.htm",
+    "menu": "Plocha ohýbané tyče nebo trubky. H je řetězec charakterizující osu tyče, D1 je poloměr ohybu vzhledem k ose a D2 je poloměr tyče.",
+    "syntax": "FM=F34>H,D1,D2",
+    "type": "F"
+  },
+  "F35": {
+    "comment": "Plocha otáčením křivky T kolem přímky M v rozsahu úhlů A1,A2. JN počet plátů ve směru J. Default A1=0, A2=360, JN=4.",
+    "html_help_file": "/F_Procedury/F35.htm",
+    "menu": "Plocha otáčením křivky T kolem přímky M v rozsahu úhlů A1,A2. JN počet plátů ve směru J. Default A1=0, A2=360, JN=4.",
+    "syntax": "FM=F35>M,T[,A1][,A2][,JN]",
+    "type": "F"
+  },
+  "F36": {
+    "comment": "Plocha vzniklá posunutím řetězce H1 nebo křivky T1 po řetězci H2 nebo křivce T2.",
+    "html_help_file": "/F_Procedury/F36.htm",
+    "menu": "Plocha vzniklá posunutím řetězce H1 nebo křivky T1 po řetězci H2 nebo křivce T2.",
+    "syntax": "FM=F36>{H1,T1},{H2,T2}",
+    "type": "F"
+  },
+  "F37": {
+    "comment": "Kuželová plocha definovaná bodem Q jako vrcholem a tvořícím řetězcem H. Je-li uveden parametr R, je jedním okrajem plochy řetězec H a druhým prů sečnice kuželové plochy s R.",
+    "html_help_file": "/F_Procedury/F37.htm",
+    "menu": "Kuželová plocha definovaná bodem Q jako vrcholem a tvořícím řetězcem H. Je-li uveden parametr R, je jedním okrajem plochy řetězec H a druhým prů sečnice kuželové plochy s R.",
+    "syntax": "FM=F37>Q,H[,R]",
+    "type": "F"
+  },
+  "F38": {
+    "comment": "Kuželová plocha definovaná bodem Q jako vrcholem a tvořící křivkou T. Je-li uveden parametr R, je jedním okrajem plochy křivka T a druhým průseč nice kuželové plochy s R.",
+    "html_help_file": "/F_Procedury/F38.htm",
+    "menu": "Kuželová plocha definovaná bodem Q jako vrcholem a tvořící křivkou T. Je-li uveden parametr R, je jedním okrajem plochy křivka T a druhým průseč nice kuželové plochy s R.",
+    "syntax": "FM=F38>Q,T[,R]",
+    "type": "F"
+  },
+  "F39": {
+    "comment": "Šroubová plocha vzniklá otáčivým a posuvným pohybem tvořícího řetězce H kolem přímky M. D stoupání šroubové plochy na jednu otáčku, I1 počet plátů ve směru otáčení na jednu otočku, I2 počet otáček.",
+    "html_help_file": "/F_Procedury/F39.htm",
+    "menu": "Šroubová plocha vzniklá otáčivým a posuvným pohybem tvořícího řetězce H kolem přímky M. D stoupání šroubové plochy na jednu otáčku, I1 počet plátů ve směru otáčení na jednu otočku, I2 počet otáček.",
+    "syntax": "FM=F39>M,H,D,I1,I2",
+    "type": "F"
+  },
+  "F40": {
+    "comment": "Plocha trojúhelníka tvořeného body Q1, Q2 a Q3 nebo plocha zborceného čtyřúhelníka, je-li navíc uveden bod Q4.",
+    "html_help_file": "/F_Procedury/F40.htm",
+    "menu": "Plocha trojúhelníka tvořeného body Q1, Q2 a Q3 nebo plocha zborceného čtyřúhelníka, je-li navíc uveden bod Q4.",
+    "syntax": "FM=F40>Q1,Q2,Q3[,Q4]",
+    "type": "F"
+  },
+  "F41": {
+    "comment": "Plocha translací tvořícího řetězce H ve směru U do vzdálenosti dané délkou U nebo plocha tran slací H ve směru U do vzdálenosti D, je-li uve den parametr D.",
+    "html_help_file": "/F_Procedury/F41.htm",
+    "menu": "Plocha translací tvořícího řetězce H ve směru U do vzdálenosti dané délkou U nebo plocha tran slací H ve směru U do vzdálenosti D, je-li uve den parametr D.",
+    "syntax": "FM=F41>H,U[,D]",
+    "type": "F"
+  },
+  "F42": {
+    "comment": "Plocha pláště krychle nebo hranolu. Q vrchol krychle, Q s U1 určuje jeho jednu hranu o velikosti D1, Q spolu s U1xU2 určuje směr hra ny o velikosti D3; Q spolu s (U1xU2)xU1 určuje směr hrany o velikosti D2. Default D2=D1, D3=D1.",
+    "html_help_file": "/F_Procedury/F42.htm",
+    "menu": "Plocha pláště krychle nebo hranolu. Q vrchol krychle, Q s U1 určuje jeho jednu hranu o velikosti D1, Q spolu s U1xU2 určuje směr hra ny o velikosti D3; Q spolu s (U1xU2)xU1 určuje směr hrany o velikosti D2. Default D2=D1, D3=D1.",
+    "syntax": "FM=F42>Q,U1,U2,D1[,D2][,D3]",
+    "type": "F"
+  },
+  "F45": {
+    "comment": "Plocha translací křivky T ve směru U o délku velikosti U nebo je-li zadán parametr D do vzdá lenosti D. Je-li zadán parametr R značící omezu jící rovinu, má plocha okraj vypočítaný v této rovině.",
+    "html_help_file": "/F_Procedury/F45.htm",
+    "menu": "Plocha translací křivky T ve směru U o délku velikosti U nebo je-li zadán parametr D do vzdá lenosti D. Je-li zadán parametr R značící omezu jící rovinu, má plocha okraj vypočítaný v této rovině.",
+    "syntax": "FM=F45>T,U{[,D][,R]}",
+    "type": "F"
+  },
+  "FICT": {
+    "comment": "Index fiktivního spojení bodů řetězce. K-index za kterým se hledá (default K=1) .",
+    "html_help_file": "/Funkce/FICT.htm",
+    "menu": "Index fiktivního spojení bodů řetězce. K-index za kterým se hledá (default K=1) .",
+    "syntax": "pi=FICT>(E,H)[,K]",
+    "type": "I"
+  },
+  "FJOIN": {
+    "comment": "Spojení ploch.",
+    "html_help_file": null,
+    "menu": "Spojení ploch.",
+    "syntax": "FJOIN,F1,F2[,F3, ...,F14]",
+    "type": null
+  },
+  "FLOAT": {
+    "comment": "Převod celého čísla na racionalní.",
+    "html_help_file": "/Funkce/FLOAT.htm",
+    "menu": "Převod celého čísla na racionalní.",
+    "syntax": "pg(D)=FLOAT>vi",
+    "type": "D"
+  },
+  "FOR": {
+    "comment": "Příkaz cyklu (jako DO).",
+    "html_help_file": null,
+    "menu": "Příkaz cyklu (jako DO).",
+    "syntax": "FOR,pcyklu=dol,hor[,krok]",
+    "type": null
+  },
+  "FORMI": {
+    "comment": "Formát celého čísla pro TYPE (default I5).",
+    "html_help_file": null,
+    "menu": "Formát celého čísla pro TYPE (default I5).",
+    "syntax": "FORMI[,formc]",
+    "type": null
+  },
+  "FORMR": {
+    "comment": "Formát racionálního čísla pro TYPE (default F13.3).",
+    "html_help_file": null,
+    "menu": "Formát racionálního čísla pro TYPE (default F13.3).",
+    "syntax": "FORMR[,formc][,formd]",
+    "type": null
+  },
+  "FSAVE": {
+    "comment": "Uložení plochy do souboru jméno.SUR. (PC)",
+    "html_help_file": null,
+    "menu": "Uložení plochy do souboru jméno.SUR. (PC)",
+    "syntax": "FSAVE,F,'jméno'",
+    "type": null
+  },
+  "G01": {
+    "comment": "Kružnice středem, vektorem a poloměrem.",
+    "html_help_file": "/G_Procedury/G01.htm",
+    "menu": "Kružnice středem, vektorem a poloměrem.",
+    "syntax": "GM=G01>Q,U,D",
+    "type": "G"
+  },
+  "G04": {
+    "comment": "Kružnice osou a průchozím bodem.",
+    "html_help_file": "/G_Procedury/G04.htm",
+    "menu": "Kružnice osou a průchozím bodem.",
+    "syntax": "GM=G04>Q,M",
+    "type": "G"
+  },
+  "G05": {
+    "comment": "Kružnice v rovině ze středu koule.",
+    "html_help_file": "/G_Procedury/G05.htm",
+    "menu": "Kružnice v rovině ze středu koule.",
+    "syntax": "GM=G05>Q,R,D",
+    "type": "G"
+  },
+  "G06": {
+    "comment": "Kružnice v rovině složkami.",
+    "html_help_file": "/G_Procedury/G06.htm",
+    "menu": "Kružnice v rovině složkami.",
+    "syntax": "GM=G06>Q,R,D1,D2,D3",
+    "type": "G"
+  },
+  "G14": {
+    "comment": "Kružnice posunutá o vektor.",
+    "html_help_file": "/G_Procedury/G14.htm",
+    "menu": "Kružnice posunutá o vektor.",
+    "syntax": "GM=G14>G,U",
+    "type": "G"
+  },
+  "G19": {
+    "comment": "Kružnice otočená o úhel kolem přímky. K=0-ccw (default), 1-cw.",
+    "html_help_file": "/G_Procedury/G19.htm",
+    "menu": "Kružnice otočená o úhel kolem přímky. K=0-ccw (default), 1-cw.",
+    "syntax": "GM=G19>G,M,A[,K]",
+    "type": "G"
+  },
+  "G22": {
+    "comment": "Kružnice v rov.středem a poloměrem.",
+    "html_help_file": "/G_Procedury/G22.htm",
+    "menu": "Kružnice v rov.středem a poloměrem.",
+    "syntax": "GM=G22>Q,R,D",
+    "type": "G"
+  },
+  "G24": {
+    "comment": "Kružnice symetrická ke kružnici podle roviny.",
+    "html_help_file": "/G_Procedury/G24.htm",
+    "menu": "Kružnice symetrická ke kružnici podle roviny.",
+    "syntax": "GM=G24>G,R",
+    "type": "G"
+  },
+  "G49": {
+    "comment": "Kopie kružnice.",
+    "html_help_file": "/G_Procedury/G49.htm",
+    "menu": "Kopie kružnice.",
+    "syntax": "GM=G49>G",
+    "type": "G"
+  },
+  "GET": {
+    "comment": "Vstup, příkaz=řádek, mimo S,T,E,H,F,B.",
+    "html_help_file": null,
+    "menu": "Vstup, příkaz=řádek, mimo S,T,E,H,F,B",
+    "syntax": "GET,parametry",
+    "type": null
+  },
+  "GET0": {
+    "comment": "Vstup, příkaz=řádek, mimo S,T,E,H,F,B, Číslo kanálu 0.",
+    "html_help_file": null,
+    "menu": "Vstup, příkaz=řádek, mimo S,T,E,H,F,B, Číslo kanálu 0.",
+    "syntax": "GET0,parametry",
+    "type": null
+  },
+  "GET1": {
+    "comment": "Vstup, příkaz=řádek, mimo S,T,E,H,F,B, Číslo kanálu 1.",
+    "html_help_file": null,
+    "menu": "Vstup, příkaz=řádek, mimo S,T,E,H,F,B, Číslo kanálu 1.",
+    "syntax": "GET1,parametry",
+    "type": null
+  },
+  "GET2": {
+    "comment": "Vstup, příkaz=řádek, mimo S,T,E,H,F,B, Číslo kanálu 2.",
+    "html_help_file": null,
+    "menu": "Vstup, příkaz=řádek, mimo S,T,E,H,F,B, Číslo kanálu 2.",
+    "syntax": "GET2,parametry",
+    "type": null
+  },
+  "GETAC": {
+    "comment": "Dotaz na nastavenou hodnotu ACCUR.",
+    "html_help_file": null,
+    "menu": "Dotaz na nastavenou hodnotu ACCUR.",
+    "syntax": "GETAC,pr",
+    "type": null
+  },
+  "GETANG": {
+    "comment": "Dotaz na nastavenou hodnotu ANGL.",
+    "html_help_file": null,
+    "menu": "Dotaz na nastavenou hodnotu ANGL.",
+    "syntax": "GETANG,pr",
+    "type": null
+  },
+  "GETDFI": {
+    "comment": "Dotaz na nastavenou hodnotu DFORMI.",
+    "html_help_file": null,
+    "menu": "Dotaz na nastavenou hodnotu DFORMI.",
+    "syntax": "GETDFI,pi",
+    "type": null
+  },
+  "GETDFR": {
+    "comment": "Dotaz na nastavenou hodnotu DFORMR.",
+    "html_help_file": null,
+    "menu": "Dotaz na nastavenou hodnotu DFORMR.",
+    "syntax": "GETDFR,pi1,pi2",
+    "type": null
+  },
+  "GETDSP": {
+    "comment": "Dotaz na nastavenou hodnotu DSPEED.",
+    "html_help_file": null,
+    "menu": "Dotaz na nastavenou hodnotu DSPEED.",
+    "syntax": "GETDSP,pi",
+    "type": null
+  },
+  "GETDSZ": {
+    "comment": "Dotaz na nastavenou hodnotu DISZ.",
+    "html_help_file": null,
+    "menu": "Dotaz na nastavenou hodnotu DISZ.",
+    "syntax": "GETDSZ,pr",
+    "type": null
+  },
+  "GETFI": {
+    "comment": "Dotaz na nastavenou hodnotu FORMI.",
+    "html_help_file": null,
+    "menu": "Dotaz na nastavenou hodnotu FORMI.",
+    "syntax": "GETFI,pi",
+    "type": null
+  },
+  "GETFR": {
+    "comment": "Dotaz na nastavenou hodnotu FORMR.",
+    "html_help_file": null,
+    "menu": "Dotaz na nastavenou hodnotu FORMR.",
+    "syntax": "GETFR,pi1,pi2",
+    "type": null
+  },
+  "GETMOD": {
+    "comment": "Zapamatování okamžitého režimu kreslení",
+    "html_help_file": null,
+    "menu": "Zapamatování okamžitého režimu kreslení",
+    "syntax": "GETMOD",
+    "type": null
+  },
+  "GETPEN": {
+    "comment": "Dotaz na nastavenou hodnotu PEN.",
+    "html_help_file": null,
+    "menu": "Dotaz na nastavenou hodnotu PEN.",
+    "syntax": "GETPEN,pi",
+    "type": null
+  },
+  "GETPNL": {
+    "comment": "Dotaz na nastavenou hodnotu PENL.",
+    "html_help_file": null,
+    "menu": "Dotaz na nastavenou hodnotu PENL.",
+    "syntax": "GETPNL,pi",
+    "type": null
+  },
+  "GETPNT": {
+    "comment": "Dotaz na nastavenou hodnotu PENT.",
+    "html_help_file": null,
+    "menu": "Dotaz na nastavenou hodnotu PENT.",
+    "syntax": "GETPNT,pi",
+    "type": null
+  },
+  "GETPRM": {
+    "comment": "Dotaz na nastavenou hodnotu PARM.",
+    "html_help_file": null,
+    "menu": "Dotaz na nastavenou hodnotu PARM.",
+    "syntax": "GETPRM,pr",
+    "type": null
+  },
+  "GETSIZ": {
+    "comment": "Dotaz na nastavenou hodnotu SIZE.",
+    "html_help_file": null,
+    "menu": "Dotaz na nastavenou hodnotu SIZE.",
+    "syntax": "GETSIZ,pr",
+    "type": null
+  },
+  "GETT": {
+    "comment": "Vstup z klávesnice, příkaz=řádek, mimo S,T,E,H,F,B.",
+    "html_help_file": null,
+    "menu": "Vstup z klávesnice, příkaz=řádek, mimo S,T,E,H,F,B.",
+    "syntax": "GETT,parametry",
+    "type": null
+  },
+  "GETTM": {
+    "comment": "Dotaz na nastavenou hodnotu TMOD.",
+    "html_help_file": null,
+    "menu": "Dotaz na nastavenou hodnotu TMOD.",
+    "syntax": "GETTM,pi",
+    "type": null
+  },
+  "GOTO": {
+    "comment": "Nepodmíněný skok.",
+    "html_help_file": null,
+    "menu": "Nepodmíněný skok.",
+    "syntax": "GOTO,nav",
+    "type": null
+  },
+  "H01": {
+    "comment": "Řetězec K body.",
+    "html_help_file": "/H_Procedury/H01.htm",
+    "menu": "Řetězec K body.",
+    "syntax": "HM=H01>Q(I),K",
+    "type": "H"
+  },
+  "H02": {
+    "comment": "Řetězec vyjmenovanými body.",
+    "html_help_file": "/H_Procedury/H02.htm",
+    "menu": "Řetězec vyjmenovanými body.",
+    "syntax": "HM=H02>Q1,Q2[,Q3]...[,Q7]",
+    "type": "H"
+  },
+  "H14": {
+    "comment": "Posunutí řetězce o vektor.",
+    "html_help_file": "/H_Procedury/H14.htm",
+    "menu": "Posunutí řetězce o vektor.",
+    "syntax": "HM=H14>H,U",
+    "type": "H"
+  },
+  "H19": {
+    "comment": "Řet.otoč.o úhel kolem přím. K=0-ccw (default), 1-cw.",
+    "html_help_file": "/H_Procedury/H19.htm",
+    "menu": "Řet.otoč.o úhel kolem přím. K=0-ccw (default), 1-cw.",
+    "syntax": "HM=H19>H,M,A[,K]",
+    "type": "H"
+  },
+  "H20": {
+    "comment": "Přiřazení vektorů bodům řetězce. K1, K2 - index počát. a konc. bodu.",
+    "html_help_file": "/H_Procedury/H20.htm",
+    "menu": "Přiřazení vektorů bodům řetězce. K1, K2 - index počát. a konc. bodu.",
+    "syntax": "HM=H20>H,U(I)[,K1][,K2]",
+    "type": "H"
+  },
+  "H21": {
+    "comment": "Přiřazení vektorů bodům řetězce lin. in terpolací mezi U1 a U2. K1, K2 - index počát. a konc. bodu.",
+    "html_help_file": "/H_Procedury/H21.htm",
+    "menu": "Přiřazení vektorů bodům řetězce lin. in terpolací mezi U1 a U2. K1, K2 - index počát. a konc. bodu.",
+    "syntax": "HM=H21>H,U1,U2[,K1][,K2]",
+    "type": "H"
+  },
+  "H22": {
+    "comment": "Doplnění bodu do řetězce. Je-li patní bod z Q totož. s uzl. bodem řet. K=0-nepřipojí se (def.), 1-vždy se připojí.",
+    "html_help_file": "/H_Procedury/H22.htm",
+    "menu": "Doplnění bodu do řetězce. Je-li patní bod z Q totož. s uzl. bodem řet. K=0-nepřipojí se (def.), 1-vždy se připojí.",
+    "syntax": "HM=H22>H,Q[,K]",
+    "type": "H"
+  },
+  "H23": {
+    "comment": "Modif. vektorů řetězce. Interpolace spline přes U, do H na indexy v I.",
+    "html_help_file": "/H_Procedury/H23.htm",
+    "menu": "Modif. vektorů řetězce. Interpolace spline přes U, do H na indexy v I.",
+    "syntax": "HM=H23>H,U(J),I(J),J",
+    "type": "H"
+  },
+  "H24": {
+    "comment": "Řetězec symetrický kolem roviny.",
+    "html_help_file": "/H_Procedury/H24.htm",
+    "menu": "Řetězec symetrický kolem roviny.",
+    "syntax": "HM=H24>H,R",
+    "type": "H"
+  },
+  "H25": {
+    "comment": "Modif. vektorů řetězce. Lin.inter. mezi vektory pootočenými o A1 a A2. K=0-ccw (def.), 1-cw.",
+    "html_help_file": "/H_Procedury/H25.htm",
+    "menu": "Modif. vektorů řetězce. Lin.inter. mezi vektory pootočenými o A1 a A2. K=0-ccw (def.), 1-cw.",
+    "syntax": "HM=H25>H,A1,A2[,I1,I2,K]",
+    "type": "H"
+  },
+  "H26": {
+    "comment": "Modif. vektorů řetězce. Interpolace spline přes A (úhel pootočeni), do H na indexy v I. K=0-ccw (def.), 1-cw.",
+    "html_help_file": "/H_Procedury/H26.htm",
+    "menu": "Modif. vektorů řetězce. Interpolace spline přes A (úhel pootočeni), do H na indexy v I. K=0-ccw (def.), 1-cw.",
+    "syntax": "HM=H26>H,A(J),I(J),J[,K]",
+    "type": "H"
+  },
+  "H28": {
+    "comment": "Posunutí bodu řet. o D ve směru normál H.",
+    "html_help_file": "/H_Procedury/H28.htm",
+    "menu": "Posunutí bodu řet. o D ve směru normál H.",
+    "syntax": "HM=H28>H,D",
+    "type": "H"
+  },
+  "H29": {
+    "comment": "Změna typu spojení na ip D. K=1-regulární, 3-fiktivní.",
+    "html_help_file": "/H_Procedury/H29.htm",
+    "menu": "Změna typu spojení na ip D. K=1-regulární, 3-fiktivní.",
+    "syntax": "HM=H29>H,D,K",
+    "type": "H"
+  },
+  "H32": {
+    "comment": "Kolmý průmět řetězce do roviny.",
+    "html_help_file": "/H_Procedury/H32.htm",
+    "menu": "Kolmý průmět řetězce do roviny.",
+    "syntax": "HM=H32>H,R",
+    "type": "H"
+  },
+  "H33": {
+    "comment": "Průmět řetězce do roviny vektorem.",
+    "html_help_file": "/H_Procedury/H33.htm",
+    "menu": "Průmět řetězce do roviny vektorem.",
+    "syntax": "HM=H33>H,R,U",
+    "type": "H"
+  },
+  "H43": {
+    "comment": "Podřetězec řetězce mezi dvěma body.",
+    "html_help_file": "/H_Procedury/H43.htm",
+    "menu": "Podřetězec řetězce mezi dvěma body.",
+    "syntax": "HM=H43>H[,[Q1][,Q2]]",
+    "type": "H"
+  },
+  "H44": {
+    "comment": "Řetězec v poloprostoru vymezeném rovinou. Polop rostor K=0-proti, 1-ve směru (default) normály roviny.",
+    "html_help_file": "/H_Procedury/H44.htm",
+    "menu": "Řetězec v poloprostoru vymezeném rovinou. Polop rostor K=0-proti, 1-ve směru (default) normály roviny.",
+    "syntax": "HM=H44>H,R[,K]",
+    "type": "H"
+  },
+  "H45": {
+    "comment": "Řet.nahraz.křiv.s přes.(v int.).",
+    "html_help_file": "/H_Procedury/H45.htm",
+    "menu": "Řet.nahraz.křiv.s přes.(v int.).",
+    "syntax": "HM=H45>T[,[Q1][,Q2]]",
+    "type": "H"
+  },
+  "H46": {
+    "comment": "Řetězec omezený rovinami nebo válci. K1,K2 - pořadí průsečíku. Příklad: H46>H,R,,K1,M,D,K2",
+    "html_help_file": "/H_Procedury/H46.htm",
+    "menu": "Řetězec omezený rovinami nebo válci. K1,K2 - pořadí průsečíku. Příklad: H46>H,R,,K1,M,D,K2",
+    "syntax": "HM=H46>H[,[pg11,pg12,K1][,pg21,pg22,K2]]",
+    "type": "H"
+  },
+  "H47": {
+    "comment": "Řetězec spojením dvou řetězců.",
+    "html_help_file": "/H_Procedury/H47.htm",
+    "menu": "Řetězec spojením dvou řetězců.",
+    "syntax": "HM=H47>H1,H2",
+    "type": "H"
+  },
+  "H48": {
+    "comment": "Řetězec opačné orientace.",
+    "html_help_file": "/H_Procedury/H48.htm",
+    "menu": "Řetězec opačné orientace.",
+    "syntax": "HM=H48>H",
+    "type": "H"
+  },
+  "H49": {
+    "comment": "Kopie řetězce, K - každý K-tý bod.",
+    "html_help_file": "/H_Procedury/H49.htm",
+    "menu": "Kopie řetězce, K - každý K-tý bod.",
+    "syntax": "HM=H49>H[,K]",
+    "type": "H"
+  },
+  "H50": {
+    "comment": "Řetězec orientovaný vzhledem ke dvěma bodům.",
+    "html_help_file": "/H_Procedury/H50.htm",
+    "menu": "Řetězec orientovaný vzhledem ke dvěma bodům.",
+    "syntax": "HM=H50>H,Q1,Q2",
+    "type": "H"
+  },
+  "H51": {
+    "comment": "Řet.ekv.k řet.pro norm.vektory plochy. K=0-vně (def.), 1-dovnitř.",
+    "html_help_file": "/H_Procedury/H51.htm",
+    "menu": "Řet.ekv.k řet.pro norm.vektory plochy. K=0-vně (def.), 1-dovnitř.",
+    "syntax": "HM=H51>H,D[,K]",
+    "type": "H"
+  },
+  "H52": {
+    "comment": "Řet.ekv.k řet.v rov.řet. K=0-vlevo, 1-vpravo, N=0'pseudotech. ekv', N=1'pseudomat. ekv', (def. K=0,N=0).",
+    "html_help_file": "/H_Procedury/H52.htm",
+    "menu": "Řet.ekv.k řet.v rov.řet. K=0-vlevo, 1-vpravo, N=0'pseudotech. ekv', N=1'pseudomat. ekv', (def. K=0,N=0).",
+    "syntax": "HM=H52>H,D[,[K][,N]]",
+    "type": "H"
+  },
+  "H53": {
+    "comment": "Řet.ekv.k řet.v rov.řet. K=0-vně, 1-uvnitř plochy, N=0'pseudotech. ekv', N=1'pseudomat. ekv', (def. K=0,N=0).",
+    "html_help_file": "/H_Procedury/H53.htm",
+    "menu": "Řet.ekv.k řet.v rov.řet. K=0-vně, 1-uvnitř plochy, N=0'pseudotech. ekv', N=1'pseudomat. ekv', (def. K=0,N=0).",
+    "syntax": "HM=H53>H,D[,[K][,N]]",
+    "type": "H"
+  },
+  "H59": {
+    "comment": "Řetězec - úsečky z bodů řetězce ve směru normál. D - délka úseček (def. 100 mm).",
+    "html_help_file": "/H_Procedury/H59.htm",
+    "menu": "Řetězec - úsečky z bodů řetězce ve směru normál. D - délka úseček (def. 100 mm).",
+    "syntax": "HM=H59>H[,D]",
+    "type": "H"
+  },
+  "H60": {
+    "comment": "Izoč. ekv.plochy ip. K2=1-(I,u)=konst., 2-(J,v)=konst., K1=0-ve, 1-proti směru param., N-číslo obl.plochy (def. 0-všechny), D2-ekvid.",
+    "html_help_file": "/H_Procedury/H60.htm",
+    "menu": "Izoč. ekv.plochy ip. K2=1-(I,u)=konst., 2-(J,v)=konst., K1=0-ve, 1-proti směru param., N-číslo obl.plochy (def. 0-všechny), D2-ekvid.",
+    "syntax": "HM=H60>F,D1,KK[,N][,D2]",
+    "type": "H"
+  },
+  "H61": {
+    "comment": "Izoč. ekv.plochy bodem. K2=1 - (I,u)=konst., 2-(J,v)=konst., K1=0 ve, 1-proti směru param., N-číslo obl. plochy (def. 0-všechny), N=1 obl.v níž leží bod. D - ekvid.",
+    "html_help_file": "/H_Procedury/H61.htm",
+    "menu": "Izoč. ekv.plochy bodem. K2=1 - (I,u)=konst., 2-(J,v)=konst., K1=0 ve, 1-proti směru param., N-číslo obl. plochy (def. 0-všechny), N=1 obl.v níž leží bod. D - ekvid.",
+    "syntax": "HM=H61>Q,F,KK[,N][,D]",
+    "type": "H"
+  },
+  "H62": {
+    "comment": "Izočára ekv.plochy bez přesnosti ip. K1=1-(I,u)=konst., 2-(J,v)=konst., K2 počet bodů (min.1, def.4), K3-číslo obl. plochy (def. 0-všechny), D2 - ekvidistanta.",
+    "html_help_file": "/H_Procedury/H62.htm",
+    "menu": "Izočára ekv.plochy bez přesnosti ip. K1=1-(I,u)=konst., 2-(J,v)=konst., K2 počet bodů (min.1, def.4), K3-číslo obl. plochy (def. 0-všechny), D2 - ekvidistanta.",
+    "syntax": "HM=H62>F,D1,K1[,K2,K3,D2]",
+    "type": "H"
+  },
+  "H63": {
+    "comment": "Síť izočar na ploše s přesností. K1 je po čet izočar na celé ploše pro (I,u)=konst., K2 pro (J,v)=konst. (min. K1,K2=2), K3 číslo oblas ti, D ekvidistanta (def. K1=K2=hranice plátů, K3=0, D=0).",
+    "html_help_file": "/H_Procedury/H63.htm",
+    "menu": "Síť izočar na ploše s přesností. K1 je po čet izočar na celé ploše pro (I,u)=konst., K2 pro (J,v)=konst. (min. K1,K2=2), K3 číslo oblas ti, D ekvidistanta (def. K1=K2=hranice plátů, K3=0, D=0).",
+    "syntax": "HM=H63>F[,K1,K2,K3,D]",
+    "type": "H"
+  },
+  "H64": {
+    "comment": "Síť izočar na ploše bez přesnosti. K1 je počet izočar na jednom plátu pro (I,u)=konst., K2 pro (J,v=konst.), (min. 2, de fault 2), K3 je počet bodů na křivkách (I,u)=konst., K4 na (J,v)=konst. (min. 2, de fault 4), K5 číslo obl.plochy (def.0), D ekvid.",
+    "html_help_file": "/H_Procedury/H64.htm",
+    "menu": "Síť izočar na ploše bez přesnosti. K1 je počet izočar na jednom plátu pro (I,u)=konst., K2 pro (J,v=konst.), (min. 2, de fault 2), K3 je počet bodů na křivkách (I,u)=konst., K4 na (J,v)=konst. (min. 2, de fault 4), K5 číslo obl.plochy (def.0), D ekvid.",
+    "syntax": "HM=H64>F[,K1,K2,K3,K4,K5,D]",
+    "type": "H"
+  },
+  "H65": {
+    "comment": "Řídící body plochy do řetězce. K1=číslo obl.plochy (def. 0-všechny), K2=0 bez (def.), 1-s okraj. podm.",
+    "html_help_file": "/H_Procedury/H65.htm",
+    "menu": "Řídící body plochy do řetězce. K1=číslo obl.plochy (def. 0-všechny), K2=0 bez (def.), 1-s okraj. podm.",
+    "syntax": "HM=H65>F[,K1,K2]",
+    "type": "H"
+  },
+  "H66": {
+    "comment": "Hranice oblastí plochy s přes. D je ekvid. (def. D=0).",
+    "html_help_file": "/H_Procedury/H66.htm",
+    "menu": "Hranice oblastí plochy s přes. D je ekvid. (def. D=0).",
+    "syntax": "HM=H66>F[,D]",
+    "type": "H"
+  },
+  "H73": {
+    "comment": "Řez [ekv.] plochou (pomalý).",
+    "html_help_file": "/H_Procedury/H73.htm",
+    "menu": "Řez [ekv.] plochou (pomalý).",
+    "syntax": "HM=H73>F,R[,D]",
+    "type": "H"
+  },
+  "H74": {
+    "comment": "Řez [ekv.] plochou z hranice. K=1234(def.).",
+    "html_help_file": "/H_Procedury/H74.htm",
+    "menu": "Řez [ekv.] plochou z hranice. K=1234(def.).",
+    "syntax": "HM=H74>F,[D],R[,KKKK]",
+    "type": "H"
+  },
+  "H75": {
+    "comment": "Řez plochou bez přesnosti.",
+    "html_help_file": "/H_Procedury/H75.htm",
+    "menu": "Řez plochou bez přesnosti.",
+    "syntax": "HM=H75>F,R[,D]",
+    "type": "H"
+  },
+  "H76": {
+    "comment": "Průsečnice dvou (ekvid.) ploch bez přesnosti. Do HM normálové vektory K1=0-z F1, 1-z F2. K2=0,1,2,... určuje stupeň hustoty bodů průsečnice (def. K1=0,K2=0).",
+    "html_help_file": "/H_Procedury/H76.htm",
+    "menu": "Průsečnice dvou (ekvid.) ploch bez přesnosti. Do HM normálové vektory K1=0-z F1, 1-z F2. K2=0,1,2,... určuje stupeň hustoty bodů průsečnice (def. K1=0,K2=0).",
+    "syntax": "HM=H76>F1,[D1],F2,[D2,KK]",
+    "type": "H"
+  },
+  "H80": {
+    "comment": "Vymazání násobných bodů řetězce. D je max. vzdál. totožných bodů, A je max. úhel normál. vektorů totožných bodů. (Def. D=0.01, A=1).",
+    "html_help_file": "/H_Procedury/H80.htm",
+    "menu": "Vymazání násobných bodů řetězce. D je max. vzdál. totožných bodů, A je max. úhel normál. vektorů totožných bodů. (Def. D=0.01, A=1).",
+    "syntax": "HM=H80>H[,D,A]",
+    "type": "H"
+  },
+  "H85": {
+    "comment": "Rozvinutý tvar řetězce. D1 šířka lemu, D2 tloušťka plechu, D3 poloměr ohybu, směr lemu K=0-proti, 1-ve směru normály roviny.",
+    "html_help_file": "/H_Procedury/H85.htm",
+    "menu": "Rozvinutý tvar řetězce. D1 šířka lemu, D2 tloušťka plechu, D3 poloměr ohybu, směr lemu K=0-proti, 1-ve směru normály roviny.",
+    "syntax": "HM=H85>H,D1,D2,D3,K",
+    "type": "H"
+  },
+  "H95": {
+    "comment": "Nesouvislý řet.posunutím (hrany tělesa).",
+    "html_help_file": "/H_Procedury/H95.htm",
+    "menu": "Nesouvislý řet.posunutím (hrany tělesa).",
+    "syntax": "HM=H95>H,U,D",
+    "type": "H"
+  },
+  "H96": {
+    "comment": "Nesouvislý řet.rotací (hrany tělesa).",
+    "html_help_file": "/H_Procedury/H96.htm",
+    "menu": "Nesouvislý řet.rotací (hrany tělesa).",
+    "syntax": "HM=H96>H,Q,U",
+    "type": "H"
+  },
+  "HDIM": {
+    "comment": "Horizontální kóta. P1 a P2 počátek a konec kót. úsečky, P3 horiz. úroveň kót. čáry, D1 vzdálenost od P1 (+ nahoru, - do lů), K4=0/1 potlačí/kreslí se prv. pom. čára, K3-čís. prv. hran. značky, K2=0/1 potlačí/kreslí se druhá pom. čára, K4-čís. druhé hran. značky (0-nic, 1-tečka, 2-čárka, 3-šip. uvnitř, 4-šip. vně, 5-šip. zákl. uvnitř, 6-šip. zákl. vně), D2/text hodnota nebo text kóty, DP poloha kóty na čáře (default PARM).",
+    "html_help_file": null,
+    "menu": "Horizontální kóta. P1 a P2 počátek a konec kót. úsečky, P3 horiz. úroveň kót. čáry, D1 vzdálenost od P1 (+ nahoru, - do lů), K4=0/1 potlačí/kreslí se prv. pom. čára, K3-čís. prv. hran. značky, K2=0/1 potlačí/kreslí se druhá pom. čára, K4-čís. druhé hran. značky (0-nic, 1-tečka, 2-čárka, 3-šip. uvnitř, 4-šip. vně, 5-šip. zákl. uvnitř, 6-šip. zákl. vně), D2/text hodnota nebo text kóty, DP poloha kóty na čáře (default PARM).",
+    "syntax": "HDIM,P1,P2[,(P3/D1),KKKK,D2/text,DP]",
+    "type": null
+  },
+  "IDEV": {
+    "comment": "Otevření vstupního souboru formátovaného.",
+    "html_help_file": null,
+    "menu": "Otevření vstupního souboru formátovaného.",
+    "syntax": "IDEV,jméno[,kan]",
+    "type": null
+  },
+  "IDEVB": {
+    "comment": "Otevření vstupního souboru binárního.",
+    "html_help_file": null,
+    "menu": "Otevření vstupního souboru binárního.",
+    "syntax": "IDEVB,jméno[,kan]",
+    "type": null
+  },
+  "IF": {
+    "comment": "Akce podmíněná definovaností objektu.",
+    "html_help_file": null,
+    "menu": "Akce podmíněná definovaností objektu.",
+    "syntax": "IF/p/akce",
+    "type": null
+  },
+  "IFD": {
+    "comment": "Porovnávání racionálních čísel.",
+    "html_help_file": null,
+    "menu": "Porovnávání racionálních čísel.",
+    "syntax": "IFD/D1,ro,D2/akce",
+    "type": null
+  },
+  "IFI": {
+    "comment": "Porovnávání celých čísel.",
+    "html_help_file": null,
+    "menu": "Porovnávání celých čísel.",
+    "syntax": "IFI/I1,ro,I2/akce",
+    "type": null
+  },
+  "IFN": {
+    "comment": "Akce podmíněná nedefinovaností objektu.",
+    "html_help_file": null,
+    "menu": "Akce podmíněná nedefinovaností objektu.",
+    "syntax": "IFN/p/akce",
+    "type": null
+  },
+  "IFO": {
+    "comment": "Porovnávání jednoduchých geometrických objektů, ro pouze EQ nebo NE.",
+    "html_help_file": null,
+    "menu": "Porovnávání jednoduchých geometrických objektů, ro pouze EQ nebo NE.",
+    "syntax": "IFO/pg1,ro,pg2/akce",
+    "type": null
+  },
+  "IFT": {
+    "comment": "Porovnávání dvou textů.",
+    "html_help_file": null,
+    "menu": "Porovnávání dvou textů.",
+    "syntax": "IFT/vt1,ro,vt2/akce",
+    "type": null
+  },
+  "IFX": {
+    "comment": "Porovnávání souřadnice x geom. objektů.",
+    "html_help_file": null,
+    "menu": "Porovnávání souřadnice x geom. objektů.",
+    "syntax": "IFX/vg1,ro,vg2/akce",
+    "type": null
+  },
+  "IFY": {
+    "comment": "Porovnávání souřadnice y geom. objektů.",
+    "html_help_file": null,
+    "menu": "Porovnávání souřadnice y geom. objektů.",
+    "syntax": "IFY/vg1,ro,vg2/akce",
+    "type": null
+  },
+  "IFZ": {
+    "comment": "Porovnávání souřadnice z geom. objektů.",
+    "html_help_file": null,
+    "menu": "Porovnávání souřadnice z geom. objektů.",
+    "syntax": "IFZ/vg1,ro,vg2/akce",
+    "type": null
+  },
+  "INCRE": {
+    "comment": "Přírůstkové kreslení.",
+    "html_help_file": "/Kresleni/INCRE.htm",
+    "menu": "Přírůstkové kreslení.",
+    "syntax": "INCRE",
+    "type": null
+  },
+  "IND": {
+    "comment": "Pořadí prvku v jednorozměr. poli pro známé maticové indexy.",
+    "html_help_file": "/Funkce/IND.htm",
+    "menu": "Pořadí prvku v jednorozměr. poli pro známé maticové indexy.",
+    "syntax": "pi=IND>řádek,sloupec,počet_řádků",
+    "type": "I"
+  },
+  "INDI": {
+    "comment": "Řádkový index prvku matice pro známé pořadí prvku v jednorozměr. poli.",
+    "html_help_file": "/Funkce/INDI.htm",
+    "menu": "Řádkový index prvku matice pro známé pořadí prvku v jednorozměr. poli.",
+    "syntax": "pi=INDI>pořadí,počet_řádků",
+    "type": "I"
+  },
+  "INDJ": {
+    "comment": "Sloupcový index prvku matice pro známé pořadí prvku v jednorozměr. poli.",
+    "html_help_file": "/Funkce/INDJ.htm",
+    "menu": "Sloupcový index prvku matice pro známé pořadí prvku v jednorozměr. poli.",
+    "syntax": "pi=INDJ>pořadí,počet_řádků",
+    "type": "I"
+  },
+  "INI": {
+    "comment": "Otevření kres.bloku 2D kresby.",
+    "html_help_file": "/Kresleni/INI.hmt",
+    "menu": "Otevření kres.bloku 2D kresby.",
+    "syntax": "INI[,počátek,měřítko,klíč,přip,jméno]",
+    "type": null
+  },
+  "INI3": {
+    "comment": "Otevření kres.bloku 3D kresby.",
+    "html_help_file": "/Kresleni/INI3.htm",
+    "menu": "Otevření kres.bloku 3D kresby.",
+    "syntax": "INI3[,počátek,měřítko,klíč,přip,jméno]",
+    "type": null
+  },
+  "INPL": {
+    "comment": "Vyjmutí podélníku ze souboru v úseku od xzac do xkon po kroku xkrok. (VAX)",
+    "html_help_file": null,
+    "menu": "Vyjmutí podélníku ze souboru v úseku od xzac do xkon po kroku xkrok. (VAX)",
+    "syntax": "INPL,H,cpod,xzac,xkon,xkrok,soubor",
+    "type": null
+  },
+  "INPO": {
+    "comment": "Vyjmutí roviny nebo přímky z knihovny GK-2.",
+    "html_help_file": null,
+    "menu": "Vyjmutí roviny nebo přímky z knihovny GK-2.",
+    "syntax": "INPO,(R,M),číslo,knih",
+    "type": null
+  },
+  "INPW": {
+    "comment": "Vyjmutí plochy 'křídlo' z knihovny GK-2.",
+    "html_help_file": null,
+    "menu": "Vyjmutí plochy 'křídlo' z knihovny GK-2.",
+    "syntax": "INPW,F,číslo,knih",
+    "type": null
+  },
+  "INT": {
+    "comment": "Převod racionálního čísla na celé.",
+    "html_help_file": "/Funkce/INT.htm",
+    "menu": "Převod racionálního čísla na celé.",
+    "syntax": "pi=INT>vr",
+    "type": "I"
+  },
+  "INUMB": {
+    "comment": "Vkládání celého čísla do textu.",
+    "html_help_file": null,
+    "menu": "Vkládání celého čísla do textu.",
+    "syntax": "INUMB,pt,[počátek],[konec],čís",
+    "type": null
+  },
+  "INVER": {
+    "comment": "Invertování rovinné souřad. soustavy. typ=0 při lichém použití, =1 při sudém.",
+    "html_help_file": null,
+    "menu": "Invertování rovinné souřad. soustavy. typ=0 při lichém použití, =1 při sudém.",
+    "syntax": "INVER,čsou,typ",
+    "type": null
+  },
+  "INVER3": {
+    "comment": "Invertování prostor. souřad. soustavy. typ=0 při lichém použití, =1 při sudém.",
+    "html_help_file": null,
+    "menu": "Invertování prostor. souřad. soustavy. typ=0 při lichém použití, =1 při sudém.",
+    "syntax": "INVER3,čsou,typ",
+    "type": null
+  },
+  "L00": {
+    "comment": "Přímka LM je určena souřadnicemi bodu a složkami vektoru.\n   D1  - x souřadnice bodu na přímce,\n   D2  - y souřadnice,\n   D3  - x složka vektoru,\n   D4  - y složka.",
+    "html_help_file": "/L_Procedury/L00.htm",
+    "menu": "L00> 2D přímka složkami bodu a vektoru.",
+    "syntax": "LM=L00>D1, D2, D3, D4",
+    "type": "L"
+  },
+  "L01": {
+    "comment": "Přímka LM je určena bodem P a složkami vektoru.\n   P    -  bod ležící na přímce,\n   D1  - x složka vektoru,\n   D2  - y složka.",
+    "html_help_file": "/L_Procedury/L01.htm",
+    "menu": "L01> 2D přímka určená bodem a složkami vektoru.",
+    "syntax": "LM=L01>P, D1, D2",
+    "type": "L"
+  },
+  "L02": {
+    "comment": "Přímka LM je určena bodem P a vektorem V.",
+    "html_help_file": "/L_Procedury/L02.htm",
+    "menu": "L02> 2D přímka určená bodem a vektorem.",
+    "syntax": "LM=L02>P, V",
+    "type": "L"
+  },
+  "L03": {
+    "comment": "Přímka LM je určena bodem P a úhlem A.\nÚhel měřen od kladné osy x proti směru hodin. ručiček.",
+    "html_help_file": "/L_Procedury/L03.htm",
+    "menu": "L03> 2D přímka určená bodem a úhlem.",
+    "syntax": "LM=L03>P, A",
+    "type": "L"
+  },
+  "L04": {
+    "comment": "Přímka LM prochází body P1 a P2.",
+    "html_help_file": "/L_Procedury/L04.htm",
+    "menu": "L04> 2D přímka určená dvěma body.",
+    "syntax": "LM=L04>P1, P2",
+    "type": "L"
+  },
+  "L05": {
+    "comment": "Přímka LM je určená souřadnicemi  bodu D1, D2 a úhlem A,\n  D1 - x souřadnice bodu,\n  D2 - y souřadnice,\n  A    - úhel měřen od kladné osy x proti směru hodin. ručiček.",
+    "html_help_file": "/L_Procedury/L05.htm",
+    "menu": "L05> 2D přímka určená souřadnicemi  bodu a úhlem.",
+    "syntax": "LM=L05>D1, D2, A",
+    "type": "L"
+  },
+  "L07": {
+    "comment": "Přímka LM je rovnoběžná s přímkou L \na oproti L je posunutá o vektor V.",
+    "html_help_file": "/L_Procedury/L07.htm",
+    "menu": "L07> 2D přímka vzniklá posunutím  přímky o vektor.",
+    "syntax": "LM=L07>L, V",
+    "type": "L"
+  },
+  "L09": {
+    "comment": "Přímka LM je totožná se souřadnicovou osou.\n   K=0  - osa x\n   K=1  - osa y.",
+    "html_help_file": "/L_Procedury/L09.htm",
+    "menu": "L09> 2D přímka totožná se souřadnicovou osou.",
+    "syntax": "LM=L09>K",
+    "type": "L"
+  },
+  "L11": {
+    "comment": "Přímka LM prochází bodem P a přímku L protíná pod úhlem A,\nPro A>0 je úhel měřěn:\n  K=0  - proti směru hodin. ručiček od kladného směru L,,\n  K=1  - po směru hodin. ručiček.",
+    "html_help_file": "/L_Procedury/L11.htm",
+    "menu": "L11> 2D přímka procházející bodem, pod úhlem k jiné přímce.",
+    "syntax": "LM=L11>P, L, A, K",
+    "type": "L"
+  },
+  "L12": {
+    "comment": "Přímka LM prochází průsečíkem různoběžek L1, L2 \na půlí jejich úhel pro:\n   K=0 - mezi souhlasnými směry,\n   K=1 - mezi nesouhlasnými směry.\nJsou-li L1 a L2 rovnoběžné, je LM s nimi rovnoběžná\na leží uprostřed mezi nimi.",
+    "html_help_file": "/L_Procedury/L12.htm",
+    "menu": "L12> 2D přímka jako osa různoběžek nebo  rovnoběžek ",
+    "syntax": "LM=L12>L1, L2, K",
+    "type": "L"
+  },
+  "L14": {
+    "comment": "Přímka LM je osově souměrná k přímce L1 podle osy L2.",
+    "html_help_file": "/L_Procedury/L14.htm",
+    "menu": "L14> 2D přímka osově souměrná k jiné přímce.",
+    "syntax": "LM=L14>L1, L2",
+    "type": "L"
+  },
+  "L20": {
+    "comment": "Přímka LM je rovnoběžná s přímkou L ve vzdálenosti D.\nUmístění vzhledem ke kladnému směru přímky L:\n   K=0 - vlevo,\n   K=1 - vpravo.",
+    "html_help_file": "/L_Procedury/L20.htm",
+    "menu": "L20> 2D přímka rovnoběžná s jinou přímkou.",
+    "syntax": "LM=L20>L, D[, K]",
+    "type": "L"
+  },
+  "L21": {
+    "comment": "Přímka LM je rovnoběžná s přímkou L a prochází bodem P.",
+    "html_help_file": "/L_Procedury/L21.htm",
+    "menu": "L21> 2D přímka rovnoběžná s jinou přímkou a procházející bodem.",
+    "syntax": "LM=L21>P, L",
+    "type": "L"
+  },
+  "L30": {
+    "comment": "Přímka LM je tečná ke kružnici C a je  rovnoběžná s vektorem V.\nJe umístěna pro:\n   K=0  -  vlevo od kružnice při pohledu ve směru V,\n   K=1  -  vpravo od kružnice.",
+    "html_help_file": "/L_Procedury/L30.htm",
+    "menu": "L30> 2D přímka tečná ke kružnici, rovnoběžná s vektorem.",
+    "syntax": "LM=L30>C, V, K",
+    "type": "L"
+  },
+  "L31": {
+    "comment": "Přímka LM je tečná ke kružnici C a je  rovnoběžná s vektorem L.\nJe umístěna pro:\n   K=0  -  vlevo od kružnice při pohledu ve směru přímky L,\n   K=1  -  vpravo od kružnice.",
+    "html_help_file": "/L_Procedury/L31.htm",
+    "menu": "L31> 2D přímka tečná ke kružnici, rovnoběžná s jinou přímkou.",
+    "syntax": "LM=L31>C, L, K",
+    "type": "L"
+  },
+  "L32": {
+    "comment": "Přímka LM je tečná ke kružnici C a svírá  úhel A s osou x.\nJe umístěna pro:\n   K=0 - vlevo od kružnice při pohledu ve směru úhlu A,\n   K=1 - vpravo od kružnice.",
+    "html_help_file": "/L_Procedury/L32.htm",
+    "menu": "L32> 2D přímka tečná ke kružnici pod daným úhlem.",
+    "syntax": "LM=L32>C, A, K",
+    "type": "L"
+  },
+  "L33": {
+    "comment": "Přímka LM je tečná ke kružnici C a prochází bodem P.\nJe umístěna pro:\n   K=0 - vlevo od kružnice při pohledu na kružnici z bodu P,\n   K=1 - vpravo.",
+    "html_help_file": "/L_Procedury/L33.htm",
+    "menu": "L33> 2D přímka tečná ke kružnici procházející bodem.",
+    "syntax": "LM=L33>P, C, K",
+    "type": "L"
+  },
+  "L34": {
+    "comment": "Přímka LM je tečná ke kružnicím C1 a C2.\nUmístěna je pro:\n  KK=00  -  vlevo od obou kružnic při pohledu od C1 k C2,\n  KK=11  -  vpravo od obou kružnic,\n  KK=01  -  vlevo od C1, vpravo od C2,\n  KK=10  -  vpravo od C1, vlevo od C2.",
+    "html_help_file": "/L_Procedury/L34.htm",
+    "menu": "L34> 2D přímka tečná ke dvěma kružnicím.",
+    "syntax": "LM=L34>C1, C2, KK",
+    "type": "L"
+  },
+  "L35": {
+    "comment": "Přímka LM je tečná ke křivce S a je rovnoběžná s vektorem V.\nParametr  K z intervalu <1, n > určuje pořadí možných bodů dotyku na křivce S\n(Počítano ve směru definice křivky).",
+    "html_help_file": "/L_Procedury/L35.htm",
+    "menu": "L35> 2D přímka tečná ke křivce, rovnoběžná s vektorem.",
+    "syntax": "LM=L35>V, S, K",
+    "type": "L"
+  },
+  "L36": {
+    "comment": "Přímka LM je tečná ke křivce S a je rovnoběžná s přímkou L.\nParametr  K z intervalu <1, n > určuje pořadí možných bodů dotyku na křivce S\n(Počítano ve směru definice křivky).",
+    "html_help_file": "/L_Procedury/L36.htm",
+    "menu": "L36> 2D přímka tečná ke křivce, rovnoběžná s jinou přímkou.",
+    "syntax": "LM=L36>L, S, K",
+    "type": "L"
+  },
+  "L37": {
+    "comment": "Přímka LM je tečná ke křivce S a prochází bodem P.\nParametr  K z intervalu <1, n > určuje pořadí možných bodů dotyku na křivce S\n(Počítano ve směru definice křivky).",
+    "html_help_file": "/L_Procedury/L37.htm",
+    "menu": "L37> 2D přímka tečná ke křivce procházející bodem.",
+    "syntax": "LM=L37>P, S, K",
+    "type": "L"
+  },
+  "L40": {
+    "comment": "Přímka LM je kolmá k přímce L a prochází bodem P.",
+    "html_help_file": "/L_Procedury/L40.htm",
+    "menu": "L40> 2D přímka kolmá k jiné přímce a procházející bodem.",
+    "syntax": "LM=L40>P, L",
+    "type": "L"
+  },
+  "L41": {
+    "comment": "Přímka LM prochází bodem P a je kolmá k vektoru V.",
+    "html_help_file": "/L_Procedury/L41.htm",
+    "menu": "L41> 2D přímka kolmá k vektoru procházející bodem.",
+    "syntax": "LM=L41>P, V",
+    "type": "L"
+  },
+  "L42": {
+    "comment": "Přímka LM je kolmá ke křivce S a prochází bodem P\nParametr  K z intervalu <1, n > určuje pořadí možných patních bodů na křivce S\n(Počítano ve směru definice křivky).",
+    "html_help_file": "/L_Procedury/L42.htm",
+    "menu": "L42> 2D přímka kolmá ke křivce procházející bodem.",
+    "syntax": "LM=L42>P, S, K",
+    "type": "L"
+  },
+  "L43": {
+    "comment": "Přímka LM je kolmá na spojnici bodů P1, P2 a půlí tuto spojnici.",
+    "html_help_file": "/L_Procedury/L43.htm",
+    "menu": "L43> 2D přímka jako osa dvou bodů.",
+    "syntax": "LM=L43>P1, P2",
+    "type": "L"
+  },
+  "L45": {
+    "comment": "Přímka LM je tečná k řetězci E a je rovnoběžná s vektorem V.\nParametr  K z intervalu <1, n > určuje pořadí možných bodů dotyku na řetězci E\n(Počítano ve směru definice řetězce).",
+    "html_help_file": "/L_Procedury/L45.htm",
+    "menu": "L45> 2D přímka tečná k řetězci,  rovnoběžná s vektorem.",
+    "syntax": "LM=L45>V, E,K ",
+    "type": "L"
+  },
+  "L46": {
+    "comment": "Přímka LM je tečná k řetězci E a je rovnoběžná s přímkou L.\nParametr  K z intervalu <1, n > určuje pořadí možných bodů dotyku na řetězci E\n(Počítano ve směru definice řetězce).",
+    "html_help_file": "/L_Procedury/L46.htm",
+    "menu": "L46> 2D přímka tečná k řetězci procházející bodem.",
+    "syntax": "LM=L46>L, E, K",
+    "type": "L"
+  },
+  "L47": {
+    "comment": "Přímka LM je tečná k řetězci E a prochází bodem P.\nParametr  K z intervalu <1, n > určuje pořadí možných bodů dotyku na řetězci E\n(Počítano ve směru definice řetězce).",
+    "html_help_file": "/L_Procedury/L47.htm",
+    "menu": "L47> 2D přímka tečná k řetězci procházející bodem.",
+    "syntax": "LM=L47>P, E, K",
+    "type": "L"
+  },
+  "L49": {
+    "comment": "Přímka LM je totožná s přímkou L.",
+    "html_help_file": "/L_Procedury/L49.htm",
+    "menu": "L49> Kopie 2D přímky.",
+    "syntax": "LM=L49>L",
+    "type": "L"
+  },
+  "LCIR": {
+    "comment": "Pomocná čára s kroužkem a textem. P1 počá tek, P2 konec čáry (střed kroužku), IH/text hod nota nebo text do kroužku, D průměr kroužku (de fault 4*DISZ).",
+    "html_help_file": null,
+    "menu": "Pomocná čára s kroužkem a textem. P1 počá tek, P2 konec čáry (střed kroužku), IH/text hod nota nebo text do kroužku, D průměr kroužku (de fault 4*DISZ).",
+    "syntax": "LCIR,P1,P2[,IH/text,D]",
+    "type": null
+  },
+  "LCUT": {
+    "comment": "Přerušení plochy. P1 počátek, P2 konec čáry, DP poloha značky přerušení na čáře (default PARM).",
+    "html_help_file": null,
+    "menu": "Přerušení plochy. P1 počátek, P2 konec čáry, DP poloha značky přerušení na čáře (default PARM).",
+    "syntax": "LCUT,P1,P2[,DP]",
+    "type": null
+  },
+  "LEVEL": {
+    "comment": "Nastavení čísla vrstvy pro soubor IGES <0,1023> (def. 0). (VAX)",
+    "html_help_file": null,
+    "menu": "Nastavení čísla vrstvy pro soubor IGES <0,1023> (def. 0). (VAX)",
+    "syntax": "LEVEL[,čvrstvy]",
+    "type": null
+  },
+  "LINE": {
+    "comment": "Vynechání řádků v tisku, (def. 1).",
+    "html_help_file": null,
+    "menu": "Vynechání řádků v tisku, (def. 1).",
+    "syntax": "LINE[,počet,kan]",
+    "type": null
+  },
+  "LN": {
+    "comment": "Výpočet funkce přiroz. logaritmus.",
+    "html_help_file": "/Funkce/LN.htm",
+    "menu": "Výpočet funkce přiroz. logaritmus.",
+    "syntax": "pg(D)=LN>vr",
+    "type": "D"
+  },
+  "LOADF": {
+    "comment": "Čtení plochy'trup' ze souboru .SUR (PC), typ=0-stará, 1-nová(def.), iob-čís.oblasti (default=0-celá plocha).",
+    "html_help_file": null,
+    "menu": "Čtení plochy'trup' ze souboru .SUR (PC), typ=0-stará, 1-nová(def.), iob-čís.oblasti (default=0-celá plocha).",
+    "syntax": "LOADF,F,jméno_soub.[,typ[,imin,imax,jmin,jmax,iob]]",
+    "type": null
+  },
+  "LOADW": {
+    "comment": "Načtení plochy'křídlo' z knihovny GK-2, typ=0 - stará, 1 - nová(def.).",
+    "html_help_file": null,
+    "menu": "Načtení plochy'křídlo' z knihovny GK-2, typ=0 - stará, 1 - nová(def.).",
+    "syntax": "LOADW,F,číslo,knihovna[,typ[,imin,imax,jmin,jmax]]",
+    "type": null
+  },
+  "LOG": {
+    "comment": "Výpočet funkce dekad. logaritmus.",
+    "html_help_file": "/Funkce/.htm",
+    "menu": "Výpočet funkce dekad. logaritmus.",
+    "syntax": "pg(D)=LOG>vr",
+    "type": "D"
+  },
+  "LREF": {
+    "comment": "Odkazová čára s textem. P1 počátek pom. čáry (značka), P2 konec pom. čáry (počátek praporku), K=0-čára k čáře bez značky (default), 1-k ploše tečkou, =2-k čáře šikmou čárkou, =3-k hraně šip kou.",
+    "html_help_file": null,
+    "menu": "Odkazová čára s textem. P1 počátek pom. čáry (značka), P2 konec pom. čáry (počátek praporku), K=0-čára k čáře bez značky (default), 1-k ploše tečkou, =2-k čáře šikmou čárkou, =3-k hraně šip kou.",
+    "syntax": "LREF,P1,P2[,K,text]",
+    "type": null
+  },
+  "LRUG": {
+    "comment": "Značka drsnosti po vrchu. P1 počátek, P2 konec úsečky k níž je značka kreslena (vlevo P1,P2), K=0-značka (de fault), =1 značka+kroužek, =2 značka + trojúhel ník, DP poloha značky na úsečce (default PARM), text1 drsnost (3.2 atp.), text2 způsob konečného opracování, text3,text4 další texty.",
+    "html_help_file": null,
+    "menu": "Značka drsnosti po vrchu. P1 počátek, P2 konec úsečky k níž je značka kreslena (vlevo P1,P2), K=0-značka (de fault), =1 značka+kroužek, =2 značka + trojúhel ník, DP poloha značky na úsečce (default PARM), text1 drsnost (3.2 atp.), text2 způsob konečného opracování, text3,text4 další texty.",
+    "syntax": "LRUG,P1,P2[,K,DP,text1,text2,text3,text4]",
+    "type": null
+  },
+  "LTOL": {
+    "comment": "Toleranční značka. P1, P2 umístění oz načovače nebo tol. značky, K=0 umístění označo vače, >0 umístění šipky (P1), značky (P2), =1 kruhovitost, =2 válcovitost, =3 přímost, =4 soustřednost, =5 souosost; text1 znak abecedy (def. A), text2 hodnota tolerance.",
+    "html_help_file": null,
+    "menu": "Toleranční značka. P1, P2 umístění oz načovače nebo tol. značky, K=0 umístění označo vače, >0 umístění šipky (P1), značky (P2), =1 kruhovitost, =2 válcovitost, =3 přímost, =4 soustřednost, =5 souosost; text1 znak abecedy (def. A), text2 hodnota tolerance.",
+    "syntax": "LTOL,P1,P2[,K,text1,text2]",
+    "type": null
+  },
+  "M02": {
+    "comment": "Přímka bodem a vektorem.",
+    "html_help_file": "/M_Procedury/M02.htm",
+    "menu": "Přímka bodem a vektorem.",
+    "syntax": "MM=M02>Q,U",
+    "type": "M"
+  },
+  "M04": {
+    "comment": "Přímka dvěma body.",
+    "html_help_file": "/M_Procedury/M04.htm",
+    "menu": "Přímka dvěma body.",
+    "syntax": "MM=M04>Q1,Q2",
+    "type": "M"
+  },
+  "M09": {
+    "comment": "Souř.osa. K=1-x, 2-y, 3-z.",
+    "html_help_file": "/M_Procedury/M09.htm",
+    "menu": "Souř.osa. K=1-x, 2-y, 3-z.",
+    "syntax": "MM=M09>K",
+    "type": "M"
+  },
+  "M12": {
+    "comment": "Přím.bodem pod úhlem k přím.(v rov.). Úhel od K=0-kladné, 1-záporné přímky k bodu.",
+    "html_help_file": "/M_Procedury/M12.htm",
+    "menu": "Přím.bodem pod úhlem k přím.(v rov.). Úhel od K=0-kladné, 1-záporné přímky k bodu.",
+    "syntax": "MM=M12>Q,M,A[,K]",
+    "type": "M"
+  },
+  "M14": {
+    "comment": "Přímka posunutá o vektor (translace).",
+    "html_help_file": "/M_Procedury/M14.htm",
+    "menu": "Přímka posunutá o vektor (translace).",
+    "syntax": "MM=M14>M,U",
+    "type": "M"
+  },
+  "M19": {
+    "comment": "Přímka M1 otočená o úhel A kolem M2. K=0-ccw (def.), 1-cw.",
+    "html_help_file": "/M_Procedury/M19.htm",
+    "menu": "Přímka M1 otočená o úhel A kolem M2. K=0-ccw (def.), 1-cw.",
+    "syntax": "MM=M19>M1,M2,A[,K]",
+    "type": "M"
+  },
+  "M20": {
+    "comment": "Osa otáčení dvou přímek.",
+    "html_help_file": "/M_Procedury/M20.htm",
+    "menu": "Osa otáčení dvou přímek.",
+    "syntax": "MM=M20>Q1,U1,Q2,U2",
+    "type": "M"
+  },
+  "M23": {
+    "comment": "Přímka rovnoběžná s přímkou bodem.",
+    "html_help_file": "/M_Procedury/M23.htm",
+    "menu": "Přímka rovnoběžná s přímkou bodem.",
+    "syntax": "MM=M23>Q,M",
+    "type": "M"
+  },
+  "M24": {
+    "comment": "Přím.rov.s přím.ve vzdál., K=0-k bodu,1-od bodu.",
+    "html_help_file": "/M_Procedury/M24.htm",
+    "menu": "Přím.rov.s přím.ve vzdál., K=0-k bodu,1-od bodu.",
+    "syntax": "MM=M24>M,Q,D,K",
+    "type": "M"
+  },
+  "M25": {
+    "comment": "Přímka kolmá k přímce bodem.",
+    "html_help_file": "/M_Procedury/M25.htm",
+    "menu": "Přímka kolmá k přímce bodem.",
+    "syntax": "MM=M25>Q,M",
+    "type": "M"
+  },
+  "M26": {
+    "comment": "Přímka kolmá k rovině bodem.",
+    "html_help_file": "/M_Procedury/M26.htm",
+    "menu": "Přímka kolmá k rovině bodem.",
+    "syntax": "MM=M26>Q,R",
+    "type": "M"
+  },
+  "M30": {
+    "comment": "Průsečnice dvou rovin.",
+    "html_help_file": "/M_Procedury/M30.htm",
+    "menu": "Průsečnice dvou rovin.",
+    "syntax": "MM=M30>R1,R2",
+    "type": "M"
+  },
+  "M32": {
+    "comment": "Kolmý průmět přímky do roviny.",
+    "html_help_file": "/M_Procedury/M32.htm",
+    "menu": "Kolmý průmět přímky do roviny.",
+    "syntax": "MM=M32>M,R",
+    "type": "M"
+  },
+  "M33": {
+    "comment": "Průmět přímky do roviny vektorem.",
+    "html_help_file": "/M_Procedury/M33.htm",
+    "menu": "Průmět přímky do roviny vektorem.",
+    "syntax": "MM=M33>M,R,U",
+    "type": "M"
+  },
+  "M34": {
+    "comment": "Přímka souměrná k přímce podle roviny",
+    "html_help_file": "/M_Procedury/M34.htm",
+    "menu": "Přímka souměrná k přímce podle roviny",
+    "syntax": "MM=M34>M,R",
+    "type": "M"
+  },
+  "M39": {
+    "comment": "Tečná přímka z bodu ke kružnici (v rovině). K=0-vlevo, 1-vpravo (QG).",
+    "html_help_file": "/M_Procedury/M39.htm",
+    "menu": "Tečná přímka z bodu ke kružnici (v rovině). K=0-vlevo, 1-vpravo (QG).",
+    "syntax": "MM=M39>Q,G,K",
+    "type": "M"
+  },
+  "M46": {
+    "comment": "Osa kružnice.",
+    "html_help_file": "/M_Procedury/M46.htm",
+    "menu": "Osa kružnice.",
+    "syntax": "MM=M46>G",
+    "type": "M"
+  },
+  "M48": {
+    "comment": "Přímka přím.plochy ip. K=číslo oblasti plochy, (def. K=1).",
+    "html_help_file": "/M_Procedury/M48.htm",
+    "menu": "Přímka přím.plochy ip. K=číslo oblasti plochy, (def. K=1).",
+    "syntax": "MM=M48>F,D[,K]",
+    "type": "M"
+  },
+  "M49": {
+    "comment": "Kopie přímky.",
+    "html_help_file": "/M_Procedury/M49.htm",
+    "menu": "Kopie přímky.",
+    "syntax": "MM=M49>M",
+    "type": "M"
+  },
+  "MACRO": {
+    "comment": "Otevření 2D kres.makra.",
+    "html_help_file": null,
+    "menu": "Otevření 2D kres.makra.",
+    "syntax": "MACRO,počátek,jméno",
+    "type": null
+  },
+  "MACRO3": {
+    "comment": "Otevření 3D kres.makra.",
+    "html_help_file": null,
+    "menu": "Otevření 3D kres.makra.",
+    "syntax": "MACRO3,počátek,jméno",
+    "type": null
+  },
+  "MESS": {
+    "comment": "Zapnutí tisku chybových hlášení.",
+    "html_help_file": null,
+    "menu": "Zapnutí tisku chybových hlášení.",
+    "syntax": "MESS",
+    "type": null
+  },
+  "MOVE": {
+    "comment": "2D pohyb (znak | představuje *'piš' nebo /'nepiš').",
+    "html_help_file": "/Kresleni/MOVE.htm",
+    "menu": "2D pohyb (znak | představuje *'piš' nebo /'nepiš').",
+    "syntax": "MOVE|fráze|fráze...",
+    "type": null
+  },
+  "MOVE3": {
+    "comment": "3D pohyb (znak | představuje *'piš' nebo /'nepiš').",
+    "html_help_file": "/Kresleni/MOVE3.htm",
+    "menu": "3D pohyb (znak | představuje *'piš' nebo /'nepiš').",
+    "syntax": "MOVE3|fráze|fráze...",
+    "type": null
+  },
+  "NEXT": {
+    "comment": "Uzavření cyklu (jako ENDDO).",
+    "html_help_file": null,
+    "menu": "Uzavření cyklu (jako ENDDO).",
+    "syntax": "NEXT",
+    "type": null
+  },
+  "NOHEAD": {
+    "comment": "Potlačení inform. textu a tisku identifikátorů na výstupu.",
+    "html_help_file": null,
+    "menu": "Potlačení inform. textu a tisku identifikátorů na výstupu.",
+    "syntax": "NOHEAD[,kan]",
+    "type": null
+  },
+  "NOMESS": {
+    "comment": "Vypnutí chybových hlášení.",
+    "html_help_file": null,
+    "menu": "Vypnutí chybových hlášení.",
+    "syntax": "NOMESS",
+    "type": null
+  },
+  "NPO": {
+    "comment": "Zjištění údajů o ploše.\n\nPočet uzlových bodů řetězce, křivky.",
+    "html_help_file": "/Funkce/NPO.htm",
+    "menu": "Zjištění údajů o ploše.",
+    "syntax": "pi=NPO>vg(F),obl,typ\npi=NPO>vg(S,E,T,H)",
+    "type": "I"
+  },
+  "NSE": {
+    "comment": "Zjištění údajů o ploše.\n\nPočet segmentů řetězce, křivky.",
+    "html_help_file": "/Funkce/NSE.htm",
+    "menu": "Zjištění údajů o ploše.",
+    "syntax": "pi=NSE>vg(F),obl,typ\npi=NSE>vg(S,E,T,H)",
+    "type": "I"
+  },
+  "NTEX": {
+    "comment": "Počet znaků textu.",
+    "html_help_file": "/Funkce/NTEX.htm",
+    "menu": "Počet znaků textu.",
+    "syntax": "pi=NTEX>vt",
+    "type": "I"
+  },
+  "ODEV": {
+    "comment": "Otevření výstupního souboru formátovaného.",
+    "html_help_file": null,
+    "menu": "Otevření výstupního souboru formátovaného.",
+    "syntax": "ODEV,jméno[,kan]",
+    "type": null
+  },
+  "ODEVB": {
+    "comment": "Otevření výstupního souboru binárního.",
+    "html_help_file": null,
+    "menu": "Otevření výstupního souboru binárního.",
+    "syntax": "ODEVB,jméno[,kan]",
+    "type": null
+  },
+  "OPE": {
+    "comment": "Otevře ní kres. bloku 2D kresby.",
+    "html_help_file": "/Kresleni/OPE.htm",
+    "menu": "Otevření kres. bloku 2D kresby.",
+    "syntax": "OPE,měř,klíč,počet_klíčů,připojení,jméno[,[čsou][,xr,yr]]",
+    "type": null
+  },
+  "OPE3": {
+    "comment": "Otev ření kres. bloku 3D kresby.",
+    "html_help_file": "/Kresleni/OPE3.htm",
+    "menu": "Otevření kres. bloku 3D kresby.",
+    "syntax": "OPE3,měř,klíč,počet_klíčů,připojení,jméno[,[čsou][,xr,yr]]",
+    "type": null
+  },
+  "OPEIGS": {
+    "comment": "Otevření souboru IGES. (VAX)",
+    "html_help_file": null,
+    "menu": "Otevření souboru IGES. (VAX)",
+    "syntax": "OPEIGS[,[měřítko],[jméno],[úroveň]]",
+    "type": null
+  },
+  "ORI": {
+    "comment": "Výpočet skutečného výběrového čísla (pi) pro zvolené výběrové číslo (vi) vztažené k vztaž. směru (vg1) pro daný objekt (vg2) (vir tuální smluvní orientace).",
+    "html_help_file": "/Funkce/ORI.htm",
+    "menu": "Výpočet skutečného výběrového čísla (pi) pro zvolené výběrové číslo (vi) vztažené k vztaž. směru (vg1) pro daný objekt (vg2) (vir tuální smluvní orientace).",
+    "syntax": "pi=ORI>vg1(A,V,L),vg2(V,L),vi",
+    "type": "I"
+  },
+  "ORI3": {
+    "comment": "Výpočet skutečného výběrové ho čísla (pi) pro zvolené výběrové číslo (vi) vztažené k vztaž. směru (vg1) pro daný objekt (vg2) (virtuální smluvní orientace).",
+    "html_help_file": "/Funkce/ORI3.htm",
+    "menu": "Výpočet skutečného výběrové ho čísla (pi) pro zvolené výběrové číslo (vi) vztažené k vztaž. směru (vg1) pro daný objekt (vg2) (virtuální smluvní orientace).",
+    "syntax": "pi=ORI3>vg1(U,M,R,G),vg2(U,M,R,G),vi",
+    "type": "I"
+  },
+  "P00": {
+    "comment": "Bod souřadnicemi x(D1), y(D2).",
+    "html_help_file": "/P_Procedury/P00.htm",
+    "menu": "Bod souřadnicemi x(D1), y(D2).",
+    "syntax": "PM=P00>D1,D2",
+    "type": "P"
+  },
+  "P01": {
+    "comment": "Bod polárními souřadnicemi.",
+    "html_help_file": "/P_Procedury/P01.htm",
+    "menu": "Bod polárními souřadnicemi.",
+    "syntax": "PM=P01>A,D",
+    "type": "P"
+  },
+  "P02": {
+    "comment": "Bod změnou složky. K=0-x, 1-y.",
+    "html_help_file": "/P_Procedury/P02.htm",
+    "menu": "Bod změnou složky. K=0-x, 1-y.",
+    "syntax": "PM=P02>P,D,K",
+    "type": "P"
+  },
+  "P03": {
+    "comment": "Bod na kružnici úhlem ze středu.",
+    "html_help_file": "/P_Procedury/P03.htm",
+    "menu": "Bod na kružnici úhlem ze středu.",
+    "syntax": "PM=P03>C,A",
+    "type": "P"
+  },
+  "P04": {
+    "comment": "Bod symetrický k přímce.",
+    "html_help_file": "/P_Procedury/P04.htm",
+    "menu": "Bod symetrický k přímce.",
+    "syntax": "PM=P04>P,L",
+    "type": "P"
+  },
+  "P07": {
+    "comment": "Bod od bodu vektorem.",
+    "html_help_file": "/P_Procedury/P07.htm",
+    "menu": "Bod od bodu vektorem.",
+    "syntax": "PM=P07>P,V",
+    "type": "P"
+  },
+  "P08": {
+    "comment": "Bod od bodu kolem P2 o A. Pro A>0 K=0-ccw (de fault), 1-cw.",
+    "html_help_file": "/P_Procedury/P08.htm",
+    "menu": "Bod od bodu kolem P2 o A. Pro A>0 K=0-ccw (de fault), 1-cw.",
+    "syntax": "PM=P08>P1,P2,A[,K]",
+    "type": "P"
+  },
+  "P09": {
+    "comment": "Bod od bodu směrem vektoru ve vzdálenosti, K=0-proti, 1-ve směru (default).",
+    "html_help_file": "/P_Procedury/P09.htm",
+    "menu": "Bod od bodu směrem vektoru ve vzdálenosti, K=0-proti, 1-ve směru (default).",
+    "syntax": "PM=P09>P,V,D[,K]",
+    "type": "P"
+  },
+  "P10": {
+    "comment": "Bod od bodu přírůstky x'(D1),y'(D2).",
+    "html_help_file": "/P_Procedury/P10.htm",
+    "menu": "Bod od bodu přírůstky x'(D1),y'(D2).",
+    "syntax": "PM=P10>P,D1,D2",
+    "type": "P"
+  },
+  "P11": {
+    "comment": "Bod od bodu kolmo na vektor ve vzdálenosti K=0-vlevo (default), 1-vpravo.",
+    "html_help_file": "/P_Procedury/P11.htm",
+    "menu": "Bod od bodu kolmo na vektor ve vzdálenosti K=0-vlevo (default), 1-vpravo.",
+    "syntax": "PM=P11>P,V,D[,K]",
+    "type": "P"
+  },
+  "P12": {
+    "comment": "Bod od bodu úhlem a délkou.",
+    "html_help_file": "/P_Procedury/P12.htm",
+    "menu": "Bod od bodu úhlem a délkou.",
+    "syntax": "PM=P12>P,A,D",
+    "type": "P"
+  },
+  "P13": {
+    "comment": "Bod parametrem ke dvěma bodům od P1.",
+    "html_help_file": "/P_Procedury/P13.htm",
+    "menu": "Bod parametrem ke dvěma bodům od P1.",
+    "syntax": "PM=P13>P1,P2,D",
+    "type": "P"
+  },
+  "P14": {
+    "comment": "Bod na přímce souřadnicí x(y). K=0-x, 1-y.",
+    "html_help_file": "/P_Procedury/P14.htm",
+    "menu": "Bod na přímce souřadnicí x(y). K=0-x, 1-y.",
+    "syntax": "PM=P14>D,L,K",
+    "type": "P"
+  },
+  "P15": {
+    "comment": "Bod na kruž.souř.K2=0-x,1-y, K1=0-menší,1-větší.",
+    "html_help_file": "/P_Procedury/P15.htm",
+    "menu": "Bod na kruž.souř.K2=0-x,1-y, K1=0-menší,1-větší.",
+    "syntax": "PM=P15>D,C,KK",
+    "type": "P"
+  },
+  "P16": {
+    "comment": "Bod na křiv.souř.K2=0-x,1-y, K1=pořadí<1,9>.",
+    "html_help_file": "/P_Procedury/P16.htm",
+    "menu": "Bod na křiv.souř.K2=0-x,1-y, K1=pořadí<1,9>.",
+    "syntax": "PM=P16>D,S,KK",
+    "type": "P"
+  },
+  "P17": {
+    "comment": "Bod od bodu ve vzdálenosti rovnoběžně s přímkou. K=0-proti, 1-ve směru L (default).",
+    "html_help_file": "/P_Procedury/P17.htm",
+    "menu": "Bod od bodu ve vzdálenosti rovnoběžně s přímkou. K=0-proti, 1-ve směru L (default).",
+    "syntax": "PM=P17>P,L,D[,K]",
+    "type": "P"
+  },
+  "P18": {
+    "comment": "Bod od bodu ve vzdál.kolmo k přímce. K=0-vlevo (default), 1-vpravo L.",
+    "html_help_file": "/P_Procedury/P18.htm",
+    "menu": "Bod od bodu ve vzdál.kolmo k přímce. K=0-vlevo (default), 1-vpravo L.",
+    "syntax": "PM=P18>P,L,D[,K]",
+    "type": "P"
+  },
+  "P19": {
+    "comment": "Bod od bodu přír.x'(y') na přím. K=0-x', 1-y'.",
+    "html_help_file": "/P_Procedury/P19.htm",
+    "menu": "Bod od bodu přír.x'(y') na přím. K=0-x', 1-y'.",
+    "syntax": "PM=P19>P,L,D,K",
+    "type": "P"
+  },
+  "P20": {
+    "comment": "Průsečík dvou přímek.",
+    "html_help_file": "/P_Procedury/P20.htm",
+    "menu": "Průsečík dvou přímek.",
+    "syntax": "PM=P20>L1,L2",
+    "type": "P"
+  },
+  "P21": {
+    "comment": "Průsečík přím.s kruž. K=0-proti, 1-ve směru L.",
+    "html_help_file": "/P_Procedury/P21.htm",
+    "menu": "Průsečík přím.s kruž. K=0-proti, 1-ve směru L.",
+    "syntax": "PM=P21>L,C,K",
+    "type": "P"
+  },
+  "P22": {
+    "comment": "Průsečík přímky s křivkou K=pořadí <1,M>.",
+    "html_help_file": "/P_Procedury/P22.htm",
+    "menu": "Průsečík přímky s křivkou K=pořadí <1,M>.",
+    "syntax": "PM=P22>L,S,K",
+    "type": "P"
+  },
+  "P23": {
+    "comment": "Průsečík dvou kruž. K=0-vlevo, 1-vpravo C1,C2.",
+    "html_help_file": "/P_Procedury/P23.htm",
+    "menu": "Průsečík dvou kruž. K=0-vlevo, 1-vpravo C1,C2.",
+    "syntax": "PM=P23>C1,C2,K",
+    "type": "P"
+  },
+  "P24": {
+    "comment": "Průsečík kružnice s křivkou K=pořadí <1,M>.",
+    "html_help_file": "/P_Procedury/P24.htm",
+    "menu": "Průsečík kružnice s křivkou K=pořadí <1,M>.",
+    "syntax": "PM=P24>C,S,K",
+    "type": "P"
+  },
+  "P25": {
+    "comment": "Průs.dvou křiv. K2=pořadí, K1=0-na S1, 1-na S2.",
+    "html_help_file": "/P_Procedury/P25.htm",
+    "menu": "Průs.dvou křiv. K2=pořadí, K1=0-na S1, 1-na S2.",
+    "syntax": "PM=P25>S1,S2,KK",
+    "type": "P"
+  },
+  "P26": {
+    "comment": "Průs. křivky 'vlastní'. K2=pořadí, K1=0-nižší, 1-vyšší index.",
+    "html_help_file": "/P_Procedury/P26.htm",
+    "menu": "Průs. křivky 'vlastní'. K2=pořadí, K1=0-nižší, 1-vyšší index.",
+    "syntax": "PM=P26>S,KK",
+    "type": "P"
+  },
+  "P29": {
+    "comment": "Střed kružnice vepsané trojúhelníku body.",
+    "html_help_file": "/P_Procedury/P29.htm",
+    "menu": "Střed kružnice vepsané trojúhelníku body.",
+    "syntax": "PM=P29>P1,P2,P3",
+    "type": "P"
+  },
+  "P30": {
+    "comment": "Dotyk.bod teč.přím.ke kruž.rovnob.s vektorem. K=0-vlevo, 1-vpravo V.",
+    "html_help_file": "/P_Procedury/P30.htm",
+    "menu": "Dotyk.bod teč.přím.ke kruž.rovnob.s vektorem. K=0-vlevo, 1-vpravo V.",
+    "syntax": "PM=P30>V,C,K",
+    "type": "P"
+  },
+  "P31": {
+    "comment": "Dotyk.bod teč.přím.ke kruž.rovnob.s přímkou. K=0-vlevo, 1-vpravo L.",
+    "html_help_file": "/P_Procedury/P31.htm",
+    "menu": "Dotyk.bod teč.přím.ke kruž.rovnob.s přímkou. K=0-vlevo, 1-vpravo L.",
+    "syntax": "PM=P31>L,C,K",
+    "type": "P"
+  },
+  "P33": {
+    "comment": "Dotyk.bod teč.přím.ke kruž.z bodu. K=0-vlevo, 1-vpravo P,C.",
+    "html_help_file": "/P_Procedury/P33.htm",
+    "menu": "Dotyk.bod teč.přím.ke kruž.z bodu. K=0-vlevo, 1-vpravo P,C.",
+    "syntax": "PM=P33>P,C,K",
+    "type": "P"
+  },
+  "P34": {
+    "comment": "Dotyk.bod teč.přím.ke dvěma kruž. K3=0-na C1, 1-na C2, K2=0-tečna na C1 vlevo, 1-vpravo, K1=0-tečna na C2 vlevo, 1-vpravo (C1C2).",
+    "html_help_file": "/P_Procedury/P34.htm",
+    "menu": "Dotyk.bod teč.přím.ke dvěma kruž. K3=0-na C1, 1-na C2, K2=0-tečna na C1 vlevo, 1-vpravo, K1=0-tečna na C2 vlevo, 1-vpravo (C1C2).",
+    "syntax": "PM=P34>C1,C2,KKK",
+    "type": "P"
+  },
+  "P35": {
+    "comment": "Dotykový bod tečné přímky ke křivce rovnob.s vektorem. K=pořadí na S.",
+    "html_help_file": "/P_Procedury/P35.htm",
+    "menu": "Dotykový bod tečné přímky ke křivce rovnob.s vektorem. K=pořadí na S.",
+    "syntax": "PM=P35>V,S,K",
+    "type": "P"
+  },
+  "P36": {
+    "comment": "Dotykový bod tečné přímky ke křivce rovnob. s přímkou. K=pořadí na S.",
+    "html_help_file": "/P_Procedury/P36.htm",
+    "menu": "Dotykový bod tečné přímky ke křivce rovnob. s přímkou. K=pořadí na S.",
+    "syntax": "PM=P36>L,S,K",
+    "type": "P"
+  },
+  "P37": {
+    "comment": "Dotykový bod tečné přímky ke křivce z bodu. K=pořadí na S.",
+    "html_help_file": "/P_Procedury/P37.htm",
+    "menu": "Dotykový bod tečné přímky ke křivce z bodu. K=pořadí na S.",
+    "syntax": "PM=P37>P,S,K",
+    "type": "P"
+  },
+  "P38": {
+    "comment": "Těžiště trojúhelníka (body).",
+    "html_help_file": "/P_Procedury/P38.htm",
+    "menu": "Těžiště trojúhelníka (body).",
+    "syntax": "PM=P38>P1,P2,P3",
+    "type": "P"
+  },
+  "P39": {
+    "comment": "Těžiště trojúhelníka (stranami).",
+    "html_help_file": "/P_Procedury/P39.htm",
+    "menu": "Těžiště trojúhelníka (stranami).",
+    "syntax": "PM=P39>L1,L2,L3",
+    "type": "P"
+  },
+  "P40": {
+    "comment": "Patní bod na přímce.",
+    "html_help_file": "/P_Procedury/P40.htm",
+    "menu": "Patní bod na přímce.",
+    "syntax": "PM=P40>P,L",
+    "type": "P"
+  },
+  "P41": {
+    "comment": "Patní bod na kružnici. K=0-první, 1=druhý P,C.",
+    "html_help_file": "/P_Procedury/P41.htm",
+    "menu": "Patní bod na kružnici. K=0-první, 1=druhý P,C.",
+    "syntax": "PM=P41>P,C,K",
+    "type": "P"
+  },
+  "P42": {
+    "comment": "Patní bod na křivce. K=pořadí na S.",
+    "html_help_file": "/P_Procedury/P42.htm",
+    "menu": "Patní bod na křivce. K=pořadí na S.",
+    "syntax": "PM=P42>P,S,K",
+    "type": "P"
+  },
+  "P43": {
+    "comment": "Patní bod na přímce ze středu kružnice.",
+    "html_help_file": "/P_Procedury/P43.htm",
+    "menu": "Patní bod na přímce ze středu kružnice.",
+    "syntax": "PM=P43>C,L",
+    "type": "P"
+  },
+  "P44": {
+    "comment": "Patní bod na křivce v min.vzdálenosti.",
+    "html_help_file": "/P_Procedury/P44.htm",
+    "menu": "Patní bod na křivce v min.vzdálenosti.",
+    "syntax": "PM=P44>P,S",
+    "type": "P"
+  },
+  "P45": {
+    "comment": "Ekvid.bod k bodu křiv. Pro D>0 K=0-vlevo (de fault), 1-vpravo.",
+    "html_help_file": "/P_Procedury/P45.htm",
+    "menu": "Ekvid.bod k bodu křiv. Pro D>0 K=0-vlevo (de fault), 1-vpravo.",
+    "syntax": "PM=P45>P,S,D[,K]",
+    "type": "P"
+  },
+  "P46": {
+    "comment": "Těžiště plochy uzavř.řetězce.",
+    "html_help_file": "/P_Procedury/P46.htm",
+    "menu": "Těžiště plochy uzavř.řetězce.",
+    "syntax": "PM=P46>E",
+    "type": "P"
+  },
+  "P47": {
+    "comment": "Vyjmutý střed kružnice.",
+    "html_help_file": "/P_Procedury/P47.htm",
+    "menu": "Vyjmutý střed kružnice.",
+    "syntax": "PM=P47>C",
+    "type": "P"
+  },
+  "P48": {
+    "comment": "Uzl.bod řet.nebo křiv. K=index <1,N>.",
+    "html_help_file": "/P_Procedury/P48.htm",
+    "menu": "Uzl.bod řet.nebo křiv. K=index <1,N>.",
+    "syntax": "PM=P48>pg,K",
+    "type": "P"
+  },
+  "P49": {
+    "comment": "Překopírovaný bod.",
+    "html_help_file": "/P_Procedury/P49.htm",
+    "menu": "Překopírovaný bod.",
+    "syntax": "PM=P49>P",
+    "type": "P"
+  },
+  "P51": {
+    "comment": "Průs.přím.s řet. K=pořadí na řetězci.",
+    "html_help_file": "/P_Procedury/P51.htm",
+    "menu": "Průs.přím.s řet. K=pořadí na řetězci.",
+    "syntax": "PM=P51>L,E,K",
+    "type": "P"
+  },
+  "P54": {
+    "comment": "Bod na řet.v min.vzdálenosti od bodu.",
+    "html_help_file": "/P_Procedury/P54.htm",
+    "menu": "Bod na řet.v min.vzdálenosti od bodu.",
+    "syntax": "PM=P54>P,E",
+    "type": "P"
+  },
+  "P56": {
+    "comment": "Bod na řet.nebo křiv.indexem a param.",
+    "html_help_file": "/P_Procedury/P56.htm",
+    "menu": "Bod na řet.nebo křiv.indexem a param.",
+    "syntax": "PM=P56>pg,K,D",
+    "type": "P"
+  },
+  "P57": {
+    "comment": "Bod od bodu po křiv.ve vzdál. Pro D>0 K=0-proti, 1-ve směru (default).",
+    "html_help_file": "/P_Procedury/P57.htm",
+    "menu": "Bod od bodu po křiv.ve vzdál. Pro D>0 K=0-proti, 1-ve směru (default).",
+    "syntax": "PM=P57>P,S,D[,K]",
+    "type": "P"
+  },
+  "P58": {
+    "comment": "Bod od bodu po řet.ve vzdál. Pro D>0 K=0-proti, 1-ve směru (default).",
+    "html_help_file": "/P_Procedury/P58.htm",
+    "menu": "Bod od bodu po řet.ve vzdál. Pro D>0 K=0-proti, 1-ve směru (default).",
+    "syntax": "PM=P58>P,E,D[,K]",
+    "type": "P"
+  },
+  "P66": {
+    "comment": "Bod na řet. souřadnicí. K2-pořadí, K1=0-x, 1-y.",
+    "html_help_file": "/P_Procedury/P66.htm",
+    "menu": "Bod na řet. souřadnicí. K2-pořadí, K1=0-x, 1-y.",
+    "syntax": "PM=P66>E,D,KK",
+    "type": "P"
+  },
+  "P74": {
+    "comment": "Průs.kruž.s řetězcem. K-pořadí průs.na řetězci.",
+    "html_help_file": "/P_Procedury/P74.htm",
+    "menu": "Průs.kruž.s řetězcem. K-pořadí průs.na řetězci.",
+    "syntax": "PM=P74>C,E,K",
+    "type": "P"
+  },
+  "P75": {
+    "comment": "Průs.dvou řetězců. K2 - pořadí průs.na E1 pro K1=0 nebo na E2 pro K1=1. N - každý n-tý bod ře tězců (pro urychlení).",
+    "html_help_file": "/P_Procedury/P75.htm",
+    "menu": "Průs.dvou řetězců. K2 - pořadí průs.na E1 pro K1=0 nebo na E2 pro K1=1. N - každý n-tý bod ře tězců (pro urychlení).",
+    "syntax": "PM=P75>E1,E2,KK[,N]",
+    "type": "P"
+  },
+  "P76": {
+    "comment": "Průs.řetězce vlastní. K2 - pořadí na řetězci. Pro K1=0 - interval s nižším, 1-s vyšším inde xem. N - každý n-tý bod řetězce.",
+    "html_help_file": "/P_Procedury/P76.htm",
+    "menu": "Průs.řetězce vlastní. K2 - pořadí na řetězci. Pro K1=0 - interval s nižším, 1-s vyšším inde xem. N - každý n-tý bod řetězce.",
+    "syntax": "PM=P76>E,KK[,N]",
+    "type": "P"
+  },
+  "P85": {
+    "comment": "Dotyk.bod teč.přímky k řet.rovnob.s vektorem. K - pořadí bodu na řetězci.",
+    "html_help_file": "/P_Procedury/P85.htm",
+    "menu": "Dotyk.bod teč.přímky k řet.rovnob.s vektorem. K - pořadí bodu na řetězci.",
+    "syntax": "PM=P85>V,E,K",
+    "type": "P"
+  },
+  "P86": {
+    "comment": "Dotyk.bod teč.přímky k řet.rovnob.s přímkou. K - pořadí bodu na řetězci.",
+    "html_help_file": "/P_Procedury/P86.htm",
+    "menu": "Dotyk.bod teč.přímky k řet.rovnob.s přímkou. K - pořadí bodu na řetězci.",
+    "syntax": "PM=P86>L,E,K",
+    "type": "P"
+  },
+  "P87": {
+    "comment": "Dotyk.bod teč.přímky k řet.z bodu. K - pořadí bodu na řetězci.",
+    "html_help_file": "/P_Procedury/P87.htm",
+    "menu": "Dotyk.bod teč.přímky k řet.z bodu. K - pořadí bodu na řetězci.",
+    "syntax": "PM=P87>P,E,K",
+    "type": "P"
+  },
+  "P95": {
+    "comment": "Ekvid.bod k bodu řetězce. K=0-vlevo, 1-vpravo od řetězce (pro D>0).",
+    "html_help_file": "/P_Procedury/P95.htm",
+    "menu": "Ekvid.bod k bodu řetězce. K=0-vlevo, 1-vpravo od řetězce (pro D>0).",
+    "syntax": "PM=P95>P,E,D[,K]",
+    "type": "P"
+  },
+  "PAGE": {
+    "comment": "Nastavení nové stránky při tisku.",
+    "html_help_file": null,
+    "menu": "Nastavení nové stránky při tisku.",
+    "syntax": "PAGE[,kanál]",
+    "type": null
+  },
+  "PARM": {
+    "comment": "Poloha středu kóty (textu, značky) na úsečce (default 0.5).",
+    "html_help_file": null,
+    "menu": "Poloha středu kóty (textu, značky) na úsečce (default 0.5).",
+    "syntax": "PARM[,D]",
+    "type": null
+  },
+  "PDIM": {
+    "comment": "Paralelní kóta. P1, P2 kóto vaná úsečka, P3, D1 poloha kót. čáry, P3 para lel. úroveň, D1 vzdál. od kót. úsečky (vlevo P1,P2), K4=0/1 potlačí/kreslí se první pom. čá ra, K3-čís. prv. hran. značky, K2=0/1 potlačí/kreslí se druhá pom. čára, K4-číslo dru hé hran. značky (0-nic, 1-tečka, 2-čárka, 3-šip. uvnitř, 4-šip. vně, 5-šip. zákl. uvnitř, 6-šip. zákl. vně), D2/text hodnota nebo text kó ty, D3 poloha na úsečce (def. PARM).",
+    "html_help_file": null,
+    "menu": "Paralelní kóta. P1, P2 kóto vaná úsečka, P3, D1 poloha kót. čáry, P3 para lel. úroveň, D1 vzdál. od kót. úsečky (vlevo P1,P2), K4=0/1 potlačí/kreslí se první pom. čá ra, K3-čís. prv. hran. značky, K2=0/1 potlačí/kreslí se druhá pom. čára, K4-číslo dru hé hran. značky (0-nic, 1-tečka, 2-čárka, 3-šip. uvnitř, 4-šip. vně, 5-šip. zákl. uvnitř, 6-šip. zákl. vně), D2/text hodnota nebo text kó ty, D3 poloha na úsečce (def. PARM).",
+    "syntax": "PDIM,P1,P2[,(P3,D1),KKKK,D2/text,D3]",
+    "type": null
+  },
+  "PEN": {
+    "comment": "Nastavení čísla pera a typu čáry, (default 10), pero 1-8 (desítky), čára 0-plná, 1-čerchovaná, 2-čárkovaná, 3-čárkovaná krátká, 4-čerchovaná se dvěma tečkami (jednotky).",
+    "html_help_file": "/Kresleni/PEN.htm",
+    "menu": "Nastavení čísla pera a typu čáry, (default 10), pero 1-8 (desítky), čára 0-plná, 1-čerchovaná, 2-čárkovaná, 3-čárkovaná krátká, 4-čerchovaná se dvěma tečkami (jednotky).",
+    "syntax": "PEN[,číslo_pera]",
+    "type": null
+  },
+  "PENL": {
+    "comment": "Číslo pera pom. a kót.čar 10,20,...,80 (def.10).",
+    "html_help_file": null,
+    "menu": "Číslo pera pom. a kót.čar 10,20,...,80 (def.10).",
+    "syntax": "PENL[,K]",
+    "type": null
+  },
+  "PENT": {
+    "comment": "Číslo pera kót, textů a hranič.značek 10,20,...,80 (def.10).",
+    "html_help_file": null,
+    "menu": "Číslo pera kót, textů a hranič.značek 10,20,...,80 (def.10).",
+    "syntax": "PENT[,K]",
+    "type": null
+  },
+  "PLANE": {
+    "comment": "Definování souřad. soustavy s x'y' v rovxy,",
+    "html_help_file": null,
+    "menu": "Definování souřad. soustavy s x'y' v rovxy,",
+    "syntax": "PLANE,čsou,rovxy[,[počátek][,'KLMN']]",
+    "type": null
+  },
+  "PLG": {
+    "comment": "Uložení řídících bodů plochy z pole Q(i*j) do souboru jméno.PLG pro typ=0-starý, =1-nový.",
+    "html_help_file": null,
+    "menu": "Uložení řídících bodů plochy z pole Q(i*j) do souboru jméno.PLG pro typ=0-starý, =1-nový.",
+    "syntax": "PLG,Q(I),i,j,typ,jméno[,imin,jmin]",
+    "type": null
+  },
+  "POLYG": {
+    "comment": "Uložení řídících bodů oblasti plochy do pole Q, počet bodů J=konst. do K1, I=konst. do K2. (K1, K2 jsou výstupní parametry). N - číslo oblasti (def. N=1).",
+    "html_help_file": null,
+    "menu": "Uložení řídících bodů oblasti plochy do pole Q, počet bodů J=konst. do K1, I=konst. do K2. (K1, K2 jsou výstupní parametry). N - číslo oblasti (def. N=1).",
+    "syntax": "POLYG,Q(I),K1,K2,F[,N]",
+    "type": null
+  },
+  "POS": {
+    "comment": "Index bodu Q na řetězci H. Není-li Q uzel řetězce - chyba. ipo - pořadí u vícená sobného bodu (def. ipo=1).",
+    "html_help_file": "/Funkce/POS.htm",
+    "menu": "Index bodu Q na řetězci H. Není-li Q uzel řetězce - chyba. ipo - pořadí u vícená sobného bodu (def. ipo=1).",
+    "syntax": "pi=POS>vg1(H),vg2(Q)[,ipo]",
+    "type": "I"
+  },
+  "PRINT": {
+    "comment": "Výstup na obrazovku, objekt=řádek, mimo B.",
+    "html_help_file": null,
+    "menu": "Výstup na obrazovku, objekt=řádek, mimo B.",
+    "syntax": "PRINT,parametry",
+    "type": null
+  },
+  "PRINT0": {
+    "comment": "Výstup, objekt=řádek, mimo B, Číslo kanálu 0.",
+    "html_help_file": null,
+    "menu": "Výstup, objekt=řádek, mimo B, Číslo kanálu 0.",
+    "syntax": "PRINT0,parametry",
+    "type": null
+  },
+  "PRINT1": {
+    "comment": "Výstup, objekt=řádek, mimo B, Číslo kanálu 1.",
+    "html_help_file": null,
+    "menu": "Výstup, objekt=řádek, mimo B, Číslo kanálu 1.",
+    "syntax": "PRINT1,parametry",
+    "type": null
+  },
+  "PRINT2": {
+    "comment": "Výstup, objekt=řádek, mimo B, Číslo kanálu 2.",
+    "html_help_file": null,
+    "menu": "Výstup, objekt=řádek, mimo B, Číslo kanálu 2.",
+    "syntax": "PRINT2,parametry",
+    "type": null
+  },
+  "PRINTT": {
+    "comment": "Výstup na obrazovku, objekt=řádek, mimo B.",
+    "html_help_file": null,
+    "menu": "Výstup na obrazovku, objekt=řádek, mimo B.",
+    "syntax": "PRINTT,parametry",
+    "type": null
+  },
+  "Q00": {
+    "comment": "Bod třemi souřadnicemi.",
+    "html_help_file": "/Q_Procedury/Q00.htm",
+    "menu": "Bod třemi souřadnicemi.",
+    "syntax": "QM=Q00>D1,D2,D3",
+    "type": "Q"
+  },
+  "Q01": {
+    "comment": "Bod polárními souřadnicemi.",
+    "html_help_file": "/Q_Procedury/Q01.htm",
+    "menu": "Bod polárními souřadnicemi.",
+    "syntax": "QM=Q01>A1,A2,D",
+    "type": "Q"
+  },
+  "Q02": {
+    "comment": "Bod změnou souř. K=1-x, 2-y, 3-z.",
+    "html_help_file": "/Q_Procedury/Q02.htm",
+    "menu": "Bod změnou souř. K=1-x, 2-y, 3-z.",
+    "syntax": "QM=Q02>Q,D,K",
+    "type": "Q"
+  },
+  "Q04": {
+    "comment": "Bod na přím.souř. K=1-x, 2-y, 3-z.",
+    "html_help_file": "/Q_Procedury/Q04.htm",
+    "menu": "Bod na přím.souř. K=1-x, 2-y, 3-z.",
+    "syntax": "QM=Q04>M,D,K",
+    "type": "Q"
+  },
+  "Q05": {
+    "comment": "Bod na kruž.úhlem ze stř.od spád.přím. K=0-ccw (default), 1-cw.",
+    "html_help_file": "/Q_Procedury/Q05.htm",
+    "menu": "Bod na kruž.úhlem ze stř.od spád.přím. K=0-ccw (default), 1-cw.",
+    "syntax": "QM=Q05>G,A[,K]",
+    "type": "Q"
+  },
+  "Q06": {
+    "comment": "Bod na křiv.souř. K2=1-x, 2-y, 3-z, K1=pořadí <1,9>.",
+    "html_help_file": "/Q_Procedury/Q06.htm",
+    "menu": "Bod na křiv.souř. K2=1-x, 2-y, 3-z, K1=pořadí <1,9>.",
+    "syntax": "QM=Q06>T,D,KK",
+    "type": "Q"
+  },
+  "Q07": {
+    "comment": "Bod v rov. souř. K=1-xy, 2-xz, 3-yz",
+    "html_help_file": "/Q_Procedury/Q07.htm",
+    "menu": "Bod v rov. souř. K=1-xy, 2-xz, 3-yz",
+    "syntax": "QM=Q07>R,D1,D2,K",
+    "type": "Q"
+  },
+  "Q08": {
+    "comment": "Bod [ekvid.] plochy dvěma souř. K2=1-xy, 2-xz, 3-yz, K1=pořadí <1,9>. Úroveň ře šení N=0-nepředepsána (default), 1-nejvyšší.",
+    "html_help_file": "/Q_Procedury/Q08.htm",
+    "menu": "Bod [ekvid.] plochy dvěma souř. K2=1-xy, 2-xz, 3-yz, K1=pořadí <1,9>. Úroveň ře šení N=0-nepředepsána (default), 1-nejvyšší.",
+    "syntax": "QM=Q08>F,[D],D1,D2,KK[,N]",
+    "type": "Q"
+  },
+  "Q10": {
+    "comment": "Bod [ekv.] plochy dvěma ip. D1=I+u, D2=J+v, K=čís.obl. plochy, (def.K=1).",
+    "html_help_file": "/Q_Procedury/Q10.htm",
+    "menu": "Bod [ekv.] plochy dvěma ip. D1=I+u, D2=J+v, K=čís.obl. plochy, (def.K=1).",
+    "syntax": "QM=Q10>F,[D],D1,D2[,K]",
+    "type": "Q"
+  },
+  "Q12": {
+    "comment": "Bod od bodu vektorem ve vzdálenosti. Pro D>0 K=0-proti, 1-ve směru U (default).",
+    "html_help_file": "/Q_Procedury/Q12.htm",
+    "menu": "Bod od bodu vektorem ve vzdálenosti. Pro D>0 K=0-proti, 1-ve směru U (default).",
+    "syntax": "QM=Q12>Q,U,D[,K]",
+    "type": "Q"
+  },
+  "Q13": {
+    "comment": "Bod od bodu přírůstky.",
+    "html_help_file": "/Q_Procedury/Q13.htm",
+    "menu": "Bod od bodu přírůstky.",
+    "syntax": "QM=Q13>Q,D1,D2,D3",
+    "type": "Q"
+  },
+  "Q14": {
+    "comment": "Bod od bodu vektorem (translace).",
+    "html_help_file": "/Q_Procedury/Q14.htm",
+    "menu": "Bod od bodu vektorem (translace).",
+    "syntax": "QM=Q14>Q,U",
+    "type": "Q"
+  },
+  "Q15": {
+    "comment": "Bod parametrem ke dvěma bodům od Q1.",
+    "html_help_file": "/Q_Procedury/Q15.htm",
+    "menu": "Bod parametrem ke dvěma bodům od Q1.",
+    "syntax": "QM=Q15>Q1,Q2,D",
+    "type": "Q"
+  },
+  "Q16": {
+    "comment": "Bod od bodu ve vzdál.směrem přím. Pro D>0 K=0-záporně, 1-ve směru M (default).",
+    "html_help_file": "/Q_Procedury/Q16.htm",
+    "menu": "Bod od bodu ve vzdál.směrem přím. Pro D>0 K=0-záporně, 1-ve směru M (default).",
+    "syntax": "QM=Q16>Q,M,D[,K]",
+    "type": "Q"
+  },
+  "Q17": {
+    "comment": "Bod symetrický k přímce.",
+    "html_help_file": "/Q_Procedury/Q17.htm",
+    "menu": "Bod symetrický k přímce.",
+    "syntax": "QM=Q17>Q,M",
+    "type": "Q"
+  },
+  "Q18": {
+    "comment": "Bod patní na přímce.",
+    "html_help_file": "/Q_Procedury/Q18.htm",
+    "menu": "Bod patní na přímce.",
+    "syntax": "QM=Q18>Q,M",
+    "type": "Q"
+  },
+  "Q19": {
+    "comment": "Bod otočený o úhel kolem přím. K=0-ccw (de fault), 1-cw.",
+    "html_help_file": "/Q_Procedury/Q19.htm",
+    "menu": "Bod otočený o úhel kolem přím. K=0-ccw (de fault), 1-cw.",
+    "syntax": "QM=Q19>Q,M,A[,K]",
+    "type": "Q"
+  },
+  "Q20": {
+    "comment": "Bod od bodu rotací kol.přím. do vzdál.od bodu Q2. K=0-vlevo, 1-vpravo.",
+    "html_help_file": "/Q_Procedury/Q20.htm",
+    "menu": "Bod od bodu rotací kol.přím. do vzdál.od bodu Q2. K=0-vlevo, 1-vpravo.",
+    "syntax": "QM=Q20>Q1,Q2,M,D,K",
+    "type": "Q"
+  },
+  "Q21": {
+    "comment": "Bod souřadnicemi v rovině. (Q - počátek, smluv. směry os xr,yr).",
+    "html_help_file": "/Q_Procedury/Q21.htm",
+    "menu": "Bod souřadnicemi v rovině. (Q - počátek, smluv. směry os xr,yr).",
+    "syntax": "QM=Q21>Q,R,D1,D2",
+    "type": "Q"
+  },
+  "Q22": {
+    "comment": "Bod polárními souřadnicemi v rovině.",
+    "html_help_file": "/Q_Procedury/Q22.htm",
+    "menu": "Bod polárními souřadnicemi v rovině.",
+    "syntax": "QM=Q22>Q,R,A,D",
+    "type": "Q"
+  },
+  "Q23": {
+    "comment": "Bod od bodu kolmo k rov.ve vzdál. K=0-záporně, 1-ve směru norm.vektoru rov. (default).",
+    "html_help_file": "/Q_Procedury/Q23.htm",
+    "menu": "Bod od bodu kolmo k rov.ve vzdál. K=0-záporně, 1-ve směru norm.vektoru rov. (default).",
+    "syntax": "QM=Q23>Q,R,D[,K]",
+    "type": "Q"
+  },
+  "Q24": {
+    "comment": "Bod symetrický k rovině.",
+    "html_help_file": "/Q_Procedury/Q24.htm",
+    "menu": "Bod symetrický k rovině.",
+    "syntax": "QM=Q24>Q,R",
+    "type": "Q"
+  },
+  "Q25": {
+    "comment": "Průsečík dvou křivek. K2=pořadí, K1=0-na T1, 1-na T2.",
+    "html_help_file": "/Q_Procedury/Q25.htm",
+    "menu": "Průsečík dvou křivek. K2=pořadí, K1=0-na T1, 1-na T2.",
+    "syntax": "QM=Q25>T1,T2,KK",
+    "type": "Q"
+  },
+  "Q26": {
+    "comment": "Průs.křivky 'vlastní'. K2=pořadí na T, K1=0-nižší, 1-vyšší index.",
+    "html_help_file": "/Q_Procedury/Q26.htm",
+    "menu": "Průs.křivky 'vlastní'. K2=pořadí na T, K1=0-nižší, 1-vyšší index.",
+    "syntax": "QM=Q26>T,KK",
+    "type": "Q"
+  },
+  "Q27": {
+    "comment": "Střed kruž.veps.různoběžkám ve spol. rovině. K2=0-vlevo,1-vpravo M1, K1=0 vlevo,1-vpravo M2.",
+    "html_help_file": "/Q_Procedury/Q27.htm",
+    "menu": "Střed kruž.veps.různoběžkám ve spol. rovině. K2=0-vlevo,1-vpravo M1, K1=0 vlevo,1-vpravo M2.",
+    "syntax": "QM=Q27>M1,M2,D,KK",
+    "type": "Q"
+  },
+  "Q28": {
+    "comment": "Průsečík dvou přímek v rovině.",
+    "html_help_file": "/Q_Procedury/Q28.htm",
+    "menu": "Průsečík dvou přímek v rovině.",
+    "syntax": "QM=Q28>M1,M2",
+    "type": "Q"
+  },
+  "Q29": {
+    "comment": "Průs.přím.s kruž. K=0-záporně, 1-ve směru M.",
+    "html_help_file": "/Q_Procedury/Q29.htm",
+    "menu": "Průs.přím.s kruž. K=0-záporně, 1-ve směru M.",
+    "syntax": "QM=Q29>M,G,K",
+    "type": "Q"
+  },
+  "Q30": {
+    "comment": "Průs.příčky mimoběžek s přím.M1.",
+    "html_help_file": "/Q_Procedury/Q30.htm",
+    "menu": "Průs.příčky mimoběžek s přím.M1.",
+    "syntax": "QM=Q30>M1,M2",
+    "type": "Q"
+  },
+  "Q31": {
+    "comment": "Průsečík přímky s rovinou.",
+    "html_help_file": "/Q_Procedury/Q31.htm",
+    "menu": "Průsečík přímky s rovinou.",
+    "syntax": "QM=Q31>M,R",
+    "type": "Q"
+  },
+  "Q32": {
+    "comment": "Průs.přím.s [ekv.] plochou. K=pořadí na M (def.=1). Úroveň řešení N=0-nepředepsána (def.), 1-nejvyšší.",
+    "html_help_file": "/Q_Procedury/Q32.htm",
+    "menu": "Průs.přím.s [ekv.] plochou. K=pořadí na M (def.=1). Úroveň řešení N=0-nepředepsána (def.), 1-nejvyšší.",
+    "syntax": "QM=Q32>M,F,[D][,K][,N]",
+    "type": "Q"
+  },
+  "Q34": {
+    "comment": "Průs.dvou kruž. K=0-vlevo, 1-vpravo (G1G2).",
+    "html_help_file": "/Q_Procedury/Q34.htm",
+    "menu": "Průs.dvou kruž. K=0-vlevo, 1-vpravo (G1G2).",
+    "syntax": "QM=Q34>G1,G2,K",
+    "type": "Q"
+  },
+  "Q36": {
+    "comment": "Průs. kružnice s rovinou. K=0-záporně, 1-kladně na smluvně orient. průsečnici rov. R a roviny G.",
+    "html_help_file": "/Q_Procedury/Q36.htm",
+    "menu": "Průs. kružnice s rovinou. K=0-záporně, 1-kladně na smluvně orient. průsečnici rov. R a roviny G.",
+    "syntax": "QM=Q36>G,R,K",
+    "type": "Q"
+  },
+  "Q37": {
+    "comment": "Průs.řet.s rov. K=pořadí na H.",
+    "html_help_file": "/Q_Procedury/Q37.htm",
+    "menu": "Průs.řet.s rov. K=pořadí na H.",
+    "syntax": "QM=Q37>H,R,K",
+    "type": "Q"
+  },
+  "Q38": {
+    "comment": "Průs.křiv.s rov. K=pořadí na T.",
+    "html_help_file": "/Q_Procedury/Q38.htm",
+    "menu": "Průs.křiv.s rov. K=pořadí na T.",
+    "syntax": "QM=Q38>T,R,K",
+    "type": "Q"
+  },
+  "Q39": {
+    "comment": "Průsečík izočáry ekvid. plochy s ro vinou. D1-indexparametr izočáry, K1-pořadí prů sečíku ve směru izočáry (default 1), K2=1 -izo čára (I,u)=konst., 2-(J,v)=konst. (default 1), K3=číslo oblasti plochy (default 0-přes všechny oblasti), D2-ekvidistanta (default 0).",
+    "html_help_file": "/Q_Procedury/Q39.htm",
+    "menu": "Průsečík izočáry ekvid. plochy s ro vinou. D1-indexparametr izočáry, K1-pořadí prů sečíku ve směru izočáry (default 1), K2=1 -izo čára (I,u)=konst., 2-(J,v)=konst. (default 1), K3=číslo oblasti plochy (default 0-přes všechny oblasti), D2-ekvidistanta (default 0).",
+    "syntax": "QM=Q39>R,F,D1[,K1,K2,K3,D2]",
+    "type": "Q"
+  },
+  "Q40": {
+    "comment": "Bod patní v rovině.",
+    "html_help_file": "/Q_Procedury/Q40.htm",
+    "menu": "Bod patní v rovině.",
+    "syntax": "QM=Q40>Q,R",
+    "type": "Q"
+  },
+  "Q41": {
+    "comment": "Průsečík tří rovin.",
+    "html_help_file": "/Q_Procedury/Q41.htm",
+    "menu": "Průsečík tří rovin.",
+    "syntax": "QM=Q41>R1,R2,R3",
+    "type": "Q"
+  },
+  "Q42": {
+    "comment": "Patní bod na 3D křivku. K - pořadí na křivce.",
+    "html_help_file": "/Q_Procedury/Q42.htm",
+    "menu": "Patní bod na 3D křivku. K - pořadí na křivce.",
+    "syntax": "QM=Q42>Q,T,K",
+    "type": "Q"
+  },
+  "Q43": {
+    "comment": "Patní bod na křivce v minim.vzdálenosti.",
+    "html_help_file": "/Q_Procedury/Q43.htm",
+    "menu": "Patní bod na křivce v minim.vzdálenosti.",
+    "syntax": "QM=Q43>Q,T",
+    "type": "Q"
+  },
+  "Q44": {
+    "comment": "Ekv.bod k bodu plochy. Pro D>0 K=0-vnější (de fault), 1-vnitřní.",
+    "html_help_file": "/Q_Procedury/Q44.htm",
+    "menu": "Ekv.bod k bodu plochy. Pro D>0 K=0-vnější (de fault), 1-vnitřní.",
+    "syntax": "QM=Q44>Q,F,D[,K]",
+    "type": "Q"
+  },
+  "Q45": {
+    "comment": "Patní bod na ploše v minim. vzdálenosti.",
+    "html_help_file": "/Q_Procedury/Q45.htm",
+    "menu": "Patní bod na ploše v minim. vzdálenosti.",
+    "syntax": "QM=Q45>Q,F",
+    "type": "Q"
+  },
+  "Q47": {
+    "comment": "Vyjmutý střed kružnice.",
+    "html_help_file": "/Q_Procedury/Q47.htm",
+    "menu": "Vyjmutý střed kružnice.",
+    "syntax": "QM=Q47>G",
+    "type": "Q"
+  },
+  "Q48": {
+    "comment": "Uzl.bod řet.nebo křiv. K=index uzlu.",
+    "html_help_file": "/Q_Procedury/Q48.htm",
+    "menu": "Uzl.bod řet.nebo křiv. K=index uzlu.",
+    "syntax": "QM=Q48>pg,K",
+    "type": "Q"
+  },
+  "Q49": {
+    "comment": "Kopie bodu.",
+    "html_help_file": "/Q_Procedury/Q49.htm",
+    "menu": "Kopie bodu.",
+    "syntax": "QM=Q49>Q",
+    "type": "Q"
+  },
+  "Q50": {
+    "comment": "Prostorový bod přiřazením souř.z rovinnému bodu.",
+    "html_help_file": "/Q_Procedury/Q50.htm",
+    "menu": "Prostorový bod přiřazením souř.z rovinnému bodu.",
+    "syntax": "QM=Q50>P,D",
+    "type": "Q"
+  },
+  "Q54": {
+    "comment": "Bod na řet.v min.vzdál.od bodu.",
+    "html_help_file": "/Q_Procedury/Q54.htm",
+    "menu": "Bod na řet.v min.vzdál.od bodu.",
+    "syntax": "QM=Q54>Q,H",
+    "type": "Q"
+  },
+  "Q56": {
+    "comment": "Bod na řet.nebo křiv.indexem a param.",
+    "html_help_file": "/Q_Procedury/Q56.htm",
+    "menu": "Bod na řet.nebo křiv.indexem a param.",
+    "syntax": "QM=Q56>pg,K,D",
+    "type": "Q"
+  },
+  "Q57": {
+    "comment": "Bod od bodu po křiv.ve vzdál. Pro D>0 K=0-záporně, 1-ve směru T (default).",
+    "html_help_file": "/Q_Procedury/Q57.htm",
+    "menu": "Bod od bodu po křiv.ve vzdál. Pro D>0 K=0-záporně, 1-ve směru T (default).",
+    "syntax": "QM=Q57>Q,T,D[,K]",
+    "type": "Q"
+  },
+  "Q58": {
+    "comment": "Bod od bodu po řet. 3D ve vzdál. K=0-proti, 1-ve směru řetězce (default).",
+    "html_help_file": "/Q_Procedury/Q58.htm",
+    "menu": "Bod od bodu po řet. 3D ve vzdál. K=0-proti, 1-ve směru řetězce (default).",
+    "syntax": "QM=Q58>Q,H,D[,K]",
+    "type": "Q"
+  },
+  "Q66": {
+    "comment": "Bod na 3D řetězci souřadnicí. K2 - pořadí na ře tězci, K1=1-x souř., 2-y, 3-z.",
+    "html_help_file": "/Q_Procedury/Q66.htm",
+    "menu": "Bod na 3D řetězci souřadnicí. K2 - pořadí na ře tězci, K1=1-x souř., 2-y, 3-z.",
+    "syntax": "QM=Q66>H,D,KK",
+    "type": "Q"
+  },
+  "QCUR": {
+    "comment": "Výpočet řídících bodů rovinné křivky P1 z bodů na křivce P2. K - počet bodů P2 (<2,128> pro otevř., <3,128> pro uzavř.). V1, V2 okraj.podm. počátku a konce. N každý n-tý bod (def. N=1). Pro uzavř. křivku musí být P2(1)=P2(K). Počet bodů P1 je K+2.",
+    "html_help_file": null,
+    "menu": "Výpočet řídících bodů rovinné křivky P1 z bodů na křivce P2. K - počet bodů P2 (<2,128> pro otevř., <3,128> pro uzavř.). V1, V2 okraj.podm. počátku a konce. N každý n-tý bod (def. N=1). Pro uzavř. křivku musí být P2(1)=P2(K). Počet bodů P1 je K+2.",
+    "syntax": "QCUR,P1(I),P2(I),K[,V1,V2,N]",
+    "type": null
+  },
+  "QCUR3": {
+    "comment": "Výp. řídících bodů prostor. křivky Q1 z bodů na křivce Q2. K - počet bodů Q2 (<2,128> pro otevř., <3,128> pro uzavř.). U1, U2 okraj.podm. počátku a konce. N každý n-tý bod (def. N=1). Pro uzavř. křivku musí být Q2(1)=Q2(K). Počet bodů Q1 je K+2.",
+    "html_help_file": null,
+    "menu": "Výp. řídících bodů prostor. křivky Q1 z bodů na křivce Q2. K - počet bodů Q2 (<2,128> pro otevř., <3,128> pro uzavř.). U1, U2 okraj.podm. počátku a konce. N každý n-tý bod (def. N=1). Pro uzavř. křivku musí být Q2(1)=Q2(K). Počet bodů Q1 je K+2.",
+    "syntax": "QCUR3,Q1(I),Q2(I),K[,U1,U2,N]",
+    "type": null
+  },
+  "QSURF": {
+    "comment": "Odvození řídících bodů plochy Q1(i+2*j+2) z bodů plochy Q2(i*j), UI1(i+2) - počáteč. teč. vekto ry, UI2(i+2) - konc. teč. vektory pro i=konst., UJ1(j+1) - počáteč. teč. vektory, UJ2(j+1) - konc. teč. vektory pro j=konst. Není-li UI ne bo UJ uvedeno - uzavřená křivka v daném směru. Jsou-li UI nebo UJ nulové - výběh do přímky. Jsou-li v některém směru pouze dva body na ploše - přímková plocha.",
+    "html_help_file": null,
+    "menu": "Odvození řídících bodů plochy Q1(i+2*j+2) z bodů plochy Q2(i*j), UI1(i+2) - počáteč. teč. vekto ry, UI2(i+2) - konc. teč. vektory pro i=konst., UJ1(j+1) - počáteč. teč. vektory, UJ2(j+1) - konc. teč. vektory pro j=konst. Není-li UI ne bo UJ uvedeno - uzavřená křivka v daném směru. Jsou-li UI nebo UJ nulové - výběh do přímky. Jsou-li v některém směru pouze dva body na ploše - přímková plocha.",
+    "syntax": "QSURF,Q1(I),Q2(I),i,j[,[UI1(I),UI2(I)][,UJ1(I),UJ2(I)]]",
+    "type": null
+  },
+  "R00": {
+    "comment": "Rov.slož.norm.vektoru a vzdál.od počátku.",
+    "html_help_file": "/R_Procedury/R00.htm",
+    "menu": "Rov.slož.norm.vektoru a vzdál.od počátku.",
+    "syntax": "RM=R00>D1,D2,D3,D4",
+    "type": "R"
+  },
+  "R01": {
+    "comment": "Rovina norm.vektorem a vzdál.od počátku.",
+    "html_help_file": "/R_Procedury/R01.htm",
+    "menu": "Rovina norm.vektorem a vzdál.od počátku.",
+    "syntax": "RM=R01>U,D",
+    "type": "R"
+  },
+  "R02": {
+    "comment": "Rovina bodem a normálovým vektorem.",
+    "html_help_file": "/R_Procedury/R02.htm",
+    "menu": "Rovina bodem a normálovým vektorem.",
+    "syntax": "RM=R02>Q,U",
+    "type": "R"
+  },
+  "R03": {
+    "comment": "Rovina bodem a úhly stop. K=1-x, 2-y, 3-z.",
+    "html_help_file": "/R_Procedury/R03.htm",
+    "menu": "Rovina bodem a úhly stop. K=1-x, 2-y, 3-z.",
+    "syntax": "RM=R03>Q,A1,A2,K",
+    "type": "R"
+  },
+  "R04": {
+    "comment": "Rovina bodem a dvěma vektory.",
+    "html_help_file": "/R_Procedury/R04.htm",
+    "menu": "Rovina bodem a dvěma vektory.",
+    "syntax": "RM=R04>Q,U1,U2",
+    "type": "R"
+  },
+  "R05": {
+    "comment": "Rovina bodem a přímkou.",
+    "html_help_file": "/R_Procedury/R05.htm",
+    "menu": "Rovina bodem a přímkou.",
+    "syntax": "RM=R05>Q,M",
+    "type": "R"
+  },
+  "R06": {
+    "comment": "Rovina patním bodem z počátku.",
+    "html_help_file": "/R_Procedury/R06.htm",
+    "menu": "Rovina patním bodem z počátku.",
+    "syntax": "RM=R06>Q",
+    "type": "R"
+  },
+  "R07": {
+    "comment": "Rovina dvěma body a vektorem.",
+    "html_help_file": "/R_Procedury/R07.htm",
+    "menu": "Rovina dvěma body a vektorem.",
+    "syntax": "RM=R07>Q1,Q2,U",
+    "type": "R"
+  },
+  "R08": {
+    "comment": "Rovina třemi body.",
+    "html_help_file": "/R_Procedury/R08.htm",
+    "menu": "Rovina třemi body.",
+    "syntax": "RM=R08>Q1,Q2,Q3",
+    "type": "R"
+  },
+  "R09": {
+    "comment": "Souř.rovina. K=1-xy, 2-xz, 3-yz.",
+    "html_help_file": "/R_Procedury/R09.htm",
+    "menu": "Souř.rovina. K=1-xy, 2-xz, 3-yz.",
+    "syntax": "RM=R09>K",
+    "type": "R"
+  },
+  "R11": {
+    "comment": "Rovina pod úhlem k rovině dvěma body ležící mi v R. K=0-ccw (default), 1-cw (při pohledu ve směru Q1Q2).",
+    "html_help_file": "/R_Procedury/R11.htm",
+    "menu": "Rovina pod úhlem k rovině dvěma body ležící mi v R. K=0-ccw (default), 1-cw (při pohledu ve směru Q1Q2).",
+    "syntax": "RM=R11>R,Q1,Q2,A[,K]",
+    "type": "R"
+  },
+  "R12": {
+    "comment": "Rov. symetrie dvou rov. Poloprostor K=0-souhl. norm. vektory, 1-nesouhlasné.",
+    "html_help_file": "/R_Procedury/R12.htm",
+    "menu": "Rov. symetrie dvou rov. Poloprostor K=0-souhl. norm. vektory, 1-nesouhlasné.",
+    "syntax": "RM=R12>R1,R2,K",
+    "type": "R"
+  },
+  "R14": {
+    "comment": "Rov.posunutá o vektor (translace).",
+    "html_help_file": "/R_Procedury/R14.htm",
+    "menu": "Rov.posunutá o vektor (translace).",
+    "syntax": "RM=R14>R,U",
+    "type": "R"
+  },
+  "R19": {
+    "comment": "Rov.ot.o úhel kolem přím. K=0-ccw, 1-cw (def.).",
+    "html_help_file": "/R_Procedury/R19.htm",
+    "menu": "Rov.ot.o úhel kolem přím. K=0-ccw, 1-cw (def.).",
+    "syntax": "RM=R19>R,M,A[,K]",
+    "type": "R"
+  },
+  "R24": {
+    "comment": "Rovina souměrná k rovině R1 podle roviny R2",
+    "html_help_file": "/R_Procedury/R24.htm",
+    "menu": "Rovina souměrná k rovině R1 podle roviny R2",
+    "syntax": "RM=R24>R1,R2",
+    "type": "R"
+  },
+  "R28": {
+    "comment": "Rovina rovnoběžná s rovinou bodem.",
+    "html_help_file": "/R_Procedury/R28.htm",
+    "menu": "Rovina rovnoběžná s rovinou bodem.",
+    "syntax": "RM=R28>Q,R",
+    "type": "R"
+  },
+  "R29": {
+    "comment": "Rov.rovn.s rov.ve vzdál. K=0-proti, 1-ve směru norm. (default).",
+    "html_help_file": "/R_Procedury/R29.htm",
+    "menu": "Rov.rovn.s rov.ve vzdál. K=0-proti, 1-ve směru norm. (default).",
+    "syntax": "RM=R29>R,D[,K]",
+    "type": "R"
+  },
+  "R30": {
+    "comment": "Rovina kolmá k přímce bodem.",
+    "html_help_file": "/R_Procedury/R30.htm",
+    "menu": "Rovina kolmá k přímce bodem.",
+    "syntax": "RM=R30>Q,M",
+    "type": "R"
+  },
+  "R31": {
+    "comment": "Rovina kolmá k rovině dvěma body.",
+    "html_help_file": "/R_Procedury/R31.htm",
+    "menu": "Rovina kolmá k rovině dvěma body.",
+    "syntax": "RM=R31>R,Q1,Q2",
+    "type": "R"
+  },
+  "R32": {
+    "comment": "Rovina kolmá k rovině přímkou.",
+    "html_help_file": "/R_Procedury/R32.htm",
+    "menu": "Rovina kolmá k rovině přímkou.",
+    "syntax": "RM=R32>R,M",
+    "type": "R"
+  },
+  "R42": {
+    "comment": "Rovina kolmá na křivku bodem, jejíž průs. s křivkou je K-tý.",
+    "html_help_file": "/R_Procedury/R42.htm",
+    "menu": "Rovina kolmá na křivku bodem, jejíž průs. s křivkou je K-tý.",
+    "syntax": "RM=R42>Q,T,K",
+    "type": "R"
+  },
+  "R44": {
+    "comment": "Tečná rovina v bodě plochy.",
+    "html_help_file": "/R_Procedury/R44.htm",
+    "menu": "Tečná rovina v bodě plochy.",
+    "syntax": "RM=R44>Q,F",
+    "type": "R"
+  },
+  "R47": {
+    "comment": "Vyjmutá rovina kružnice.",
+    "html_help_file": "/R_Procedury/R47.htm",
+    "menu": "Vyjmutá rovina kružnice.",
+    "syntax": "RM=R47>G",
+    "type": "R"
+  },
+  "R48": {
+    "comment": "Vyjmutá rovina rovinného řetězce.",
+    "html_help_file": "/R_Procedury/R48.htm",
+    "menu": "Vyjmutá rovina rovinného řetězce.",
+    "syntax": "RM=R48>H",
+    "type": "R"
+  },
+  "R49": {
+    "comment": "Kopie roviny.",
+    "html_help_file": "/R_Procedury/R49.htm",
+    "menu": "Kopie roviny.",
+    "syntax": "RM=R49>R",
+    "type": "R"
+  },
+  "RDIM": {
+    "comment": "Kóta poloměru, C kótovaná kružnice, D1/text hodnota nebo text kóty, K3=0 bez prapor ku, =1 s praporkem, K2=0 zkrácená, =1 ze středu, K1=3 šipka uvnitř, =4 šipka vně (def. KKK=013), A úhel kót. čáry od x ccw (def. ANGL), D2 odsu nutí kóty ze zákl polohy.",
+    "html_help_file": null,
+    "menu": "Kóta poloměru, C kótovaná kružnice, D1/text hodnota nebo text kóty, K3=0 bez prapor ku, =1 s praporkem, K2=0 zkrácená, =1 ze středu, K1=3 šipka uvnitř, =4 šipka vně (def. KKK=013), A úhel kót. čáry od x ccw (def. ANGL), D2 odsu nutí kóty ze zákl polohy.",
+    "syntax": "RDIM,C[,D1/text,KKK,A,D2]",
+    "type": null
+  },
+  "READ": {
+    "comment": "Vstup z klávesnice, objekt=řádek.",
+    "html_help_file": null,
+    "menu": "Vstup z klávesnice, objekt=řádek.",
+    "syntax": "READ,parametry",
+    "type": null
+  },
+  "READ0": {
+    "comment": "Vstup, objekt=řádek, Číslo kanálu 0.",
+    "html_help_file": null,
+    "menu": "Vstup, objekt=řádek, Číslo kanálu 0.",
+    "syntax": "READ0,parametry",
+    "type": null
+  },
+  "READ1": {
+    "comment": "Vstup, objekt=řádek, Číslo kanálu 1.",
+    "html_help_file": null,
+    "menu": "Vstup, objekt=řádek, Číslo kanálu 1.",
+    "syntax": "READ1,parametry",
+    "type": null
+  },
+  "READ2": {
+    "comment": "Vstup, objekt=řádek, Číslo kanálu 2.",
+    "html_help_file": null,
+    "menu": "Vstup, objekt=řádek, Číslo kanálu 2.",
+    "syntax": "READ2,parametry",
+    "type": null
+  },
+  "READT": {
+    "comment": "Vstup z klávesnice, objekt=řádek.",
+    "html_help_file": null,
+    "menu": "Vstup z klávesnice, objekt=řádek.",
+    "syntax": "READT,parametry",
+    "type": null
+  },
+  "RESMOD": {
+    "comment": "Opětné nastavení režimu kreslení zapamatovaného předchozím příkazem GETMOD.",
+    "html_help_file": null,
+    "menu": "Opětné nastavení režimu kreslení zapamatovaného předchozím příkazem GETMOD.",
+    "syntax": "RESMOD",
+    "type": null
+  },
+  "RETSUB": {
+    "comment": "Ukončení vnějšího podprogramu.",
+    "html_help_file": null,
+    "menu": "Ukončení vnějšího podprogramu.",
+    "syntax": "RETSUB",
+    "type": null
+  },
+  "RETURN": {
+    "comment": "Ukončení vnitřního podprogramu.",
+    "html_help_file": null,
+    "menu": "Ukončení vnitřního podprogramu.",
+    "syntax": "RETURN",
+    "type": null
+  },
+  "RNUMB": {
+    "comment": "Vkládání racionál. čísla do textu.",
+    "html_help_file": null,
+    "menu": "Vkládání racionál. čísla do textu.",
+    "syntax": "RNUMB,pt,[počátek],[kon],číslo[,formd]",
+    "type": null
+  },
+  "S01": {
+    "comment": "Křivka K body s okraj.teč.vektory (sečna). Pro K=2 segment, není-li V1,VK přímka.",
+    "html_help_file": "/S_Procedury/S01.htm",
+    "menu": "Křivka K body s okraj.teč.vektory (sečna). Pro K=2 segment, není-li V1,VK přímka.",
+    "syntax": "SM=S01>P(I),K[,V1,VK]",
+    "type": "S"
+  },
+  "S02": {
+    "comment": "Křivka B-spline K řídícími body <0,1>.",
+    "html_help_file": "/S_Procedury/S02.htm",
+    "menu": "Křivka B-spline K řídícími body <0,1>.",
+    "syntax": "SM=S02>P(I),K",
+    "type": "S"
+  },
+  "S03": {
+    "comment": "Křivka K body otevřená <0,1>. Pro K=2 segment, není-li V1,VK přímka, každý N-tý bod (def.N=1).",
+    "html_help_file": "/S_Procedury/S03.htm",
+    "menu": "Křivka K body otevřená <0,1>. Pro K=2 segment, není-li V1,VK přímka, každý N-tý bod (def.N=1).",
+    "syntax": "SM=S03>P(I),K[,V1,VK,N]",
+    "type": "S"
+  },
+  "S04": {
+    "comment": "Křivka symetrická podle přímky.",
+    "html_help_file": "/S_Procedury/S04.htm",
+    "menu": "Křivka symetrická podle přímky.",
+    "syntax": "SM=S04>S,L",
+    "type": "S"
+  },
+  "S07": {
+    "comment": "Posunutí křivky o vektor.",
+    "html_help_file": "/S_Procedury/S07.htm",
+    "menu": "Posunutí křivky o vektor.",
+    "syntax": "SM=S07>S,V",
+    "type": "S"
+  },
+  "S08": {
+    "comment": "Otoč.křiv.o úhel kolem bodu. K=0-ccw (default), 1-cw.",
+    "html_help_file": "/S_Procedury/S08.htm",
+    "menu": "Otoč.křiv.o úhel kolem bodu. K=0-ccw (default), 1-cw.",
+    "syntax": "SM=S08>S,P,A[,K]",
+    "type": "S"
+  },
+  "S09": {
+    "comment": "Křivka K body uzavřená <0,1>. Každý N-tý bod (def.N=1).",
+    "html_help_file": "/S_Procedury/S09.htm",
+    "menu": "Křivka K body uzavřená <0,1>. Každý N-tý bod (def.N=1).",
+    "syntax": "SM=S09>P(I),K[,N]",
+    "type": "S"
+  },
+  "S10": {
+    "comment": "Uzavřená křivka K body (sečna).",
+    "html_help_file": "/S_Procedury/S10.htm",
+    "menu": "Uzavřená křivka K body (sečna).",
+    "syntax": "SM=S10>P(I),K",
+    "type": "S"
+  },
+  "S11": {
+    "comment": "Náhrada kruhového oblouku křivkou. P1,P2 -počát. a konc. bod oblouku, P3-střed kružnice oblouku, K1-počet segmentů křivky (min.=1, max.=50), K2=0-menší, =1-větší část kružnice (pro půlkruh K2=0-vlevo, =1-vpravo P1,P2). Default K1=1, K2=0. Nesmí být P1 totožné s P2 (celá kružnice).",
+    "html_help_file": "/S_Procedury/S11.htm",
+    "menu": "Náhrada kruhového oblouku křivkou. P1,P2 -počát. a konc. bod oblouku, P3-střed kružnice oblouku, K1-počet segmentů křivky (min.=1, max.=50), K2=0-menší, =1-větší část kružnice (pro půlkruh K2=0-vlevo, =1-vpravo P1,P2). Default K1=1, K2=0. Nesmí být P1 totožné s P2 (celá kružnice).",
+    "syntax": "SM=S11>P1,P2,P3[,K1,K2]",
+    "type": "S"
+  },
+  "S15": {
+    "comment": "Otevřená křivka obecný B-spline K body. D(J) je vektor parametrů.",
+    "html_help_file": "/S_Procedury/S15.htm",
+    "menu": "Otevřená křivka obecný B-spline K body. D(J) je vektor parametrů.",
+    "syntax": "SM=S15>P(I),K[,D(J)]",
+    "type": "S"
+  },
+  "S47": {
+    "comment": "Spojení dvou křivek. K=0 křivky nezměněny, K=1 konc. vektor první křivky bude počát. druhé, K=2 počát. vektor druhé bude konc. první, K=3 konc. první i počát. druhé bude vektor poloviční délky součtu původních vektorů.",
+    "html_help_file": "/S_Procedury/S47.htm",
+    "menu": "Spojení dvou křivek. K=0 křivky nezměněny, K=1 konc. vektor první křivky bude počát. druhé, K=2 počát. vektor druhé bude konc. první, K=3 konc. první i počát. druhé bude vektor poloviční délky součtu původních vektorů.",
+    "syntax": "SM=S47>S1,S2[,K]",
+    "type": "S"
+  },
+  "S48": {
+    "comment": "Křivka opačné orientace.",
+    "html_help_file": "/S_Procedury/S48.htm",
+    "menu": "Křivka opačné orientace.",
+    "syntax": "SM=S48>S",
+    "type": "S"
+  },
+  "S49": {
+    "comment": "Kopie křivky.",
+    "html_help_file": "/S_Procedury/S49.htm",
+    "menu": "Kopie křivky.",
+    "syntax": "SM=S49>S",
+    "type": "S"
+  },
+  "S51": {
+    "comment": "Křivka ekvid. ke křivce ve vzdálenosti D1. Od P1 k P2, pro D1>0 a K=0-vlevo, 1-vpravo od křivky. D2 - povolená odchylka křivky SM od ideální ekvid. křivky. Pro D2=0 nebo neuvedeno, odchylka se nekontroluje - jednomu segm. zákl. křivky odpovídá jeden segm. ekvid. křivky.",
+    "html_help_file": "/S_Procedury/S51.htm",
+    "menu": "Křivka ekvid. ke křivce ve vzdálenosti D1. Od P1 k P2, pro D1>0 a K=0-vlevo, 1-vpravo od křivky. D2 - povolená odchylka křivky SM od ideální ekvid. křivky. Pro D2=0 nebo neuvedeno, odchylka se nekontroluje - jednomu segm. zákl. křivky odpovídá jeden segm. ekvid. křivky.",
+    "syntax": "SM=S51>S,D1[,[P1][,P2][,[K][,[D2]]]]",
+    "type": "S"
+  },
+  "SCALE": {
+    "comment": "Transformace měřítkem.",
+    "html_help_file": null,
+    "menu": "Transformace měřítkem.",
+    "syntax": "SCALE,výsl,vstup,měřítko,počet",
+    "type": null
+  },
+  "SETCOS": {
+    "comment": "Nastavení čísla knihovní souř. soustavy pro vstup objektu z knihovny DTB.",
+    "html_help_file": null,
+    "menu": "Nastavení čísla knihovní souř. soustavy pro vstup objektu z knihovny DTB.",
+    "syntax": "SETCOS,ksou",
+    "type": null
+  },
+  "SIN": {
+    "comment": "Výpočet funkce sinus.",
+    "html_help_file": "/Funkce/SIN.htm",
+    "menu": "Výpočet funkce sinus.",
+    "syntax": "pg(D)=SIN>vr",
+    "type": "D"
+  },
+  "SIZE": {
+    "comment": "Velikost písma graf. textu.",
+    "html_help_file": "/Kresleni/SIZE.htm",
+    "menu": "Velikost písma graf. textu.",
+    "syntax": "SIZE[,vel]",
+    "type": null
+  },
+  "SQRT": {
+    "comment": "Výpočet druhé odmocniny.",
+    "html_help_file": "/Funkce/SQRT.htm",
+    "menu": "Výpočet druhé odmocniny.",
+    "syntax": "pg(D)=SQRT>vr",
+    "type": "D"
+  },
+  "STOP": {
+    "comment": "Logické ukončení programu.",
+    "html_help_file": null,
+    "menu": "Logické ukončení programu.",
+    "syntax": "STOP",
+    "type": null
+  },
+  "SUB": {
+    "comment": "Volání vnitřního podprogramu.",
+    "html_help_file": null,
+    "menu": "Volání vnitřního podprogramu.",
+    "syntax": "SUB,nav",
+    "type": null
+  },
+  "SUBRO": {
+    "comment": "Definice vnějšího podprogramu.",
+    "html_help_file": null,
+    "menu": "Definice vnějšího podprogramu.",
+    "syntax": "SUBRO/jmeno/[parametry]",
+    "type": null
+  },
+  "T01": {
+    "comment": "Křivka K body a okraj.teč.vektory (sečna). Pro K=2 segment, není-li U1,UK přímka.",
+    "html_help_file": "/T_Procedury/T01.htm",
+    "menu": "Křivka K body a okraj.teč.vektory (sečna). Pro K=2 segment, není-li U1,UK přímka.",
+    "syntax": "TM=T01>Q(I),K[,U1,UK]",
+    "type": "T"
+  },
+  "T02": {
+    "comment": "Křivka B-spline K řídícími body <0,1>.",
+    "html_help_file": "/T_Procedury/T02.htm",
+    "menu": "Křivka B-spline K řídícími body <0,1>.",
+    "syntax": "TM=T02>Q(I),K",
+    "type": "T"
+  },
+  "T03": {
+    "comment": "Křivka K body otevřená <0,1>. Pro K=2 segment, není-li U1,UK přímka, každý N-tý bod (def.N=1).",
+    "html_help_file": "/T_Procedury/T03.htm",
+    "menu": "Křivka K body otevřená <0,1>. Pro K=2 segment, není-li U1,UK přímka, každý N-tý bod (def.N=1).",
+    "syntax": "TM=T03>Q(I),K[,U1,UK,N]",
+    "type": "T"
+  },
+  "T05": {
+    "comment": "Kubický segment nebo lin. úsečka (chybí-li U1,U2), pro hranici plátu Coonsovy plochy.",
+    "html_help_file": "/T_Procedury/T05.htm",
+    "menu": "Kubický segment nebo lin. úsečka (chybí-li U1,U2), pro hranici plátu Coonsovy plochy.",
+    "syntax": "TM=T05>Q1,Q2[,U1,U2]",
+    "type": "T"
+  },
+  "T06": {
+    "comment": "Kruhový prostorový oblouk pro hranici Coonsovy plochy. Q1-střed, vg1-osa x', vg2-osa y', D-poloměr, A1-úhel počátku od x', A2-úhel konce od x'.",
+    "html_help_file": "/T_Procedury/T06.htm",
+    "menu": "Kruhový prostorový oblouk pro hranici Coonsovy plochy. Q1-střed, vg1-osa x', vg2-osa y', D-poloměr, A1-úhel počátku od x', A2-úhel konce od x'.",
+    "syntax": "TM=T06>Q1,vg1(Q,U,M),vg2(Q,U,M),D,A1,A2",
+    "type": "T"
+  },
+  "T09": {
+    "comment": "Křivka K body uzavřená <0,1>. Každý N-tý bod (def.N=1).",
+    "html_help_file": "/T_Procedury/T09.htm",
+    "menu": "Křivka K body uzavřená <0,1>. Každý N-tý bod (def.N=1).",
+    "syntax": "TM=T09>Q(I),K[,N]",
+    "type": "T"
+  },
+  "T10": {
+    "comment": "Uzavřená křivka K body (sečna).",
+    "html_help_file": "/T_Procedury/T10.htm",
+    "menu": "Uzavřená křivka K body (sečna).",
+    "syntax": "TM=T10>Q(I),K",
+    "type": "T"
+  },
+  "T11": {
+    "comment": "Náhrada kruhového oblouku křivkou. Q1,Q2 - počát. a konc. bod oblouku, Q3-střed kružnice oblouku, K1-počet segmentů křivky (min.=1, max.=50), K2=0-menší, =1-větší část kružnice Default K1=1, K2=0. Nesmí být Q1 totožné s Q2 (celá kružnice) a Q3 nesmí ležet na spojnici Q1,Q2 (polovina kružnice - v prostoru není určena rovina kružnice).",
+    "html_help_file": "/T_Procedury/T11.htm",
+    "menu": "Náhrada kruhového oblouku křivkou. Q1,Q2 - počát. a konc. bod oblouku, Q3-střed kružnice oblouku, K1-počet segmentů křivky (min.=1, max.=50), K2=0-menší, =1-větší část kružnice Default K1=1, K2=0. Nesmí být Q1 totožné s Q2 (celá kružnice) a Q3 nesmí ležet na spojnici Q1,Q2 (polovina kružnice - v prostoru není určena rovina kružnice).",
+    "syntax": "TM=T11>Q1,Q2,Q3[,K1,K2]",
+    "type": "T"
+  },
+  "T14": {
+    "comment": "Posunutá křivka o vektor.",
+    "html_help_file": "/T_Procedury/T14.htm",
+    "menu": "Posunutá křivka o vektor.",
+    "syntax": "TM=T14>T,U",
+    "type": "T"
+  },
+  "T15": {
+    "comment": "Otevřená křivka obecný B-spline K body. D(J) je vektor parametrů.",
+    "html_help_file": "/T_Procedury/T15.htm",
+    "menu": "Otevřená křivka obecný B-spline K body. D(J) je vektor parametrů.",
+    "syntax": "TM=T15>Q(I),K[,D(J)]",
+    "type": "T"
+  },
+  "T19": {
+    "comment": "Křivka otočená o úhel kolem přím. K=0-ccw (def.), 1-cw.",
+    "html_help_file": "/T_Procedury/T19.htm",
+    "menu": "Křivka otočená o úhel kolem přím. K=0-ccw (def.), 1-cw.",
+    "syntax": "TM=T19>T,M,A[,K]",
+    "type": "T"
+  },
+  "T24": {
+    "comment": "Křivka souměrná ke křivce podle roviny.",
+    "html_help_file": "/T_Procedury/T24.htm",
+    "menu": "Křivka souměrná ke křivce podle roviny.",
+    "syntax": "TM=T24>T,R",
+    "type": "T"
+  },
+  "T32": {
+    "comment": "Kolmý průmět křivky do roviny.",
+    "html_help_file": "/T_Procedury/T32.htm",
+    "menu": "Kolmý průmět křivky do roviny.",
+    "syntax": "TM=T32>T,R",
+    "type": "T"
+  },
+  "T33": {
+    "comment": "Průmět křivky do roviny vektorem.",
+    "html_help_file": "/T_Procedury/T33.htm",
+    "menu": "Průmět křivky do roviny vektorem.",
+    "syntax": "TM=T33>T,R,U",
+    "type": "T"
+  },
+  "T47": {
+    "comment": "Spojení dvou křivek. K=0 křivky nezměněny, K=1 konc. vektor první křivky bude počát. druhé, K=2 počát. vektor druhé bude konc. první, K=3 konc. první i počát. druhé bude vektor poloviční délky součtu původních vektorů.",
+    "html_help_file": "/T_Procedury/T47.htm",
+    "menu": "Spojení dvou křivek. K=0 křivky nezměněny, K=1 konc. vektor první křivky bude počát. druhé, K=2 počát. vektor druhé bude konc. první, K=3 konc. první i počát. druhé bude vektor poloviční délky součtu původních vektorů.",
+    "syntax": "TM=T47>T1,T2[,K]",
+    "type": "T"
+  },
+  "T48": {
+    "comment": "Křivka opačné orientace.",
+    "html_help_file": "/T_Procedury/T48.htm",
+    "menu": "Křivka opačné orientace.",
+    "syntax": "TM=T48>T",
+    "type": "T"
+  },
+  "T49": {
+    "comment": "Kopie křivky.",
+    "html_help_file": "/T_Procedury/T49.htm",
+    "menu": "Kopie křivky.",
+    "syntax": "TM=T49>T",
+    "type": "T"
+  },
+  "TAN": {
+    "comment": "Výpočet funkce tangens.",
+    "html_help_file": "/Funkce/TAN.htm",
+    "menu": "Výpočet funkce tangens.",
+    "syntax": "pg(D)=TAN>vr",
+    "type": "D"
+  },
+  "TEXB": {
+    "comment": "Přesun textu mezi textovými proměnnými.",
+    "html_help_file": null,
+    "menu": "Přesun textu mezi textovými proměnnými.",
+    "syntax": "TEXB,pt,[počátek],[kon],vstup_text[,počat_vst]",
+    "type": null
+  },
+  "TFN": {
+    "comment": "Technol.příkaz s proměnnými parametry.",
+    "html_help_file": null,
+    "menu": "Technol.příkaz s proměnnými parametry.",
+    "syntax": "TFN/operace,parametry",
+    "type": null
+  },
+  "THEN": {
+    "comment": "Zahájení podmíněného bloku",
+    "html_help_file": null,
+    "menu": "Zahájení podmíněného bloku",
+    "syntax": "Zahájení podmíněného bloku",
+    "type": null
+  },
+  "TMOD": {
+    "comment": "Nastavení textového módu.",
+    "html_help_file": null,
+    "menu": "Nastavení textového módu.",
+    "syntax": "TMOD[,mod]",
+    "type": null
+  },
+  "TRA22": {
+    "comment": "Transformace rovina-rovina.",
+    "html_help_file": null,
+    "menu": "Transformace rovina-rovina.",
+    "syntax": "TRA22,výsl,vstup,počet,čsou",
+    "type": null
+  },
+  "TRA23": {
+    "comment": "Transformace rovina-prostor.",
+    "html_help_file": null,
+    "menu": "Transformace rovina-prostor.",
+    "syntax": "TRA23,výsl,vstup,počet,čsou",
+    "type": null
+  },
+  "TRA32": {
+    "comment": "Transformace prostor-rovina.",
+    "html_help_file": null,
+    "menu": "Transformace prostor-rovina.",
+    "syntax": "TRA32,výsl,vstup,počet,čsou",
+    "type": null
+  },
+  "TRA33": {
+    "comment": "Transformace prostor-prostor.",
+    "html_help_file": null,
+    "menu": "Transformace prostor-prostor.",
+    "syntax": "TRA33,výsl,vstup,počet,čsou",
+    "type": null
+  },
+  "TRACE": {
+    "comment": "Výstup na obrazovku, objekt=řádek, mimo B.",
+    "html_help_file": null,
+    "menu": "Výstup na obrazovku, objekt=řádek, mimo B.",
+    "syntax": "TRACE,parametry",
+    "type": null
+  },
+  "TWIST1": {
+    "comment": "Vložení vektoru'twistu' do definované plochy - v uzlu s indexy I,J, všechny defin. pláty, N je číslo oblasti (default =1)",
+    "html_help_file": null,
+    "menu": "Vložení vektoru'twistu' do definované plochy - v uzlu s indexy I,J, všechny defin. pláty, N je číslo oblasti (default =1)",
+    "syntax": "TWIST1,F,U,I,J[,N]",
+    "type": null
+  },
+  "TWIST2": {
+    "comment": "Vložení vektoru'twistu' do definované plochy - plát I,J, roh K=00,01,10,11, N je číslo oblasti (default =1).",
+    "html_help_file": null,
+    "menu": "Vložení vektoru'twistu' do definované plochy - plát I,J, roh K=00,01,10,11, N je číslo oblasti (default =1).",
+    "syntax": "TWIST2,F,U,I,J,K[,N]",
+    "type": null
+  },
+  "TYPE": {
+    "comment": "Výstup na obrazovku, příkaz=řádek,mimo S,T,E,H,F.",
+    "html_help_file": null,
+    "menu": "Výstup na obrazovku, příkaz=řádek,mimo S,T,E,H,F.",
+    "syntax": "TYPE,parametry",
+    "type": null
+  },
+  "TYPE0": {
+    "comment": "Výstup, příkaz=řádek,mimo S,T,E,H,F, Číslo ka nálu 0.",
+    "html_help_file": null,
+    "menu": "Výstup, příkaz=řádek,mimo S,T,E,H,F, Číslo ka nálu 0.",
+    "syntax": "TYPE0,parametry",
+    "type": null
+  },
+  "TYPE1": {
+    "comment": "Výstup, příkaz=řádek,mimo S,T,E,H,F, Číslo ka nálu 1.",
+    "html_help_file": null,
+    "menu": "Výstup, příkaz=řádek,mimo S,T,E,H,F, Číslo ka nálu 1.",
+    "syntax": "TYPE1,parametry",
+    "type": null
+  },
+  "TYPE2": {
+    "comment": "Výstup, příkaz=řádek,mimo S,T,E,H,F, Číslo ka nálu 2.",
+    "html_help_file": null,
+    "menu": "Výstup, příkaz=řádek,mimo S,T,E,H,F, Číslo ka nálu 2.",
+    "syntax": "TYPE2,parametry",
+    "type": null
+  },
+  "TYPET": {
+    "comment": "Výstup na obrazovku, příkaz=řádek,mimo S,T,E,H,F.",
+    "html_help_file": null,
+    "menu": "Výstup na obrazovku, příkaz=řádek,mimo S,T,E,H,F.",
+    "syntax": "TYPET,parametry",
+    "type": null
+  },
+  "U00": {
+    "comment": "Vektor třemi složkami.",
+    "html_help_file": "/U_Procedury/U00.htm",
+    "menu": "Vektor třemi složkami.",
+    "syntax": "UM=U00>D1,D2,D3",
+    "type": "U"
+  },
+  "U01": {
+    "comment": "Vektor dvěma body. Z Q1 do Q2.",
+    "html_help_file": "/U_Procedury/U01.htm",
+    "menu": "Vektor dvěma body. Z Q1 do Q2.",
+    "syntax": "UM=U01>Q1,Q2",
+    "type": "U"
+  },
+  "U02": {
+    "comment": "Vektor změnou složky. K=1-x, 2-y, 3-z.",
+    "html_help_file": "/U_Procedury/U02.htm",
+    "menu": "Vektor změnou složky. K=1-x, 2-y, 3-z.",
+    "syntax": "UM=U02>U,D,K",
+    "type": "U"
+  },
+  "U04": {
+    "comment": "Vektor třemi složkami a délkou.",
+    "html_help_file": "/U_Procedury/U04.htm",
+    "menu": "Vektor třemi složkami a délkou.",
+    "syntax": "UM=U04>D1,D2,D3,D4",
+    "type": "U"
+  },
+  "U05": {
+    "comment": "Vektor ze tří bodů v K-tém bodě <1,3>",
+    "html_help_file": "/U_Procedury/U05.htm",
+    "menu": "Vektor ze tří bodů v K-tém bodě <1,3>",
+    "syntax": "UM=U05>Q1,Q2,Q3,K",
+    "type": "U"
+  },
+  "U06": {
+    "comment": "Vektor ze dvou bodů a směrů dvou vektorů v K-tém bodě (K=1 nebo 2)",
+    "html_help_file": "/U_Procedury/U06.htm",
+    "menu": "Vektor ze dvou bodů a směrů dvou vektorů v K-tém bodě (K=1 nebo 2)",
+    "syntax": "UM=U06>Q1,Q2,U1,U2,K",
+    "type": "U"
+  },
+  "U11": {
+    "comment": "Teč. vektor křivky v bodě křivky (nenormaliz.).",
+    "html_help_file": "/U_Procedury/U11.htm",
+    "menu": "Teč. vektor křivky v bodě křivky (nenormaliz.).",
+    "syntax": "UM=U11>Q,T",
+    "type": "U"
+  },
+  "U12": {
+    "comment": "Teč. vektor v bodě plochy ve směru izočáry. (ne normalizovaný), K=1-(J,v)=konst., 2-(I,u)=konst.",
+    "html_help_file": "/U_Procedury/U12.htm",
+    "menu": "Teč. vektor v bodě plochy ve směru izočáry. (ne normalizovaný), K=1-(J,v)=konst., 2-(I,u)=konst.",
+    "syntax": "UM=U12>Q,F,K",
+    "type": "U"
+  },
+  "U19": {
+    "comment": "Vektor otočený o úhel kolem přímky. K=0-ccw (de fault), 1-cw.",
+    "html_help_file": "/U_Procedury/U19.htm",
+    "menu": "Vektor otočený o úhel kolem přímky. K=0-ccw (de fault), 1-cw.",
+    "syntax": "UM=U19>U,M,A[,K]",
+    "type": "U"
+  },
+  "U21": {
+    "comment": "Normálový vektor v bodě plochy.",
+    "html_help_file": "/U_Procedury/U21.htm",
+    "menu": "Normálový vektor v bodě plochy.",
+    "syntax": "UM=U21>Q,F",
+    "type": "U"
+  },
+  "U22": {
+    "comment": "Vektor 'twistu' plochy na plátu I, J v rohu K - 00, 01, 10, 11 na oblasti N (default 1)",
+    "html_help_file": "/U_Procedury/U22.htm",
+    "menu": "Vektor 'twistu' plochy na plátu I, J v rohu K - 00, 01, 10, 11 na oblasti N (default 1)",
+    "syntax": "UM=U22>F,I,J,K[,N]",
+    "type": "U"
+  },
+  "U24": {
+    "comment": "Vektor souměrný podle roviny",
+    "html_help_file": "/U_Procedury/U24.htm",
+    "menu": "Vektor souměrný podle roviny",
+    "syntax": "UM=U24>U,R",
+    "type": "U"
+  },
+  "U26": {
+    "comment": "Vektor násobený skalárem.",
+    "html_help_file": "/U_Procedury/U26.htm",
+    "menu": "Vektor násobený skalárem.",
+    "syntax": "UM=U26>U,D",
+    "type": "U"
+  },
+  "U27": {
+    "comment": "Vektor dané délky.",
+    "html_help_file": "/U_Procedury/U27.htm",
+    "menu": "Vektor dané délky.",
+    "syntax": "UM=U27>U,D",
+    "type": "U"
+  },
+  "U29": {
+    "comment": "Součet (K=0), rozdíl (K=1) vektorů.",
+    "html_help_file": "/U_Procedury/U29.htm",
+    "menu": "Součet (K=0), rozdíl (K=1) vektorů.",
+    "syntax": "UM=U29>U1,U2,K",
+    "type": "U"
+  },
+  "U31": {
+    "comment": "Vektorový součin vektorů",
+    "html_help_file": "/U_Procedury/U31.htm",
+    "menu": "Vektorový součin vektorů",
+    "syntax": "UM=U31>U1,U2",
+    "type": "U"
+  },
+  "U35": {
+    "comment": "Jednotkový vektor.",
+    "html_help_file": "/U_Procedury/U35.htm",
+    "menu": "Jednotkový vektor.",
+    "syntax": "UM=U35>U",
+    "type": "U"
+  },
+  "U36": {
+    "comment": "Smluvně orientovaný vektor.",
+    "html_help_file": "/U_Procedury/U36.htm",
+    "menu": "Smluvně orientovaný vektor.",
+    "syntax": "UM=U36>U",
+    "type": "U"
+  },
+  "U43": {
+    "comment": "Norm.vektor plochy v bodě řetězce.",
+    "html_help_file": "/U_Procedury/U43.htm",
+    "menu": "Norm.vektor plochy v bodě řetězce.",
+    "syntax": "UM=U43>Q,H",
+    "type": "U"
+  },
+  "U44": {
+    "comment": "Norm.vekt.plochy v uzl.bodě řet. K=index.",
+    "html_help_file": "/U_Procedury/U44.htm",
+    "menu": "Norm.vekt.plochy v uzl.bodě řet. K=index.",
+    "syntax": "UM=U44>H,K",
+    "type": "U"
+  },
+  "U45": {
+    "comment": "Směr.vektor přímky.",
+    "html_help_file": "/U_Procedury/U45.htm",
+    "menu": "Směr.vektor přímky.",
+    "syntax": "UM=U45>M",
+    "type": "U"
+  },
+  "U46": {
+    "comment": "Směr.vektor osy kružnice.",
+    "html_help_file": "/U_Procedury/U46.htm",
+    "menu": "Směr.vektor osy kružnice.",
+    "syntax": "UM=U46>G",
+    "type": "U"
+  },
+  "U47": {
+    "comment": "Tečný vektor křivky v uzlovém bodě. K2=segment <1,N-1>, K1=0 počátek.",
+    "html_help_file": "/U_Procedury/U47.htm",
+    "menu": "Tečný vektor křivky v uzlovém bodě. K2=segment <1,N-1>, K1=0 počátek.",
+    "syntax": "UM=U47>T,KK",
+    "type": "U"
+  },
+  "U48": {
+    "comment": "Normálový vektor roviny.",
+    "html_help_file": "/U_Procedury/U48.htm",
+    "menu": "Normálový vektor roviny.",
+    "syntax": "UM=U48>R",
+    "type": "U"
+  },
+  "U49": {
+    "comment": "Kopie vektoru.",
+    "html_help_file": "/U_Procedury/U49.htm",
+    "menu": "Kopie vektoru.",
+    "syntax": "UM=U49>U",
+    "type": "U"
+  },
+  "U56": {
+    "comment": "Teč.vektor křiv.v bodě indexem a param.",
+    "html_help_file": "/U_Procedury/U56.htm",
+    "menu": "Teč.vektor křiv.v bodě indexem a param.",
+    "syntax": "UM=U56>T,K,D",
+    "type": "U"
+  },
+  "V00": {
+    "comment": "Vektor VM definován je složkami,\n  D1 - x složka\n  D2 - y složka",
+    "html_help_file": "/V_Procedury/V00.htm",
+    "menu": "V00> 2D vektor určený složkami .",
+    "syntax": "VM=V00>D1, D2",
+    "type": "V"
+  },
+  "V01": {
+    "comment": "Vektor VM má počátek v bodě P1 a konec v bodě P2.",
+    "html_help_file": "/V_Procedury/V01.htm",
+    "menu": "V01> 2D vektor určený dvěma body.",
+    "syntax": "VM=V01>P1,  P2",
+    "type": "V"
+  },
+  "V02": {
+    "comment": "Vektor VM má velikost 1, směr je dán úhlem A,\nměřeným od kladné osy x proti směru hodin. ručiček.",
+    "html_help_file": "/V_Procedury/V02.htm",
+    "menu": "V02> 2D jednotkový vektor daný úhlem.",
+    "syntax": "VM=V02>A",
+    "type": "V"
+  },
+  "V03": {
+    "comment": "Vektor VM má velikost D, směr je dán úhlem A,\nměřeným od kladné osy x proti směru hodin. ručiček.",
+    "html_help_file": "/V_Procedury/V03.htm",
+    "menu": "V03> 2D vektor daný úhlem a délkou.",
+    "syntax": "VM=V03>A, D",
+    "type": "V"
+  },
+  "V04": {
+    "comment": "Vektor VM je osově souměrný k vektoru V podle přímky L.",
+    "html_help_file": "/V_Procedury/V04.htm",
+    "menu": "V04> 2D vektor osově souměrný podle přímky.",
+    "syntax": "VM=V04>V, L",
+    "type": "V"
+  },
+  "V05": {
+    "comment": "Vektor VM je počítán ze vzájemné polohy bodů P1, P2, P3.\nParametr  K z intervalu <1,3> určuje pro který z těchto bodů bude vypočten.\nMůže být použit jako okrajový vektor pro definici křivky",
+    "html_help_file": "/V_Procedury/V05.htm",
+    "menu": "V05> 2D okrajový tečný vektor křivky určený ze tří bodů.",
+    "syntax": "VM=V05>P1, P2, P3, K",
+    "type": "V"
+  },
+  "V06": {
+    "comment": "Vektor VM je určen  body P1, P2  a směry vektorů V1, V2.\nVelikost vektoru je vypočtena z polohy obou bodů,\nsměr je souhlasně rovnoběžný pro:\n  K=1 - s vektorem V1,\n  K=2 - s vektorem V2.\nPro aproximaci kružnice operací S03 musí být splněny dvě podmínky:\n  - Umístíme-li vektor V1 do bodu P1, vektor V2 do P2, pak průsečík směrů vektorů\n     musí ležet na ose úsečky P1, P2.\n  - Okrajové tečné vektory v obou bodech P1 i P2 musí být vypočteny touto operací. ",
+    "html_help_file": "/V_Procedury/V06.htm",
+    "menu": "V06> 2D okrajový tečný vektor křivky pro aproximaci kružnice operací S03.",
+    "syntax": "VM=V06>P1, P2, V1, V2, K",
+    "type": "V"
+  },
+  "V08": {
+    "comment": "Vektor otočený o úhel. K=0-ccw (default), 1-cw.",
+    "html_help_file": "/V_Procedury/V08.htm",
+    "menu": "Vektor otočený o úhel. K=0-ccw (default), 1-cw.",
+    "syntax": "VM=V08>V,A,[K]",
+    "type": "V"
+  },
+  "V10": {
+    "comment": "Vektor přímky.",
+    "html_help_file": "/V_Procedury/V10.htm",
+    "menu": "Vektor přímky.",
+    "syntax": "VM=V10>L",
+    "type": "V"
+  },
+  "V11": {
+    "comment": "Tečný vektor křivky v uzl.bodě. K2 = segment <1,N-1>, K1=0-počátek, 1-konec segmentu.",
+    "html_help_file": "/V_Procedury/V11.htm",
+    "menu": "Tečný vektor křivky v uzl.bodě. K2 = segment <1,N-1>, K1=0-počátek, 1-konec segmentu.",
+    "syntax": "VM=V11>S,KK",
+    "type": "V"
+  },
+  "V12": {
+    "comment": "Jed.teč.vektor řet.v uzlovém bodě. K-index.",
+    "html_help_file": "/V_Procedury/V12.htm",
+    "menu": "Jed.teč.vektor řet.v uzlovém bodě. K-index.",
+    "syntax": "VM=V12>E,K",
+    "type": "V"
+  },
+  "V20": {
+    "comment": "Jednotkový vektor k obec.vektoru.",
+    "html_help_file": "/V_Procedury/V20.htm",
+    "menu": "Jednotkový vektor k obec.vektoru.",
+    "syntax": "VM=V20>V",
+    "type": "V"
+  },
+  "V21": {
+    "comment": "Jed.vektor, smluv.orient.k obec.vektoru.",
+    "html_help_file": "/V_Procedury/V21.htm",
+    "menu": "Jed.vektor, smluv.orient.k obec.vektoru.",
+    "syntax": "VM=V21>V",
+    "type": "V"
+  },
+  "V25": {
+    "comment": "Vektor opravou složky. K=0-x', 1-y'.",
+    "html_help_file": "/V_Procedury/V25.htm",
+    "menu": "Vektor opravou složky. K=0-x', 1-y'.",
+    "syntax": "VM=V25>V,D,K",
+    "type": "V"
+  },
+  "V27": {
+    "comment": "Jednot.vektor param. úhlu ke dvěma vektorům. K=0-vlevo, 1-vpravo V1.",
+    "html_help_file": "/V_Procedury/V27.htm",
+    "menu": "Jednot.vektor param. úhlu ke dvěma vektorům. K=0-vlevo, 1-vpravo V1.",
+    "syntax": "VM=V27>V1,V2,D,K",
+    "type": "V"
+  },
+  "V30": {
+    "comment": "Jed.vektor kolmý k přímce. K=0-vlevo,1-vpravo L.",
+    "html_help_file": "/V_Procedury/V30.htm",
+    "menu": "Jed.vektor kolmý k přímce. K=0-vlevo,1-vpravo L.",
+    "syntax": "VM=V30>L,K",
+    "type": "V"
+  },
+  "V31": {
+    "comment": "Jed.vektor kol.k vektoru. K=0-vlevo, 1-vpravo V.",
+    "html_help_file": "/V_Procedury/V31.htm",
+    "menu": "Jed.vektor kol.k vektoru. K=0-vlevo, 1-vpravo V.",
+    "syntax": "VM=V31>V,K",
+    "type": "V"
+  },
+  "V33": {
+    "comment": "Vektor z bodu na střed kružnice.",
+    "html_help_file": "/V_Procedury/V33.htm",
+    "menu": "Vektor z bodu na střed kružnice.",
+    "syntax": "VM=V33>P,C",
+    "type": "V"
+  },
+  "V34": {
+    "comment": "Jed.vektor kolmý ke křiv.v bodě křiv. K=0-vlevo, 1-vpravo.",
+    "html_help_file": "/V_Procedury/V34.htm",
+    "menu": "Jed.vektor kolmý ke křiv.v bodě křiv. K=0-vlevo, 1-vpravo.",
+    "syntax": "VM=V34>P,S,K",
+    "type": "V"
+  },
+  "V35": {
+    "comment": "Vektor kolmý k řet.v bodě řet. K=0-vlevo (de fault), 1-vpravo.",
+    "html_help_file": "/V_Procedury/V35.htm",
+    "menu": "Vektor kolmý k řet.v bodě řet. K=0-vlevo (de fault), 1-vpravo.",
+    "syntax": "VM=V35>P,E[,K]",
+    "type": "V"
+  },
+  "V36": {
+    "comment": "Jed.vektor teč.ke kruž. K=0-vlevo, 1-vpravo P,C.",
+    "html_help_file": "/V_Procedury/V36.htm",
+    "menu": "Jed.vektor teč.ke kruž. K=0-vlevo, 1-vpravo P,C.",
+    "syntax": "VM=V36>P,C,K",
+    "type": "V"
+  },
+  "V37": {
+    "comment": "Vektor tečný ke křivce v bodě křivky.",
+    "html_help_file": "/V_Procedury/V37.htm",
+    "menu": "Vektor tečný ke křivce v bodě křivky.",
+    "syntax": "VM=V37>P,S",
+    "type": "V"
+  },
+  "V38": {
+    "comment": "Vektor teč.k řet. v bodě řetězce.",
+    "html_help_file": "/V_Procedury/V38.htm",
+    "menu": "Vektor teč.k řet. v bodě řetězce.",
+    "syntax": "VM=V38>P,E",
+    "type": "V"
+  },
+  "V41": {
+    "comment": "Vektor dané délky rovnobězný s vektorem.",
+    "html_help_file": "/V_Procedury/V41.htm",
+    "menu": "Vektor dané délky rovnobězný s vektorem.",
+    "syntax": "VM=V41>V,D",
+    "type": "V"
+  },
+  "V42": {
+    "comment": "Vektor násobený skalárem.",
+    "html_help_file": "/V_Procedury/V42.htm",
+    "menu": "Vektor násobený skalárem.",
+    "syntax": "VM=V42>V,D",
+    "type": "V"
+  },
+  "V43": {
+    "comment": "Součet (K=0), rozdíl (K=1) vektorů.",
+    "html_help_file": "/V_Procedury/V43.htm",
+    "menu": "Součet (K=0), rozdíl (K=1) vektorů.",
+    "syntax": "VM=V43>V1,V2,K",
+    "type": "V"
+  },
+  "V45": {
+    "comment": "Rozklad vektoru do dvou rovnoběžných směrů. K2=0-akce, 1-reakce, K1=0-vektor bodu P2, 1-vektor bodu P3.",
+    "html_help_file": "/V_Procedury/V45.htm",
+    "menu": "Rozklad vektoru do dvou rovnoběžných směrů. K2=0-akce, 1-reakce, K1=0-vektor bodu P2, 1-vektor bodu P3.",
+    "syntax": "VM=V45>V,P1,P2,P3,KK",
+    "type": "V"
+  },
+  "V46": {
+    "comment": "Rozklad vektoru do dvou směrů přímek. K2=0-akce, 1-reakce, K1=0-na L1, 1-na L2.",
+    "html_help_file": "/V_Procedury/V46.htm",
+    "menu": "Rozklad vektoru do dvou směrů přímek. K2=0-akce, 1-reakce, K1=0-na L1, 1-na L2.",
+    "syntax": "VM=V46>V,L1,L2,KK",
+    "type": "V"
+  },
+  "V49": {
+    "comment": "Překopírovaný vektor.",
+    "html_help_file": "/V_Procedury/V49.htm",
+    "menu": "Překopírovaný vektor.",
+    "syntax": "VM=V49>V",
+    "type": "V"
+  },
+  "V56": {
+    "comment": "Vektor teč.ke křiv.indexem (K) a parametrem (D).",
+    "html_help_file": "/V_Procedury/V56.htm",
+    "menu": "Vektor teč.ke křiv.indexem (K) a parametrem (D).",
+    "syntax": "VM=V56>S,K,D",
+    "type": "V"
+  },
+  "V57": {
+    "comment": "Vektor teč.k řet.indexem (K) a parametrem (D).",
+    "html_help_file": "/V_Procedury/V57.htm",
+    "menu": "Vektor teč.k řet.indexem (K) a parametrem (D).",
+    "syntax": "VM=V57>E,K,D",
+    "type": "V"
+  },
+  "VDIM": {
+    "comment": "Vertikální kóta. P1 počátek, P2 konec kót. úsečky, P3 vert. úroveň, D1 vzdál. kót. čáry od P1, K4=0/1 potlačí/kreslí se prv. pom. čára, K3-čís. prv. hran. značky, K2=0/1 potlačí/kreslí se druhá pom. čára, K4-čís. druhé hran. značky (0-nic, 1-tečka, 2-čárka, 3-šip. uvnitř, 4-šip. vně, 5-šip. zákl. uvnitř, 6-šip. zákl. vně), D1/text hodnota nebo text kóty, DP param. polohy kóty (def. PARM).",
+    "html_help_file": null,
+    "menu": "Vertikální kóta. P1 počátek, P2 konec kót. úsečky, P3 vert. úroveň, D1 vzdál. kót. čáry od P1, K4=0/1 potlačí/kreslí se prv. pom. čára, K3-čís. prv. hran. značky, K2=0/1 potlačí/kreslí se druhá pom. čára, K4-čís. druhé hran. značky (0-nic, 1-tečka, 2-čárka, 3-šip. uvnitř, 4-šip. vně, 5-šip. zákl. uvnitř, 6-šip. zákl. vně), D1/text hodnota nebo text kóty, DP param. polohy kóty (def. PARM).",
+    "syntax": "VDIM,P1,P2[,(P3,D1),KKKK,D2/text,DP]",
+    "type": null
+  },
+  "WRITE": {
+    "comment": "Výstup na obrazovku, mimo B, pism.typu@=vše da ného typu, ident. pole bez indexu=vše definované v poli, objekt=řádek.",
+    "html_help_file": null,
+    "menu": "Výstup na obrazovku, mimo B, pism.typu@=vše da ného typu, ident. pole bez indexu=vše definované v poli, objekt=řádek.",
+    "syntax": "WRITE,parametry",
+    "type": null
+  },
+  "WRITE0": {
+    "comment": "Výstup, mimo B, pism.typu@=vše daného typu, ident. pole bez indexu=vše definované v poli, objekt=řádek, Číslo kanálu 0.",
+    "html_help_file": null,
+    "menu": "Výstup, mimo B, pism.typu@=vše daného typu, ident. pole bez indexu=vše definované v poli, objekt=řádek, Číslo kanálu 0.",
+    "syntax": "WRITE0,parametry",
+    "type": null
+  },
+  "WRITE1": {
+    "comment": "Výstup, mimo B, pism.typu@=vše daného typu, ident. pole bez indexu=vše definované v poli, objekt=řádek, Číslo kanálu 1.",
+    "html_help_file": null,
+    "menu": "Výstup, mimo B, pism.typu@=vše daného typu, ident. pole bez indexu=vše definované v poli, objekt=řádek, Číslo kanálu 1.",
+    "syntax": "WRITE1,parametry",
+    "type": null
+  },
+  "WRITE2": {
+    "comment": "Výstup, mimo B, pism.typu@=vše daného typu, ident. pole bez indexu=vše definované v poli, objekt=řádek, Číslo kanálu 2.",
+    "html_help_file": null,
+    "menu": "Výstup, mimo B, pism.typu@=vše daného typu, ident. pole bez indexu=vše definované v poli, objekt=řádek, Číslo kanálu 2.",
+    "syntax": "WRITE2,parametry",
+    "type": null
+  },
+  "WRITET": {
+    "comment": "Výstup na obrazovku, mimo B, pism.typu@=vše da ného typu, ident. pole bez indexu=vše definované v poli, objekt=řádek.",
+    "html_help_file": null,
+    "menu": "Výstup na obrazovku, mimo B, pism.typu@=vše da ného typu, ident. pole bez indexu=vše definované v poli, objekt=řádek.",
+    "syntax": "WRITET,parametry",
+    "type": null
+  },
+  "ZCOOR": {
+    "comment": "Nastavení z-souřadnice roviny, v niž se realizu je pohyb programovaný příkazem MOVE. Default vr=0.",
+    "html_help_file": null,
+    "menu": "Nastavení z-souřadnice roviny, v niž se realizu je pohyb programovaný příkazem MOVE. Default vr=0.",
+    "syntax": "ZCOOR[,vr]",
+    "type": null
+  }
+}
