@@ -29,6 +29,7 @@ _TYPE_DEFAULTS = {
     "App::PropertyLink": None,
     "App::PropertyPythonObject": None,
     "App::PropertyStringList": [],
+    "App::PropertyString": "",
 }
 
 

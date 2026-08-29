@@ -114,7 +114,7 @@ def main():
         subdef = parse_program(f.read())
 
     assert subdef.name == "HLOCUT"
-    param_dirs = {name: direction for name, _size, direction in subdef.params}
+    param_dirs = {name: direction for name, _size, direction, _hint in subdef.params}
     assert param_dirs == {"I": "in", "P": "in", "DHLOUB": "in", "DSIRKA": "in", "SO": "out"}
     print("parse_program(HLOCUT.gl3): OK - params =", param_dirs)
 

@@ -27,7 +27,7 @@ from gl3_lang import (
     Assign, CallStmt, CommandStmt, DimenStmt, DataStmt,
     DoLoop, IfBlock, IfShort, RepeatWhile, RetSub,
     BreakStmt, ContinueStmt,
-    IODevStmt, IOTarget, InputStmt, OutputStmt, IsUndefined,
+    IODevStmt, IOTarget, InputStmt, OutputStmt, TypeStmt, IsUndefined,
     CreStmt, EndCreStmt, MoveStmt, Omitted, OMITTED,
     IniStmt, CloseStmt,
     parse_expr_text,
@@ -35,7 +35,7 @@ from gl3_lang import (
 from gl3_ops import (
     OPERATIONS, COMMANDS, Point, Vector, Line, Circle, Curve, classify,
     NotYetImplemented, NoSolution, ARRAY_REF_OPS, DATA_CONSTANTS_PER_OBJECT,
-    builtin_constants,
+    builtin_constants, format_components,
 )
 from geplib import define_coord_system3, transform3
 from gl3_analysis import get_param_directions, _is_identifier
@@ -531,6 +531,10 @@ class Interpreter:
 
         if isinstance(stmt, OutputStmt):
             self._exec_output(stmt, env)
+            return
+
+        if isinstance(stmt, TypeStmt):
+            self._exec_type(stmt, env)
             return
 
         if isinstance(stmt, CallStmt):
@@ -1087,7 +1091,7 @@ class Interpreter:
 
         local_env = builtin_constants()
         local_input_names = set()
-        for i, (formal_name, dim, _dir) in enumerate(callee_params):
+        for i, (formal_name, dim, _dir, _hint) in enumerate(callee_params):
             if i >= len(stmt.args):
                 continue
             if directions.get(formal_name) == "out":
@@ -1130,7 +1134,7 @@ class Interpreter:
             had_error = sys.exc_info()[0] is not None
             self._pop_hidden_chain_frame(parent_frame=parent_frame, suppress_dangling_check=had_error)
 
-        for i, (formal_name, _dim, _dir) in enumerate(callee_params):
+        for i, (formal_name, _dim, _dir, _hint) in enumerate(callee_params):
             if i >= len(stmt.args):
                 continue
             actual_text = stmt.args[i]
@@ -1323,15 +1327,37 @@ class Interpreter:
     # ------------------------------------------------------------------
 
     def _print_one(self, name, idx, value):
+        """PRINT/WRITE - JEDEN zaznam (radek) na objekt: 'jmeno(index)'
+        nasledovane jeho naformatovanymi slozkami (viz
+        gl3_ops.format_components - pocet/vyznam slozek zavisi na prvnim
+        pismenu 'name', ne na typu 'value' - napr. Point u P (2D) da 2
+        cisla, u Q (3D) 3)."""
         label = "%s(%d)" % (name, idx)
-        _kind, fc_type = classify(name)
-        if isinstance(value, Point):
-            text = "%-10s%12.3f%12.3f" % (label, value.x, value.y)
-        elif fc_type == "App::PropertyInteger":
-            text = "%-10s%12d" % (label, int(round(value)))
-        else:
-            text = "%-10s%12.3f" % (label, float(value))
-        print(text)
+        prefix = name[0].upper()
+        parts = format_components(prefix, value)
+        print("%-10s%s" % (label, "".join("%12s" % p for p in parts)))
+
+    def _exec_type(self, stmt, env):
+        """TYPE/TYPE1/TYPE2/TYPET - viz G13.md 'PRIKAZY VYSTUPU TYPU
+        TYPE': na rozdil od PRINT/WRITE (jeden zaznam/radek NA OBJEKT)
+        spoji CELY seznam parametru (vyrazy, promenne i doslovne
+        konstanty) do JEDINEHO zaznamu/radku - zadne label 'jmeno(index)'
+        jako u PRINT/WRITE, jen slozky za sebou oddelene mezerou (viz
+        priklad v G13.md: "BOD Q 50.000 23.500 0.000 LEZI NA KRIVCE T").
+
+        Prefix pro format_components() se u obecneho vyrazu (ne holeho
+        odkazu na promennou) bere jako 'D' (skalar) - v puvodnim jazyce
+        by takovy vyraz beztak vzdy byl cislo (retezcovy literal je
+        Str primo, ne vypocet, a ten se resi zvlast nize)."""
+        parts = []
+        for item in stmt.items:
+            if isinstance(item, Str):
+                parts.append(item.value)
+                continue
+            value = self.eval_expr(item, env)
+            prefix = item.name[0].upper() if isinstance(item, Var) else "D"
+            parts.extend(format_components(prefix, value))
+        print(" ".join(parts))
 
     def _exec_output(self, stmt, env):
         is_write = stmt.command.startswith("WRITE")
