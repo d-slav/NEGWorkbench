@@ -27,7 +27,7 @@ from gl3_lang import (
     Assign, CallStmt, CommandStmt, DimenStmt, DataStmt,
     DoLoop, IfBlock, IfShort, RepeatWhile, RetSub,
     BreakStmt, ContinueStmt,
-    IODevStmt, IOTarget, InputStmt, OutputStmt, TypeStmt, IsUndefined,
+    IODevStmt, IOTarget, InputStmt, OutputStmt, TypeStmt, IsUndefined, IsDefined,
     CreStmt, EndCreStmt, MoveStmt, Omitted, OMITTED,
     IniStmt, CloseStmt,
     parse_expr_text,
@@ -445,6 +445,8 @@ class Interpreter:
     def eval_cond(self, cond, env):
         if isinstance(cond, IsUndefined):
             return self.eval_expr(cond.expr, env) is None
+        if isinstance(cond, IsDefined):
+            return self.eval_expr(cond.expr, env) is not None
         left = self.eval_expr(cond.left, env)
         right = self.eval_expr(cond.right, env)
         fn = _REL_FUNCS.get(cond.rel)
