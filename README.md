@@ -221,6 +221,19 @@ docs/
   (`F`, no implementation exists yet) raise a clear `NotYetImplemented`
   rather than guessing at a format — both `PRINT`/`WRITE` and `TYPE` now
   share this formatter, so the fix benefits both.
+- **`out:K`/`out:I`/`out:J` (integer output) storage**: the interpreter
+  always computes with plain Python `float` (even for `I`/`J`/`K`
+  variables), and `_store_outputs()` used to `setattr()` that float
+  straight onto the generated `App::PropertyInteger` — which at least
+  some FreeCAD versions reject outright (`TypeError: type must be int,
+  not float`) rather than silently truncating. Fixed by coercing with
+  `int(round(value))` specifically when the property's native type is
+  `App::PropertyInteger`. The offline test harnesses used elsewhere in
+  this repo are more lenient than real FreeCAD here (they accept a float
+  on any property type without complaint), which is exactly why this
+  slipped through — `gl3fc.test_integer_output_offline` uses a
+  purpose-built strict fake object that actually replicates the rejection
+  to catch it.
 
 ## Installing as a FreeCAD workbench
 
@@ -273,6 +286,7 @@ python3 test_gl3_keywords_data.py       # gl3_keywords.json structure + consiste
 python3 test_infile_hint.py             # in-f:/out-f: SUBRO header hint parsing (B-type filename disambiguation)
 python3 -m gl3fc.test_infile_hint_offline  # in-f:/out-f: -> GL3Program FC property type (App::PropertyFile vs String)
 python3 test_type_command.py            # TYPE/TYPE1/TYPE2/TYPET (G13.md) + fixed PRINT/WRITE object formatting
+python3 -m gl3fc.test_integer_output_offline  # out:K (I/J/K) stores a real int, not float ("type must be int, not float")
 cd ..
 python3 test_gl3_commands_offline.py   # workbench commands (Library/Program/Export creation), mocked FreeCAD/FreeCADGui
 python3 test_init_no_file_offline.py    # Init.py registers gl3fc.* in sys.modules at startup, simulates real FreeCAD exec()
