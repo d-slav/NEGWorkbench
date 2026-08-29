@@ -7,13 +7,21 @@ vystupni property jsou k dispozici Export modulu.
 Vstupy/vystupy se generuji AUTOMATICKY z SUBRO hlavicky vlastniho
 .GL3 souboru (in:/out: anotace - viz gl3_lang.parse_subro_header):
   - skalarni/textove in: -> bezna nativni FC property (App::PropertyFloat/
-    Integer/PropertyFile - viz gl3_ops.classify), edituje se v beznem
+    Integer/PropertyString - viz gl3_ops.classify), edituje se v beznem
     Property editoru, pripadne navazatelna na FC Expression.
-    (POZOR: textove "B"-prefixove in: parametry - napr. BJM - pouzivaji
-    App::PropertyFile, NE App::PropertyFileIncluded - ten by soubor
+    (Textove "B"-prefixove in: parametry - napr. BSTR - jsou obecny text
+    (App::PropertyString), NE soubor - GL3 samo typ "B" nerozlisuje na
+    "jmeno souboru" vs. "libovolny text", jsou to jazykove stejna vec.
+    Vyjimka: hint '-f' v hlavicce (in-f:BJM, viz gl3_lang.parse_subro_header)
+    rika "tenhle konkretni text JE jmeno souboru" - pro TAKOVY in-f:
+    parametr se pouzije App::PropertyFile (hezke file-browse tlacitko v
+    Property editoru), NE App::PropertyFileIncluded - ten by soubor
     zkopiroval/vlozil primo do .FCStd dokumentu a pri cteni pouzival
-    docasnou rozbalenou kopii v temp adresari FreeCADu, misto aby
-    pouzil vybrany soubor primo - byval to bug, opraveno.)
+    docasnou rozbalenou kopii v temp adresari FreeCADu, misto aby pouzil
+    vybrany soubor primo. U out:/out-f: se hint NIKDY nepromitne do FC
+    property - "vystupni property = jmeno souboru" ve FreeCADu nedava
+    smysl, viz diskuze s uzivatelem - '-f' tam ma jen dokumentacni
+    hodnotu pro vnitrni volani SUBRO.)
   - composite in: -> JEDNA App::PropertyString property (stejne jmeno
     jako parametr, napr. "P") drzici referenci ve formatu
     'JmenoObjektu.JmenoVystupu' (napr. 'TEHLO002.PO') na composite vystup
@@ -363,7 +371,7 @@ class GL3Program(object):
             "library_name": library_name,
             "inputs": {
                 name: getattr(obj, name, None)
-                for name, _size, direction in subdef.params
+                for name, _size, direction, _hint in subdef.params
                 if direction == "in"
             },
         }
@@ -442,9 +450,16 @@ class GL3Program(object):
     # -----------------------------------------------------------------
     def _sync_properties(self, obj, subdef):
         current_names = set()
-        for name, _size, direction in subdef.params:
+        for name, _size, direction, hint in subdef.params:
             current_names.add(name)
             kind, native_type = classify(name)
+            if direction == "in" and hint == "file":
+                # '-f' hint (viz gl3_lang.parse_subro_header) - jen pro
+                # in: (out:/out-f: nikdy - vystupni "property = jmeno
+                # souboru" ve FreeCADu nedava smysl, viz diskuze s
+                # uzivatelem). Jinak by "B" bylo vzdy App::PropertyString
+                # (obecny text - viz gl3_ops.TYPE_PREFIX_INFO).
+                native_type = "App::PropertyFile"
 
             if direction == "in":
                 if kind == "composite":
@@ -510,7 +525,7 @@ class GL3Program(object):
     # -----------------------------------------------------------------
     def _gather_inputs(self, obj, subdef):
         inputs = {}
-        for name, _size, direction in subdef.params:
+        for name, _size, direction, _hint in subdef.params:
             if direction != "in":
                 continue
             kind, _native_type = classify(name)
@@ -607,7 +622,7 @@ class GL3Program(object):
     # Ulozeni vystupu zpet do property
     # -----------------------------------------------------------------
     def _store_outputs(self, obj, subdef, result):
-        for name, _size, direction in subdef.params:
+        for name, _size, direction, _hint in subdef.params:
             if direction != "out":
                 continue
             kind, _native_type = classify(name)

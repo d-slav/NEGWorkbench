@@ -228,6 +228,18 @@ class OutputStmt:
 
 
 @dataclass
+class TypeStmt:
+    """TYPE/TYPE1/TYPE2/TYPET - viz G13.md 'PRIKAZY VYSTUPU TYPU TYPE'.
+    Na rozdil od PRINT/WRITE (jeden zaznam/radek NA OBJEKT) TYPE spoji
+    CELY seznam parametru (vyrazy, promenne I DOSLOVNE KONSTANTY) do
+    JEDINEHO zaznamu/radku - viz gl3_interpreter._exec_type. Stejne jako
+    OutputStmt vyse: dokud neni implementovano ODEV/ODEVB, jde vzdy na
+    terminal."""
+    command: str
+    items: List[object]  # obecne vyrazy (Var/Str/Num/OpCall/BinOp/...)
+
+
+@dataclass
 class CreStmt:
     """CRE,pg - zahajeni vytvareni retezce (viz G10.md 'VYTVARENI
     RETEZCU POMOCI KRESLICICH PRIKAZU'). 'pg' je cil typu E (rovinny
@@ -288,7 +300,7 @@ class RetSub:
 @dataclass
 class SubroutineDef:
     name: str
-    params: List[Tuple[str, Optional[int], str]]  # (jmeno, velikost pole nebo None, "in"/"out")
+    params: List[Tuple[str, Optional[int], str, Optional[str]]]  # (jmeno, velikost pole nebo None, "in"/"out", hint "file" nebo None)
     body: List[object]
     # Absolutni cesta k .GL3 souboru, ze ktereho tenhle SUBRO pochazi -
     # NENI soucasti parsovani (parse_program cestu vubec nezna), nastavuje
@@ -540,6 +552,19 @@ def parse_expr_text(text):
     if parser.peek()[0] != "EOF":
         raise SyntaxError("Nespotrebovany zbytek vyrazu: %r" % (parser.peek(),))
     return node
+
+
+def parse_expr_list_text(text):
+    """Jako parse_expr_text, ale pro CELY carkami oddeleny seznam vyrazu
+    (pouziva TypeStmt - viz G13.md 'PRIKAZY VYSTUPU TYPU TYPE'). Na
+    rozdil od PRINT/WRITE/GET/READ (_parse_target_list - jen jmeno[(index)])
+    TYPE explicitne povoluje i doslovne konstanty a obecne vyrazy v
+    seznamu parametru, ne jen odkazy na promenne."""
+    parser = ExprParser(tokenize(text))
+    args = parser.parse_arg_list()
+    if parser.peek()[0] != "EOF":
+        raise SyntaxError("Nespotrebovany zbytek seznamu vyrazu: %r" % (parser.peek(),))
+    return args
 
 
 # ---------------------------------------------------------------------------
@@ -932,6 +957,16 @@ def _parse_one(line, cursor):
             targets = _parse_target_list(rest, cmd)
             return OutputStmt(cmd, targets)
 
+    _TYPE_OUTPUT_COMMANDS = ("TYPE", "TYPE1", "TYPE2", "TYPET")
+    for cmd in _TYPE_OUTPUT_COMMANDS:
+        if line == cmd or line.startswith(cmd + ","):
+            rest = line[len(cmd):]
+            rest = rest[1:] if rest.startswith(",") else ""
+            if not rest:
+                raise SyntaxError("%s ocekava aspon jeden parametr" % (cmd,))
+            items = parse_expr_list_text(rest)
+            return TypeStmt(cmd, items)
+
     # jinak ocekavame prirazeni: TARGET[(index)] = vyraz
     if "=" in line:
         target_part, value_text = line.split("=", 1)
@@ -954,13 +989,13 @@ def _parse_one(line, cursor):
 # ---------------------------------------------------------------------------
 
 _PARAM_RE = re.compile(
-    r"^(in|out):([A-Za-z][A-Za-z0-9_]*)(?:\((\d+)\))?$", re.IGNORECASE
+    r"^(in|out)(-f)?:([A-Za-z][A-Za-z0-9_]*)(?:\((\d+)\))?$", re.IGNORECASE
 )
 
 
 def parse_subro_header(line):
     """'SUBRO/SCARA/in:SP,out:SS,out:CNAB' ->
-    ('SCARA', [('SP', None, 'in'), ('SS', None, 'out'), ('CNAB', None, 'out')])
+    ('SCARA', [('SP', None, 'in', None), ('SS', None, 'out', None), ('CNAB', None, 'out', None)])
 
     Smer (in:/out:) je POVINNY u kazdeho parametru - zamerne, aby se
     stare GL3 podprogramy nepredzavaly bez vedomeho rozhodnuti, co je
@@ -968,22 +1003,43 @@ def parse_subro_header(line):
     Pro pomoc s anotovanim stareho zdroje bez teto syntaxe pouzij
     gl3_analysis.suggest_directions() - navrhne smery z pouziti v tele,
     ale porta si je musi rucne potvrdit/opravit primo v hlavicce.
-    """
+
+    Volitelny '-f' hint (in-f:/out-f:, jen u B-parametru - jinak
+    SyntaxError) rika "tenhle text je jmeno souboru" - pouziva ho jen
+    GL3Program pri generovani FC property pro NEJVRCHNEJSI (hlavni)
+    program, a jen pro in-f: (App::PropertyFile s hezkym file-browse
+    tlacitkem misto App::PropertyString - viz gl3fc.gl3_program). U
+    out-f:/out: se hint na FC property NIKDY nepromitne (vystupni
+    "property = jmeno souboru" ve FreeCADu nedava smysl - jen pro
+    vnitrni volani SUBRO, kde ma cistě dokumentacni hodnotu). NEJDE o
+    tretí hodnotu 'direction' (ta zustava striste 'in'/'out') - je to
+    ZCELA ODDELENY 4. prvek n-tice, aby zadne z existujicich
+    porovnani 'direction == "in"/"out"' nikde v kodu nebylo treba
+    menit."""
     _, name, params_text = line.split("/", 2)
     params = []
     for part in split_top_level(params_text, ","):
         m = _PARAM_RE.match(part.strip())
         if not m:
             raise SyntaxError(
-                "Parametr %r v SUBRO/%s nema povinny prefix 'in:' nebo "
-                "'out:' (napr. 'in:SP', 'out:CNAB(11)'). Pouzij "
+                "Parametr %r v SUBRO/%s nema povinny prefix 'in:'/'out:' "
+                "(pripadne 'in-f:'/'out-f:' u B-parametru) - napr. "
+                "'in:SP', 'out:CNAB(11)', 'in-f:BJM'. Pouzij "
                 "gl3_analysis.suggest_directions() pro navrh, pokud "
                 "portujes stary zdroj bez teto anotace." % (part, name)
             )
         direction = m.group(1).lower()
-        pname = m.group(2)
-        size = int(m.group(3)) if m.group(3) else None
-        params.append((pname, size, direction))
+        is_file_hint = m.group(2) is not None
+        pname = m.group(3)
+        size = int(m.group(4)) if m.group(4) else None
+        if is_file_hint and not pname.upper().startswith("B"):
+            raise SyntaxError(
+                "Parametr %r v SUBRO/%s: hint '-f' (jmeno souboru) dava "
+                "smysl jen u B-parametru (napr. 'in-f:BJM'), ne u %r"
+                % (part, name, pname)
+            )
+        hint = "file" if is_file_hint else None
+        params.append((pname, size, direction, hint))
     return name, params
 
 

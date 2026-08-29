@@ -112,7 +112,7 @@ TYPE_PREFIX_INFO = {
     "I": ("scalar", "App::PropertyInteger"),
     "J": ("scalar", "App::PropertyInteger"),
     "K": ("scalar", "App::PropertyInteger"),
-    "B": ("string", "App::PropertyFile"),
+    "B": ("string", "App::PropertyString"),
     # 2D
     "P": ("composite", None),   # bod 2D
     "V": ("composite", None),   # vektor 2D
@@ -143,6 +143,65 @@ DATA_CONSTANTS_PER_OBJECT = {
     "C": 3,
     "L": 4,
 }
+
+
+# Pocet a vyznam ciselnych slozek OBJEKTU pro PRINT/WRITE/TYPE (viz
+# G13.md - priklady "C(1)  R R R", "L(2)  R R R R", "Q(1)  R R R",
+# "U(4)  R R R", "GTT(1)  R R R R R R R"). Zamerne ODDELENE od
+# DATA_CONSTANTS_PER_OBJECT vyse - ta je zamerne jen pro rovinne
+# objekty (DATA je pro 3D zatim neimplementovana), tady potrebujeme
+# i 3D. S/E/T/H (retezec/krivka) a F (plocha) tu chybi zamerne -
+# nejsou to objekty s PEVNYM poctem slozek (retezec/krivka ma
+# promenlivy pocet uzlovych bodu), takze sem nepatri - viz
+# format_components() nize, kde se pro ne vyhazuje jasna chyba.
+_PRINT_COMPONENTS = {
+    # 2D
+    "P": ("x", "y"),
+    "V": ("x", "y"),
+    "C": ("center.x", "center.y", "radius"),
+    "L": ("origin.x", "origin.y", "direction.x", "direction.y"),
+    # 3D
+    "Q": ("x", "y", "z"),
+    "U": ("x", "y", "z"),
+    "R": ("origin.x", "origin.y", "origin.z", "normal.x", "normal.y", "normal.z"),
+    "M": ("origin.x", "origin.y", "origin.z", "direction.x", "direction.y", "direction.z"),
+    "G": ("center.x", "center.y", "center.z", "radius", "normal.x", "normal.y", "normal.z"),
+}
+
+
+def _dotted_get(obj, path):
+    for part in path.split("."):
+        obj = getattr(obj, part)
+    return obj
+
+
+def format_components(prefix, value):
+    """Vrati SEZNAM naformatovanych textovych slozek objektu 'value' pro
+    PRINT/WRITE/TYPE (viz G13.md) - pocet a vyznam slozek zavisi na
+    'prefix' (prvni pismeno jmena promenne - viz TYPE_PREFIX_INFO), NE
+    na typu 'value' samotneho: napr. gerlib.types.Point nese vzdy
+    x/y/z, ale u P (2D) se tiskne jen x,y, u Q (3D) x,y,z.
+
+    Cisla se formatuji na 3 desetinna mista (stejna konvence, jakou uz
+    puvodne pouzival _print_one() jen pro Point/skalar - viz
+    gl3_interpreter.py), cela cisla bez desetinne casti.
+    """
+    prefix = prefix.upper()
+    kind, fc_type = TYPE_PREFIX_INFO.get(prefix, ("scalar", "App::PropertyFloat"))
+    if kind == "string":
+        return [str(value)]
+    if fc_type == "App::PropertyInteger":
+        return ["%d" % int(round(value))]
+    if kind == "scalar":
+        return ["%.3f" % float(value)]
+    components = _PRINT_COMPONENTS.get(prefix)
+    if components is None:
+        raise NotYetImplemented(
+            "Vypis typu '%s' (retezec/krivka/plocha - promenlivy pocet "
+            "uzlovych bodu, ne pevna sada slozek) v PRINT/WRITE/TYPE "
+            "zatim neni podporovan" % (prefix,)
+        )
+    return ["%.3f" % _dotted_get(value, path) for path in components]
 
 
 def classify(var_name):

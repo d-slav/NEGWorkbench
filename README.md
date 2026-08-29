@@ -184,6 +184,43 @@ docs/
   two different audiences, two different texts. Intended primarily for a
   future editor/language-server integration (hover, autocomplete), not
   currently read by the addon or interpreter at runtime.
+- **`in-f:`/`out-f:` SUBRO header hint** (`gl3_lang.parse_subro_header`):
+  a `B`-type (text) parameter's FC property is `App::PropertyString` by
+  default (plain text — GL3's own type system doesn't distinguish "a
+  filename" from "arbitrary text", they're the same `B` type), but the
+  `-f` hint (`in-f:BJM`) says "this particular text is a filename",
+  switching that one parameter's generated property to
+  `App::PropertyFile` (a file-browse button) — but only for `in:`;
+  `out-f:` is accepted (parses fine, useful as self-documentation for a
+  nested `CALL` returning a computed filename) but never affects the FC
+  property, since an *output* property being a file path makes no sense
+  in FreeCAD. Deliberately implemented as a 4th, independent tuple
+  element (`(name, size, direction, hint)`) rather than a third
+  `direction` value (`"in-f"`) — `direction` itself stays strictly
+  `"in"`/`"out"` everywhere, so none of the >10 places across the
+  codebase that compare `direction == "in"`/`"out"` needed touching; only
+  the one spot that picks the FC property type reads the hint at all.
+- **`TYPE`/`TYPE1`/`TYPE2`/`TYPET`** (G13.md): unlike `PRINT`/`WRITE`
+  (one output record *per object*), `TYPE` concatenates its *entire*
+  parameter list — variables, expressions, **and literal string
+  constants** — into a single unlabeled record (e.g. `TYPE,BO,QA,'
+  LEZI NA KRIVCE T'` with `BO='BOD Q'` and `QA` a 3D point prints exactly
+  `BOD Q 50.000 23.500 0.000   LEZI NA KRIVCE T`, matching the doc's own
+  worked example verbatim). Implementing this surfaced a real, unrelated
+  pre-existing gap: `PRINT`/`WRITE`'s own formatter (`_print_one`)
+  handled only `Point` and plain scalars, silently unable to print a
+  `Circle`, `Line`, `Vector`, any 3D composite type, or even a `B`
+  (string) value (would crash on `float(value)`) — despite the spec
+  itself showing worked examples for exactly those. Fixed with a shared
+  `gl3_ops.format_components(prefix, value)`: the *number and meaning* of
+  a value's printed components is driven by the variable's type letter
+  (`P`/`V`→2 numbers, `C`→3, `L`→4, `Q`/`U`→3, `R`/`M`→6, `G`→7, `B`→the
+  string itself), not the runtime type of the Python object, since e.g. a
+  bare `gerlib.types.Point` doesn't know on its own whether it's "2D" or
+  "3D". Chains/curves (`S`/`E`/`T`/`H`, variable node count) and surfaces
+  (`F`, no implementation exists yet) raise a clear `NotYetImplemented`
+  rather than guessing at a format — both `PRINT`/`WRITE` and `TYPE` now
+  share this formatter, so the fix benefits both.
 
 ## Installing as a FreeCAD workbench
 
@@ -233,6 +270,9 @@ python3 -m gl3fc.test_hidden_chain_drawing_offline  # INI...CLOSE hidden chain d
 python3 -m gl3fc.test_path_placeholders_offline     # ${workbench_path}/${fc_file_path}/${gl3_file_path} in SourceFile/SearchPaths/IDEV
 python3 -m gl3fc.test_recompute_on_open_offline     # RecomputeOnOpenDoc - skip recompute-on-open when signature unchanged, via persisted _ExecCache
 python3 test_gl3_keywords_data.py       # gl3_keywords.json structure + consistency with gl3_ops.OPERATIONS/COMMANDS
+python3 test_infile_hint.py             # in-f:/out-f: SUBRO header hint parsing (B-type filename disambiguation)
+python3 -m gl3fc.test_infile_hint_offline  # in-f:/out-f: -> GL3Program FC property type (App::PropertyFile vs String)
+python3 test_type_command.py            # TYPE/TYPE1/TYPE2/TYPET (G13.md) + fixed PRINT/WRITE object formatting
 cd ..
 python3 test_gl3_commands_offline.py   # workbench commands (Library/Program/Export creation), mocked FreeCAD/FreeCADGui
 python3 test_init_no_file_offline.py    # Init.py registers gl3fc.* in sys.modules at startup, simulates real FreeCAD exec()

@@ -33,8 +33,8 @@ def _is_identifier(text):
 
 def get_param_directions(subdef):
     """Vraci dict {param_jmeno: 'in'/'out'} PRIMO z povinne anotace
-    v SUBRO hlavicce (subdef.params je (jmeno, velikost, smer))."""
-    return {name: direction for name, _size, direction in subdef.params}
+    v SUBRO hlavicce (subdef.params je (jmeno, velikost, smer, hint))."""
+    return {name: direction for name, _size, direction, _hint in subdef.params}
 
 
 # ---------------------------------------------------------------------------
