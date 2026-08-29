@@ -234,6 +234,20 @@ docs/
   slipped through — `gl3fc.test_integer_output_offline` uses a
   purpose-built strict fake object that actually replicates the rejection
   to catch it.
+- **Bare `IF`** (definedness test): `gl3_keywords.json` (the historical
+  editor's own tooltip data) confirms `IF` and `IFN` were always two
+  distinct, original keywords — `IF/p/akce` = "action conditioned on the
+  object being *defined*", `IFN/p/akce` = "...being *undefined*" — but
+  only `IFN` had ever been ported; `IF/p/...` simply failed to parse
+  (the `IFx` regexes required exactly one letter after `IF`, no letter
+  at all wasn't accepted). Fixed by making that letter optional in all
+  three places it's matched (`IfBlock`/`THEN`, `IfShort` one-line form,
+  and the backward-`GOTO` "repeat while" idiom), and giving
+  `parse_condition()` the matched letter so it can tell bare `IF` apart
+  from `IFN` (and every other `IFx`, whose fallback-to-undefined-test
+  behavior when no relational operator is found is left exactly as it
+  was, to avoid changing behavior for existing sources) — new `IsDefined`
+  AST node mirrors the existing `IsUndefined` one, negated.
 
 ## Installing as a FreeCAD workbench
 
@@ -287,6 +301,7 @@ python3 test_infile_hint.py             # in-f:/out-f: SUBRO header hint parsing
 python3 -m gl3fc.test_infile_hint_offline  # in-f:/out-f: -> GL3Program FC property type (App::PropertyFile vs String)
 python3 test_type_command.py            # TYPE/TYPE1/TYPE2/TYPET (G13.md) + fixed PRINT/WRITE object formatting
 python3 -m gl3fc.test_integer_output_offline  # out:K (I/J/K) stores a real int, not float ("type must be int, not float")
+python3 test_if_defined.py              # bare IF (definedness test, negation of IFN) - both original keywords, only IFN was ported before
 cd ..
 python3 test_gl3_commands_offline.py   # workbench commands (Library/Program/Export creation), mocked FreeCAD/FreeCADGui
 python3 test_init_no_file_offline.py    # Init.py registers gl3fc.* in sys.modules at startup, simulates real FreeCAD exec()

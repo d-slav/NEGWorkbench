@@ -98,11 +98,21 @@ class Compare:
 
 @dataclass
 class IsUndefined:
-    """Test 'je X nedefinovane?' - vznikne z IFx/X/... kde X neobsahuje
-    zadnou relaci (GT/LT/...). Typicky se objevi po cteni pole ze souboru
+    """Test 'je X nedefinovane?' - vznikne z IFN/X/... (kde X neobsahuje
+    zadnou relaci GT/LT/...). Typicky se objevi po cteni pole ze souboru
     pres READ/GET: po vycerpani zaznamu se do cile priradi None misto
     hodnoty a tenhle test detekuje konec dat (idiom IFN/PI(I)/THEN...).
     """
+    expr: object
+
+
+@dataclass
+class IsDefined:
+    """Test 'je X definovane?' - negace IsUndefined, vznikne z holeho
+    IF/X/... (bez pismene za IF, na rozdil od IFN/IFI/IFD/... - viz
+    gl3_keywords.json: 'IF' = 'Akce podminena definovanosti objektu',
+    'IFN' = 'Akce podminena nedefinovanosti objektu' - obe puvodni,
+    samostatna klicova slova)."""
     expr: object
 
 
@@ -575,7 +585,7 @@ _DOT_REL_RE = re.compile(r"\.(GT|LT|EQ|NE|GE|LE)\.")
 _RELS = ("GT", "LT", "EQ", "NE", "GE", "LE")
 
 
-def parse_condition(text):
+def parse_condition(text, if_kind=None):
     m = _DOT_REL_RE.search(text)
     if m:
         left_text = text[:m.start()]
@@ -590,10 +600,15 @@ def parse_condition(text):
             rel_idx = i
             break
     if rel_idx is None:
-        # Zadna relace (GT/LT/...) - jde o unarni test "je X nedefinovane?"
-        # (idiom IFN/X/THEN... pro detekci konce dat po READ/GET za EOF -
-        # viz gl3_interpreter, kde READ/GET pri vycerpani souboru priradi
-        # cili None misto vyjimky).
+        # Zadna relace (GT/LT/...) - jde o unarni test definovanosti.
+        # Hole 'IF/X/...' (if_kind == "") je 'je X DEFINOVANE?' (IsDefined),
+        # kazde jine IFx/X/... (vc. IFN, ale i IFI/IFD/... bez ocekavane
+        # relace) zustava 'je X NEdefinovane?' (IsUndefined) - puvodni
+        # chovani beze zmeny, viz idiom IFN/PI(I)/THEN... pro detekci
+        # konce dat po READ/GET za EOF (gl3_interpreter - READ/GET pri
+        # vycerpani souboru priradi cili None misto vyjimky).
+        if if_kind == "":
+            return IsDefined(parse_expr_text(text))
         return IsUndefined(parse_expr_text(text))
 
     left_text = ",".join(parts[:rel_idx])
@@ -607,7 +622,7 @@ def parse_condition(text):
 # ---------------------------------------------------------------------------
 
 _LABEL_RE = re.compile(r"^(\d+):\s*(.*)$")
-_GOTO_IFD_RE = re.compile(r"^IF([A-Z])/(.*)/(\d+)\s*$")
+_GOTO_IFD_RE = re.compile(r"^IF([A-Z]?)/(.*)/(\d+)\s*$")
 
 
 def _strip_trailing_comment(line):
@@ -670,7 +685,7 @@ def preprocess_labels(lines, line_numbers):
         body_line_numbers = (
             ([line_numbers[label_idx]] if first_stmt else []) + list(line_numbers[label_idx + 1:j])
         )
-        cond = parse_condition(cond_text)
+        cond = parse_condition(cond_text, kind)
         spans_by_start[label_idx] = (j, "IF" + kind, cond, body_lines, body_line_numbers)
 
     if not spans_by_start:
@@ -853,7 +868,7 @@ def _parse_one(line, cursor):
             parse_expr_text(step_text) if step_text else None,
         )
 
-    m = re.match(r"^IF([A-Z])/(.*)/(THEN)$", line)
+    m = re.match(r"^IF([A-Z]?)/(.*)/(THEN)$", line)
     if m:
         kind, cond_text = m.group(1), m.group(2)
         # Varianta 2 (jen THEN-ENDIF) i 3 (THEN-ELSE-ENDIF, viz G12.md) -
@@ -867,9 +882,9 @@ def _parse_one(line, cursor):
         if stop_word == "ELSE":
             else_body = parse_block(cursor, stop_words=("ENDIF",))
             cursor.advance()  # spotrebuj ENDIF
-        return IfBlock("IF" + kind, parse_condition(cond_text), then_body, else_body)
+        return IfBlock("IF" + kind, parse_condition(cond_text, kind), then_body, else_body)
 
-    m = re.match(r"^IF([A-Z])/(.*)/(.*)$", line)
+    m = re.match(r"^IF([A-Z]?)/(.*)/(.*)$", line)
     if m:
         kind, cond_text, action_text = m.group(1), m.group(2), m.group(3)
         if action_text.strip().isdigit():
@@ -878,7 +893,7 @@ def _parse_one(line, cursor):
                 "(mimo rozpoznany vzor 'opakuj dokud')" % (action_text, line)
             )
         action_stmt = _parse_one(action_text.strip(), cursor)
-        return IfShort("IF" + kind, parse_condition(cond_text), action_stmt)
+        return IfShort("IF" + kind, parse_condition(cond_text, kind), action_stmt)
 
     known_commands = ("SCALE", "DCOOS3", "TRA23")
     for cmd in known_commands:
