@@ -625,7 +625,7 @@ class GL3Program(object):
         for name, _size, direction, _hint in subdef.params:
             if direction != "out":
                 continue
-            kind, _native_type = classify(name)
+            kind, native_type = classify(name)
             value = result.get(name)
 
             if kind == "composite":
@@ -643,6 +643,14 @@ class GL3Program(object):
                     "(None) - puvodni hodnota property se nemeni" % (obj.Name, name)
                 )
                 continue
+
+            if native_type == "App::PropertyInteger":
+                # Interpret vzdy pocita s Python float (i celociselne I/J/K
+                # promenne - viz gl3_lang.Num), ale App::PropertyInteger
+                # nekterych verzi FreeCADu striktne odmitne setattr s
+                # float ("type must be int, not float") - je potreba
+                # explicitni prevod, ktery driv chybel.
+                value = int(round(value))
 
             setattr(obj, name, value)
 
