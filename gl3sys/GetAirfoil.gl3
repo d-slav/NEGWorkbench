@@ -1,0 +1,30 @@
+*
+*   Podprogram GetAirfoil
+*
+*   Program pøeète souøadmnce profilu ze souboru a naplní pole bodù
+*
+*   BNAME = Jméno vstupního souboru
+*   P(1)  = Výstupní pole bodù
+*   I     = Poèet naètených bodù
+*
+SUBRO/GetAirfoil/in-f:BNAME,out:P(2),out:I
+
+DIMEN,P(100)
+
+IDEV,BNAME              < Otevøe vstunní soubor.
+READ,B                  < Ze souboru naète dummy øádek.
+DO,I=1,100              < Cyklus do velikosti pole
+    NOMESS
+    READ,P(I)          < Naètení dalšího bodu
+    MESS
+    IFN/P(I)/BREAK      < Test jestli je objket definován, pøípadnì konec.
+ENDDO                   < Konec cyklu
+
+IFN/P(I)/THEN
+    I=I-1
+ELSE
+    TYPE,'Vstupni pole pro nacteni souboru je male.'
+ENDIF
+
+RETSUB
+END

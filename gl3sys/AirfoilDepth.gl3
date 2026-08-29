@@ -1,7 +1,7 @@
 *
 *   prepocet hloubky profilu
 *
-SUBRO/HLO/in:I,in:DH,in:PI(2),out:PO(2)
+SUBRO/AirfoilDepth/in:I,in:DH,in:PI(2),out:PO(2)
 *
 *   I    -  pocet prepoctenych bodu
 *   DH   -  nova hloubka profilu
@@ -14,7 +14,7 @@ LN=L46>LY,E,1
 *LN=L36>LY,S,1
 DS=D11>PI(1),LN
 D=DH/DS
-PRINT,DH,DS,D
+TYPE,DH,DS,D
 SCALE,PO(1),PI(1),D,I < Meritko
 DS=D30>PO(1),1
 DX=DH-DS

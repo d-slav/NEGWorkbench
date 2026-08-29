@@ -1,4 +1,4 @@
-SUBRO/SCARA/in:SP,out:SS,out:CNAB
+SUBRO/AirfoilCenterline/in:SP,out:SS,out:CNAB
 DIMEN,PS(11),DS(11)
 K=NPO>SP
 DH=D11>(P48>SP,1),(L45>VY,(E45>SP),1)
@@ -8,8 +8,8 @@ DMIN=100000
 DO,I=K/3,2*K/3
     D=ABS>(D50>S,(P48>S,I))
     IFD/D.LT.DMIN/THEN
-	DMIN=D
-	J=I
+    DMIN=D
+    J=I
     ENDIF
 ENDDO
 E=E45>S,(P48>S,J-3),(P48>S,J+3)
@@ -24,8 +24,8 @@ DO,I=3,KK
     C=C02>P1,P2,P3
     D=D30>C,3
     IFD/D.LT.DMIN/THEN
-	CNAB=C49>C
-	DMIN=D
+    CNAB=C49>C
+    DMIN=D
     ENDIF
 ENDDO
 PS(1)=P47>CNAB
