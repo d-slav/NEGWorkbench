@@ -268,7 +268,26 @@ docs/
   match that module's existing error style) to use these classes/style
   instead. `test_not_implemented_hierarchy.py` asserts the inheritance
   itself, precisely so this can never silently regress.
-
+- **Short traceback from `execute()`**: even after the fix above,
+  FreeCAD still prints a full Python traceback to the Report View for
+  *any* exception propagating out of a scripted object's `execute()` —
+  that's its own generic behavior for every scripted object, not
+  something specific to us, and not something we can suppress entirely.
+  What we *can* control is how deep that traceback goes: `execute()` on
+  both `GL3Program` and `GL3Export` is now a thin wrapper around
+  `_execute_impl()` that, on any exception, re-raises a **fresh**
+  instance of the same type with the same message
+  (`raise type(e)(str(e)) from None`) right there — collapsing away the
+  entire internal call chain (`interp.run` → `_exec_block` → `_exec_stmt`
+  → `_exec_data` → ...), which carries no useful information for a GL3
+  program's author, down to just 1–2 frames. `from None` also suppresses
+  the "During handling of the above exception..." chaining. Since this
+  assumes the exception type has a plain single-string constructor (true
+  for every exception type raised anywhere in this codebase, and for the
+  common builtins), it falls back to a plain `RuntimeError` with the same
+  message if reconstructing the original type itself fails — so this
+  purely cosmetic shortening can never itself introduce a *new*, more
+  confusing failure.
 ## Installing as a FreeCAD workbench
 
 Copy (or clone) this whole repository into your FreeCAD user `Mod`
@@ -323,6 +342,7 @@ python3 test_type_command.py            # TYPE/TYPE1/TYPE2/TYPET (G13.md) + fixe
 python3 -m gl3fc.test_integer_output_offline  # out:K (I/J/K) stores a real int, not float ("type must be int, not float")
 python3 test_if_defined.py              # bare IF (definedness test, negation of IFN) - both original keywords, only IFN was ported before
 python3 test_not_implemented_hierarchy.py  # NotYetImplemented/MovePhraseNotYetImplemented must never inherit from builtin NotImplementedError
+python3 -m gl3fc.test_short_traceback_offline  # execute() re-raises a fresh, short exception instead of propagating the full internal call chain
 cd ..
 python3 test_gl3_commands_offline.py   # workbench commands (Library/Program/Export creation), mocked FreeCAD/FreeCADGui
 python3 test_init_no_file_offline.py    # Init.py registers gl3fc.* in sys.modules at startup, simulates real FreeCAD exec()

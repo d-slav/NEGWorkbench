@@ -278,6 +278,37 @@ class GL3Program(object):
     # Hlavni vypocet
     # -----------------------------------------------------------------
     def execute(self, obj):
+        """Tenky wrapper okolo _execute_impl() - pri vyjimce ji znovu
+        vyhodi CERSTVOU (misto propagace puvodni hluboko z interpretu).
+        FreeCAD pri kazde vyjimce prosakujici z execute() vypise CELY
+        Python traceback do Report View (jeho obecne chovani pro VSECHNY
+        scriptovane objekty, ne neco specifickeho pro nas, a nejde
+        potlacit uplne) - opakovanym vyhozenim PRAVE TADY se z nej
+        alespon setne cela hloubka interniho volaciho retezce interpretu
+        (interp.run -> _exec_block -> _exec_stmt -> _exec_data -> ...),
+        ktera pro autora GL3 programu nema zadnou informacni hodnotu.
+        'from None' navic potlaci pripojeni puvodniho tracebacku jako
+        "During handling of the above exception...". Zprava vyjimky
+        (str(e)) zustava presne stejna, jen se zkracuje CESTA, kterou k
+        uzivateli dorazi.
+
+        type(e)(str(e)) predpoklada standardni jednoargumentovy
+        konstruktor (plati pro vsechny nase vlastni vyjimky i vestavene
+        ValueError/TypeError/... - viz README.md) - kdyby to pro nejaky
+        neocekavany typ (napr. C++ vyjimka z OCC/Part proteklá az sem)
+        selhalo, spadne se bezpecne na obecny RuntimeError se stejnou
+        zpravou, misto aby tahle "kosmeticka" uprava sama zpusobila
+        novou (jinou, matouci) vyjimku."""
+        try:
+            self._execute_impl(obj)
+        except Exception as e:
+            try:
+                short = type(e)(str(e))
+            except Exception:
+                short = RuntimeError(str(e))
+            raise short from None
+
+    def _execute_impl(self, obj):
         placeholder_values = static_placeholders(obj)
         path = resolve_source_file_path(obj)
 
