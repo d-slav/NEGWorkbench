@@ -219,7 +219,17 @@ def classify(var_name):
 # chybova hlaska byla k necemu uzitecna pri postupnem doplnovani.
 # ---------------------------------------------------------------------------
 
-class NotYetImplemented(NotImplementedError):
+class NotYetImplemented(RuntimeError):
+    """POZOR: drive dedilo z vestaveneho NotImplementedError - zmeneno
+    po zjisteni uzivatele, ze FreeCAD tuhle konkretni vyjimku (raisenou
+    z Proxy.execute()) zjevne interpretuje jako "execute() neni pro
+    tenhle pripad vubec definovana" a TISE USPESNE dokonci recompute
+    bez jakehokoliv hlaseni chyby, misto aby ji zobrazil v Report View
+    (presne jak je bezna Python konvence pro NotImplementedError u
+    abstraktnich metod - "tahle metoda se pro tenhle podtyp nema
+    volat vubec", ne "tahle operace/vlastnost jazyka jeste neni
+    naportovana", coz je nas skutecny pripad). Nikdy uz nesmi dedit
+    (primo ani nepřímo) z NotImplementedError."""
     pass
 
 

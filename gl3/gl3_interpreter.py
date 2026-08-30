@@ -124,7 +124,7 @@ def _build_data_object(prefix, chunk):
         return Circle(Point(chunk[0], chunk[1], 0.0), chunk[2])
     if prefix == "L":
         return Line(Point(chunk[0], chunk[1], 0.0), Vector(chunk[2], chunk[3], 0.0))
-    raise NotImplementedError("DATA: sestaveni objektu typu '%s' neni podporovano" % prefix)
+    raise NotYetImplemented("DATA: sestaveni objektu typu '%s' neni podporovano" % prefix)
 
 
 class Interpreter:
@@ -640,7 +640,7 @@ class Interpreter:
         prefix = stmt.target_name[0].upper()
         per_object = DATA_CONSTANTS_PER_OBJECT.get(prefix)
         if per_object is None:
-            raise NotImplementedError(
+            raise NotYetImplemented(
                 "DATA,%s: typ s prefixem '%s' zatim neni podporovan "
                 "(zatim jen rovinne objekty A,D,I,B,P,V,C,L)"
                 % (stmt.target_name, prefix)

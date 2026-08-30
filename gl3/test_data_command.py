@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from gl3_lang import parse_program
 from gl3_interpreter import Interpreter
+from gl3_ops import NotYetImplemented
 
 
 def check(cond, msg):
@@ -153,9 +154,14 @@ END
 """
     try:
         run(bad3)
-        check(False, "DATA: 3D typ Q mel vyhodit NotImplementedError")
+        check(False, "DATA: 3D typ Q mel vyhodit NotYetImplemented")
     except NotImplementedError:
-        check(True, "DATA: 3D typ Q (zatim nepodporovano) -> NotImplementedError")
+        check(False, "DATA: 3D typ Q vyhodilo vestaveny NotImplementedError - "
+                      "FreeCAD ho tise polyka jako 'not implemented', musi to "
+                      "byt gl3_ops.NotYetImplemented (viz jeho docstring)")
+    except NotYetImplemented:
+        check(True, "DATA: 3D typ Q (zatim nepodporovano) -> NotYetImplemented "
+                     "(NE vestaveny NotImplementedError - viz duvod v gl3_ops.py)")
 
     print("Vse OK.")
 
