@@ -413,6 +413,21 @@ class GL3Export(object):
             obj.Source = new_source
 
     def execute(self, obj):
+        """Tenky wrapper okolo _execute_impl() - viz stejnojmenna metoda
+        v gl3_program.GL3Program pro presny duvod (zkraceni tracebacku,
+        ktery FreeCAD vypisuje do Report View pri kazde vyjimce
+        prosakujici z execute()) i pro duvod bezpecnostniho fallbacku na
+        RuntimeError."""
+        try:
+            self._execute_impl(obj)
+        except Exception as e:
+            try:
+                short = type(e)(str(e))
+            except Exception:
+                short = RuntimeError(str(e))
+            raise short from None
+
+    def _execute_impl(self, obj):
         # Pojistka navic k onChanged() - napr. tesne po otevreni dokumentu,
         # kdyby onChanged() z nejakeho duvodu jeste neproběhlo.
         self._resync_source(obj)
