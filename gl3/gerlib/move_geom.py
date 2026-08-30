@@ -41,11 +41,16 @@ class MovePhraseError(ValueError):
     pass
 
 
-class MovePhraseNotYetImplemented(NotImplementedError):
+class MovePhraseNotYetImplemented(RuntimeError):
     """Fraze je rozpoznana (odpovida znamemu tvaru z prirucky), ale jeji
     zpracovani jeste neni naportovano (typicky prechodove fraze -
     primka-primka, primka-kruznice, kruznice-primka, kruznice-kruznice,
-    viz G18.md 'Rovinne prechodove fraze')."""
+    viz G18.md 'Rovinne prechodove fraze').
+
+    POZOR: NIKDY nesmi dedit z vestaveneho NotImplementedError - viz
+    gl3_ops.NotYetImplemented pro presny duvod (FreeCAD tuhle vyjimku
+    z Proxy.execute() tise polyka jako "not implemented", ne jako
+    chybu k zobrazeni)."""
     pass
 
 

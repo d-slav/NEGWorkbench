@@ -248,6 +248,26 @@ docs/
   behavior when no relational operator is found is left exactly as it
   was, to avoid changing behavior for existing sources) — new `IsDefined`
   AST node mirrors the existing `IsUndefined` one, negated.
+- **`NotYetImplemented`/`MovePhraseNotYetImplemented` must never inherit
+  from the builtin `NotImplementedError`** (⚠️ important pitfall):
+  reported by a user hitting `DATA` with an unsupported 3D type — the
+  `.GL3` program's output stopped mid-way with *no error shown at all* in
+  FreeCAD, looking like it had completed successfully. Both of this
+  project's own "not yet implemented" exception classes used to subclass
+  Python's builtin `NotImplementedError` — and FreeCAD's `Proxy.execute()`
+  dispatch appears to interpret that specific exception (raised from
+  inside `execute()`) the same way Python itself conventionally treats it
+  from an abstract method — "this isn't implemented for this case, that's
+  fine" — silently completing the recompute with no error surfaced,
+  instead of showing it in the Report View like any other exception.
+  Fixed by having both classes inherit from `RuntimeError` instead (never
+  from `NotImplementedError`, directly or indirectly), and updating the
+  two remaining call sites that raised the bare builtin directly (`DATA`
+  for an unimplemented type in `gl3_interpreter.py`; two `build_shape()`
+  dispatch-miss cases in `gl3_export.py`, switched to `ValueError` to
+  match that module's existing error style) to use these classes/style
+  instead. `test_not_implemented_hierarchy.py` asserts the inheritance
+  itself, precisely so this can never silently regress.
 
 ## Installing as a FreeCAD workbench
 
@@ -302,6 +322,7 @@ python3 -m gl3fc.test_infile_hint_offline  # in-f:/out-f: -> GL3Program FC prope
 python3 test_type_command.py            # TYPE/TYPE1/TYPE2/TYPET (G13.md) + fixed PRINT/WRITE object formatting
 python3 -m gl3fc.test_integer_output_offline  # out:K (I/J/K) stores a real int, not float ("type must be int, not float")
 python3 test_if_defined.py              # bare IF (definedness test, negation of IFN) - both original keywords, only IFN was ported before
+python3 test_not_implemented_hierarchy.py  # NotYetImplemented/MovePhraseNotYetImplemented must never inherit from builtin NotImplementedError
 cd ..
 python3 test_gl3_commands_offline.py   # workbench commands (Library/Program/Export creation), mocked FreeCAD/FreeCADGui
 python3 test_init_no_file_offline.py    # Init.py registers gl3fc.* in sys.modules at startup, simulates real FreeCAD exec()

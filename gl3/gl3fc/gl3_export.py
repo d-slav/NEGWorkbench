@@ -339,13 +339,13 @@ def build_shape(slot):
             return _build_point_array(slot)
         if item_kind in ("Curve", "Spline"):
             return _build_shape_array(slot, item_kind)
-        raise NotImplementedError(
+        raise ValueError(
             "GL3Export: export pole typu '%s' zatim neni podporovan" % (item_kind,)
         )
 
     builder = _BUILDERS.get(kind)
     if builder is None:
-        raise NotImplementedError(
+        raise ValueError(
             "GL3Export: export typu '%s' zatim neni podporovan "
             "(otevrena otazka v architekture - viz shrnuti projektu)" % (kind,)
         )

@@ -235,7 +235,7 @@ def main():
     try:
         build_shape(slot)
         assert False, "ocekavana chyba pro pole bez jedineho definovaneho prvku"
-    except NotImplementedError as e:
+    except ValueError as e:
         print("Pole (vsechny prvky None, typ nelze urcit) -> jasna chyba: OK -", e)
 
     print()
