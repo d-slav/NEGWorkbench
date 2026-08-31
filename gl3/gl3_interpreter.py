@@ -33,7 +33,7 @@ from gl3_lang import (
     parse_expr_text,
 )
 from gl3_ops import (
-    OPERATIONS, COMMANDS, Point, Vector, Line, Circle, Curve, classify,
+    OPERATIONS, COMMANDS, Point, Vector, Line, Circle, Plane, Curve, classify,
     NotYetImplemented, NoSolution, ARRAY_REF_OPS, DATA_CONSTANTS_PER_OBJECT,
     builtin_constants, format_components,
 )
@@ -109,10 +109,22 @@ def _build_data_object(prefix, chunk):
     """Sestavi jeden objekt prikazu DATA z 'chunk' (seznam konstant, jiz
     vyhodnocenych na cisla/retezce) podle typu urceneho 'prefix' (prvni
     pismeno jmena cile) - viz gl3_ops.DATA_CONSTANTS_PER_OBJECT pro
-    pocet konstant na typ."""
+    pocet konstant na typ a G06.md pro presny vyznam/poradi kazde
+    slozky (autoritativni zdroj, DATA jen doslovne prevadi cisla na
+    pole objektu - zadna geometricka odvozovaci logika, ta uz je hotova
+    v prislusnych opcodech).
+
+    Podporovany jsou vsechny "jednoduche" (pevny pocet slozek) objekty:
+    A/D (skalar), I/J/K (celociselny skalar), B (text), P/V/C/L (2D),
+    Q/U/R/M/G (3D). "Slozene" objekty (S/E/T/H - retezec/krivka
+    promenne delky, F - plocha) DATA vyslovne NEPODPORUJE - to neni
+    mezera/"zatim neimplementovano", G06.md je oznacuje jako jiny druh
+    objektu (data promenne delky "ve vnejsi pameti"), pro ktery jsou
+    DATA/READ/GET/PRINT/WRITE/TYPE v originale vyslovne nedefinovane -
+    ty se sestavuji pres CRE/MOVE nebo prislusne opcody (E01/S01/...)."""
     if prefix in ("D", "A"):
         return float(chunk[0])
-    if prefix == "I":
+    if prefix in ("I", "J", "K"):
         return int(round(chunk[0]))
     if prefix == "B":
         return str(chunk[0])
@@ -124,6 +136,28 @@ def _build_data_object(prefix, chunk):
         return Circle(Point(chunk[0], chunk[1], 0.0), chunk[2])
     if prefix == "L":
         return Line(Point(chunk[0], chunk[1], 0.0), Vector(chunk[2], chunk[3], 0.0))
+    if prefix == "Q":
+        return Point(chunk[0], chunk[1], chunk[2])
+    if prefix == "U":
+        return Vector(chunk[0], chunk[1], chunk[2])
+    if prefix == "R":
+        # {ux,uy,uz,d} podle G06.md - d je vzdalenost roviny od pocatku
+        # PODEL normaly (ne bod na rovine primo) - gerlib.types.Plane
+        # ale uklada origin (bod), takze se dopocita jako d*normala
+        # (viz i format_components() - opacny smer stejneho vztahu).
+        ux, uy, uz, d = chunk[0], chunk[1], chunk[2], chunk[3]
+        return Plane(Point(d * ux, d * uy, d * uz), Vector(ux, uy, uz))
+    if prefix == "M":
+        return Line(
+            Point(chunk[0], chunk[1], chunk[2]),
+            Vector(chunk[3], chunk[4], chunk[5]),
+        )
+    if prefix == "G":
+        return Circle(
+            Point(chunk[0], chunk[1], chunk[2]),
+            chunk[6],
+            Vector(chunk[3], chunk[4], chunk[5]),
+        )
     raise NotYetImplemented("DATA: sestaveni objektu typu '%s' neni podporovano" % prefix)
 
 
@@ -627,12 +661,16 @@ class Interpreter:
         raise GL3RuntimeError(self._format_report("Error", operation, message))
 
     def _exec_data(self, stmt, env):
-        """DATA,p,vi - viz manual (dodano v konverzaci). 'p' urcuje
-        prvek pole/mnoziny (jiz drive deklarovane pres DIMEN), pocinaje
-        kterym se prirazuji objekty; typ objektu se odvodi z prefixu
-        jmena 'p' (viz gl3_ops.classify/DATA_CONSTANTS_PER_OBJECT).
-        Zatim jen rovinne objekty (A/D/I/B skalary, P/V/C/L slozene) -
-        3D typy (Q/U/R/M/G) hlasi jasnou chybu."""
+        """DATA,p,vi - viz manual (dodano v konverzaci) + G06.md. 'p'
+        urcuje prvek pole/mnoziny (jiz drive deklarovane pres DIMEN),
+        pocinaje kterym se prirazuji objekty; typ objektu se odvodi z
+        prefixu jmena 'p' (viz gl3_ops.classify/DATA_CONSTANTS_PER_OBJECT).
+        Podporovany jsou vsechny "jednoduche" (pevny pocet slozek)
+        objekty - skalary (A/D/I/J/K), text (B), 2D (P/V/C/L) i 3D
+        (Q/U/R/M/G). "Slozene" objekty promenne delky (S/E/T/H, F) DATA
+        nepodporuje vubec - to je spravne portovane omezeni original
+        jazyka (viz G06.md a komentar u DATA_CONSTANTS_PER_OBJECT), ne
+        mezera k dodelani."""
         count = int(round(self.eval_expr(stmt.count, env)))
         if count < 0:
             raise ValueError("DATA,%s,...: pocet objektu (vi) nesmi byt zaporny" % stmt.target_name)
@@ -641,8 +679,11 @@ class Interpreter:
         per_object = DATA_CONSTANTS_PER_OBJECT.get(prefix)
         if per_object is None:
             raise NotYetImplemented(
-                "DATA,%s: typ s prefixem '%s' zatim neni podporovan "
-                "(zatim jen rovinne objekty A,D,I,B,P,V,C,L)"
+                "DATA,%s: typ s prefixem '%s' neni podporovan - DATA jde "
+                "jen pro 'jednoduche' objekty s pevnym poctem slozek "
+                "(A,D,I,J,K,B,P,V,C,L,Q,U,R,M,G); retezec/krivka (S,E,T,H) "
+                "a plocha (F) maji promennou delku dat a DATA/READ/GET/"
+                "PRINT/WRITE/TYPE pro ne nejsou v originale definovane"
                 % (stmt.target_name, prefix)
             )
 

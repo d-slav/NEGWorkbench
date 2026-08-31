@@ -136,24 +136,55 @@ TYPE_PREFIX_INFO = {
 # v hlavicce _exec_data v gl3_interpreter.py). "Zatim jen rovinne
 # objekty" - Q/U/R/M/G (3D) zamerne chybi, DATA je pro ne zatim
 # neimplementovana (viz _build_data_object).
+# Pocet konstant na jeden objekt pro prikaz DATA - PRESNE podle G06.md
+# "ZOBRAZENI JEDNODUCHYCH GEOMETRICKYCH OBJEKTU" (autoritativni zdroj -
+# A{d}, D{d}, P{x,y}, V{ux,uy}, C{xs,ys,r}, L{x,y,ux,uy}, Q{x,y,z},
+# U{ux,uy,uz}, R{ux,uy,uz,d}, M{x,y,z,ux,uy,uz}, G{xs,ys,zs,ux,uy,uz,r}).
+# I/J/K jsou u nas vsechny celociselny skalar (1 cislo), stejne jako
+# A/D (viz TYPE_PREFIX_INFO).
+#
+# DULEZITE - R (rovina) je {ux,uy,uz,d} (4 cisla: normala + VZDALENOST
+# od pocatku), NE "bod+normala" (6 cisel) - ackoliv gerlib.types.Plane
+# interne uklada origin+normal (bod na rovine, ne vzdalenost), viz
+# _build_data_object a format_components nize, kde se mezi temito
+# dvema reprezentacemi prevadi.
+#
+# S/E/T/H (retezec/krivka) a F (plocha) SEM ZAMERNE NEPATRI - G06.md je
+# vyslovne oznacuje jako "slozene" objekty (promenna delka dat "ve
+# vnejsi pameti pocitace"), na rozdil od "jednoduchych" objektu vyse
+# (konstantni pocet racionalnich cisel) - a DATA je vyslovne popsana
+# jen pro jednoduche objekty (stejne jako READ/GET/PRINT/TRACE/WRITE/
+# TYPE). Neni to tedy "zatim nepodporovano", je to spravne portovane
+# omezeni original jazyka.
 DATA_CONSTANTS_PER_OBJECT = {
     "A": 1, "D": 1,
-    "I": 1, "B": 1,
+    "I": 1, "J": 1, "K": 1,
+    "B": 1,
     "P": 2, "V": 2,
     "C": 3,
     "L": 4,
+    "Q": 3, "U": 3,
+    "R": 4,
+    "M": 6,
+    "G": 7,
 }
 
 
 # Pocet a vyznam ciselnych slozek OBJEKTU pro PRINT/WRITE/TYPE (viz
 # G13.md - priklady "C(1)  R R R", "L(2)  R R R R", "Q(1)  R R R",
-# "U(4)  R R R", "GTT(1)  R R R R R R R"). Zamerne ODDELENE od
-# DATA_CONSTANTS_PER_OBJECT vyse - ta je zamerne jen pro rovinne
-# objekty (DATA je pro 3D zatim neimplementovana), tady potrebujeme
-# i 3D. S/E/T/H (retezec/krivka) a F (plocha) tu chybi zamerne -
-# nejsou to objekty s PEVNYM poctem slozek (retezec/krivka ma
-# promenlivy pocet uzlovych bodu), takze sem nepatri - viz
-# format_components() nize, kde se pro ne vyhazuje jasna chyba.
+# "U(4)  R R R", "GTT(1)  R R R R R R R" - a G06.md pro presne poradi a
+# vyznam kazde slozky, POUZITY I PRO DATA_CONSTANTS_PER_OBJECT VYSE, at
+# jsou obe tabulky navzajem konzistentni/zamenitelne - kopie stejneho
+# objektu vypsana pres PRINT/TYPE se da doslovne pouzit jako radek
+# DATA). S/E/T/H (retezec/krivka) a F (plocha) tu chybi zamerne -
+# nejsou to objekty s PEVNYM poctem slozek (viz DATA_CONSTANTS_PER_OBJECT
+# vyse pro presny duvod) - viz format_components() nize, kde se pro ne
+# vyhazuje jasna chyba.
+#
+# R (rovina) je zvlastni pripad - {ux,uy,uz,d} podle G06.md, ale
+# gerlib.types.Plane interne uklada origin (bod na rovine), ne primo
+# vzdalenost d - proto se R resi zvlast primo v format_components(),
+# ne pres tuhle tabulku (d = skalarni soucin origin*normal).
 _PRINT_COMPONENTS = {
     # 2D
     "P": ("x", "y"),
@@ -163,9 +194,8 @@ _PRINT_COMPONENTS = {
     # 3D
     "Q": ("x", "y", "z"),
     "U": ("x", "y", "z"),
-    "R": ("origin.x", "origin.y", "origin.z", "normal.x", "normal.y", "normal.z"),
     "M": ("origin.x", "origin.y", "origin.z", "direction.x", "direction.y", "direction.z"),
-    "G": ("center.x", "center.y", "center.z", "radius", "normal.x", "normal.y", "normal.z"),
+    "G": ("center.x", "center.y", "center.z", "normal.x", "normal.y", "normal.z", "radius"),
 }
 
 
@@ -194,6 +224,16 @@ def format_components(prefix, value):
         return ["%d" % int(round(value))]
     if kind == "scalar":
         return ["%.3f" % float(value)]
+    if prefix == "R":
+        # {ux,uy,uz,d} podle G06.md - d je VZDALENOST od pocatku podel
+        # normaly, ne primo ulozene pole (gerlib.types.Plane uklada
+        # origin, ne d) - dopocita se jako skalarni soucin origin*normal
+        # (origin = d*normal, viz _build_data_object nize, takze
+        # origin.normal = d*(normal.normal) = d, protoze normal je
+        # jednotkovy vektor).
+        n = value.normal
+        d = value.origin.x * n.x + value.origin.y * n.y + value.origin.z * n.z
+        return ["%.3f" % n.x, "%.3f" % n.y, "%.3f" % n.z, "%.3f" % d]
     components = _PRINT_COMPONENTS.get(prefix)
     if components is None:
         raise NotYetImplemented(

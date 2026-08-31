@@ -79,15 +79,18 @@ def main():
     from gl3fc.gl3_program import GL3Program
     from gl3_ops import NotYetImplemented
 
-    # --- 1) presny priklad z nahlaseni (DATA pro nepodporovany 3D typ) -
-    #     vyjimka ma STEJNY typ a zpravu, ale JEN par ramcu tracebacku,
-    #     ne celou hloubku interp.run -> _exec_block -> _exec_stmt ->
-    #     _exec_data (>= 4 dalsi ramce navic, kdyby se nezkracovalo) ---
+    # --- 1) DATA pro nepodporovany typ ("slozeny" objekt E - retezec s
+    #     promennou delkou dat, viz G06.md/gl3_ops.DATA_CONSTANTS_PER_OBJECT.
+    #     Puvodni nahlaseni pouzivalo 3D typ Q, ktery uz mezitim byl
+    #     doplnen - viz test_data_command.py) - vyjimka ma STEJNY typ a
+    #     zpravu, ale JEN par ramcu tracebacku, ne celou hloubku
+    #     interp.run -> _exec_block -> _exec_stmt -> _exec_data (>= 4
+    #     dalsi ramce navic, kdyby se nezkracovalo) ---
     tmpdir = tempfile.mkdtemp()
-    src_path = os.path.join(tmpdir, "TQ.GL3")
+    src_path = os.path.join(tmpdir, "TE.GL3")
     with open(src_path, "w", encoding="utf-8") as f:
-        f.write("SUBRO/TQ/out:D1\nDIMEN,Q1(4)\nTYPE,'Trace1'\nDATA,Q1,4\n"
-                "0,0,0\n10,0,2\n20,0,0\n30,0,2\nTYPE,'Trace2'\nD1=1.0\n"
+        f.write("SUBRO/TE/out:D1\nDIMEN,E1(1)\nTYPE,'Trace1'\nDATA,E1,1\n"
+                "1.0,2.0\nTYPE,'Trace2'\nD1=1.0\n"
                 "RETSUB\nEND\n")
 
     obj = FakeObj("Plocha")
@@ -97,17 +100,17 @@ def main():
 
     try:
         obj.Proxy.execute(obj)
-        assert False, "DATA,Q1 (3D, nepodporovano) mela vyhodit chybu"
+        assert False, "DATA,E1 ('slozeny' typ, nepodporovano) mela vyhodit chybu"
     except NotYetImplemented as e:
         msg = str(e)
-        assert "DATA,Q1" in msg and "Q" in msg, msg
+        assert "DATA,E1" in msg and "E" in msg, msg
         frames = _frame_count(e)
         assert frames <= 2, (
             "traceback ma %d ramcu - ocekavano nejvyse 2 (volaci misto + "
             "'raise short from None'), interni hloubka interpretu unikla "
             "ven" % frames
         )
-        print("DATA,Q1 -> NotYetImplemented se stejnou zpravou, traceback "
+        print("DATA,E1 -> NotYetImplemented se stejnou zpravou, traceback "
               "zkracen na %d ramce (misto cele hloubky interpretu): OK" % frames)
 
     # --- 2) fallback: kdyby type(e)(str(e)) selhalo (neobvykly typ bez

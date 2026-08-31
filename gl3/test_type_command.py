@@ -120,6 +120,40 @@ END
     except NotYetImplemented as e:
         check("retezec" in str(e) or "E" in str(e), "PRINT retezce (E) -> jasna chyba: %s" % e)
 
+    # --- 8) PRINT Circle 3D (G) - poradi center,normal,radius presne
+    #     podle G06.md (round-tripuje s DATA,G1,1 se stejnym poradim) ---
+    out, _ = run_capture("""
+SUBRO/T8/out:D1
+DIMEN,G1(1)
+DATA,G1,1
+5.0,5.0,5.0,0.0,0.0,1.0,10.0
+PRINT,G1
+D1=1.0
+RETSUB
+END
+""")
+    check(
+        out.split()[1:] == ["5.000", "5.000", "5.000", "0.000", "0.000", "1.000", "10.000"],
+        "PRINT Circle 3D (G) -> center,normal,radius v tomto poradi: %r" % out,
+    )
+
+    # --- 9) PRINT Plane (R) -> {ux,uy,uz,d}, d dopocitane ze ulozeneho
+    #     origin+normal (round-tripuje s DATA,R1,1) ---
+    out, _ = run_capture("""
+SUBRO/T9/out:D1
+DIMEN,R1(1)
+DATA,R1,1
+1.0,0.0,0.0,5.0
+PRINT,R1
+D1=1.0
+RETSUB
+END
+""")
+    check(
+        out.split()[1:] == ["1.000", "0.000", "0.000", "5.000"],
+        "PRINT Plane (R) -> normala+vzdalenost (dopocitana): %r" % out,
+    )
+
     print()
     print("Vsechny testy TYPE + PRINT/WRITE formatovani OK.")
 

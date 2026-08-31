@@ -127,6 +127,89 @@ END
     except ValueError:
         check(True, "DATA: spatny pocet konstant -> ValueError")
 
+    # --- 3D typy (Q/U/R/M/G) ted funguji - viz G06.md. Vysledny objekt
+    #     se vraci CELY (mimo GL3 typovou konvenci, jen pro test) a jeho
+    #     Python atributy se overuji primo - GL3 samo nema syntaxi pro
+    #     pristup ke slozkam objektu jinak nez pres D30 (a ten 3D typy
+    #     Q/U/R/M/G nepodporuje vubec - samostatna, oddelena mezera). ---
+    src_q = """
+SUBRO/TQ/out:VYSL
+DIMEN,Q1(2)
+DATA,Q1,2
+0.0,0.0,0.0
+10.0,20.0,30.0
+VYSL=Q1(2)
+RETSUB
+END
+"""
+    env = run(src_q)
+    check(env["VYSL"].z == 30.0, "DATA Q (3D bod): posledni slozka souhlasi")
+
+    src_u = """
+SUBRO/TU/out:VYSL
+DIMEN,U1(1)
+DATA,U1,1
+1.0,2.0,3.0
+VYSL=U1(1)
+RETSUB
+END
+"""
+    env = run(src_u)
+    check(env["VYSL"].y == 2.0, "DATA U (3D vektor): slozka souhlasi")
+
+    src_m = """
+SUBRO/TM/out:VYSL
+DIMEN,M1(1)
+DATA,M1,1
+1.0,2.0,3.0,0.0,0.0,1.0
+VYSL=M1(1)
+RETSUB
+END
+"""
+    env = run(src_m)
+    check(env["VYSL"].origin.x == 1.0, "DATA M (3D primka): bod na primce souhlasi")
+    check(env["VYSL"].direction.z == 1.0, "DATA M (3D primka): smerovy vektor souhlasi")
+
+    src_g = """
+SUBRO/TG/out:VYSL
+DIMEN,G1(1)
+DATA,G1,1
+5.0,5.0,5.0,0.0,0.0,1.0,10.0
+VYSL=G1(1)
+RETSUB
+END
+"""
+    env = run(src_g)
+    check(env["VYSL"].radius == 10.0, "DATA G (3D kruznice): polomer je posledni cislo (center,normal,radius)")
+    check(env["VYSL"].normal.z == 1.0, "DATA G (3D kruznice): normala souhlasi")
+
+    src_r = """
+SUBRO/TR/out:VYSL
+DIMEN,R1(1)
+DATA,R1,1
+1.0,0.0,0.0,5.0
+VYSL=R1(1)
+RETSUB
+END
+"""
+    env = run(src_r)
+    check(env["VYSL"].origin.x == 5.0, "DATA R (rovina): origin = d*normala (5.0*1.0 = 5.0)")
+    check(env["VYSL"].normal.x == 1.0, "DATA R (rovina): normala ulozena primo")
+
+    # --- I/J/K jsou vsechny celociselny skalar ---
+    for letter in ("I", "J", "K"):
+        src_ijk = """
+SUBRO/T%s/out:D1
+DIMEN,%s1(1)
+DATA,%s1,1
+7.0
+D1=%s1(1)
+RETSUB
+END
+""" % (letter, letter, letter, letter)
+        env = run(src_ijk)
+        check(env["D1"] == 7, "DATA %s (celociselny skalar): OK" % letter)
+
     # --- chybovy stav: chybejici DIMEN ---
     bad2 = """
 SUBRO/BAD2/out:K
@@ -142,26 +225,28 @@ END
     except NameError:
         check(True, "DATA: chybejici DIMEN -> NameError")
 
-    # --- chybovy stav: nepodporovany 3D typ ---
+    # --- chybovy stav: "slozeny" objekt (retezec E - promenna delka)
+    #     neni DATA vubec podporovan (viz G06.md - spravne portovane
+    #     omezeni original jazyka, ne mezera k dodelani) ---
     bad3 = """
 SUBRO/BAD3/out:K
-DIMEN,Q(1)
-DATA,Q,1
-1.0,2.0,3.0
+DIMEN,E1(1)
+DATA,E1,1
+1.0,2.0
 K=1
 RETSUB
 END
 """
     try:
         run(bad3)
-        check(False, "DATA: 3D typ Q mel vyhodit NotYetImplemented")
+        check(False, "DATA: 'slozeny' typ E (retezec) mel vyhodit NotYetImplemented")
     except NotImplementedError:
-        check(False, "DATA: 3D typ Q vyhodilo vestaveny NotImplementedError - "
+        check(False, "DATA: typ E vyhodilo vestaveny NotImplementedError - "
                       "FreeCAD ho tise polyka jako 'not implemented', musi to "
                       "byt gl3_ops.NotYetImplemented (viz jeho docstring)")
     except NotYetImplemented:
-        check(True, "DATA: 3D typ Q (zatim nepodporovano) -> NotYetImplemented "
-                     "(NE vestaveny NotImplementedError - viz duvod v gl3_ops.py)")
+        check(True, "DATA: 'slozeny' typ E (retezec, promenna delka) -> "
+                     "NotYetImplemented (NE vestaveny NotImplementedError)")
 
     print("Vse OK.")
 

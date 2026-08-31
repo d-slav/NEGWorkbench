@@ -214,13 +214,39 @@ docs/
   itself showing worked examples for exactly those. Fixed with a shared
   `gl3_ops.format_components(prefix, value)`: the *number and meaning* of
   a value's printed components is driven by the variable's type letter
-  (`P`/`V`→2 numbers, `C`→3, `L`→4, `Q`/`U`→3, `R`/`M`→6, `G`→7, `B`→the
+  (`P`/`V`→2 numbers, `C`→3, `L`→4, `Q`/`U`→3, `M`→6, `G`→7, `R`→4, `B`→the
   string itself), not the runtime type of the Python object, since e.g. a
   bare `gerlib.types.Point` doesn't know on its own whether it's "2D" or
   "3D". Chains/curves (`S`/`E`/`T`/`H`, variable node count) and surfaces
   (`F`, no implementation exists yet) raise a clear `NotYetImplemented`
   rather than guessing at a format — both `PRINT`/`WRITE` and `TYPE` now
   share this formatter, so the fix benefits both.
+- **`DATA` for every "simple" (jednoduchý) object type**: originally only
+  covered planar types (`A`/`D`/`I`/`B` scalars, `P`/`V`/`C`/`L`) — `Q`/
+  `U`/`R`/`M`/`G` (3D point/vector/plane/line/circle) and the missing
+  `J`/`K` integer aliases are now supported too, per `G06.md`'s
+  authoritative "ZOBRAZENÍ JEDNODUCHÝCH GEOMETRICKÝCH OBJEKTŮ" component
+  layout — reusing (and correcting) the same `format_components()` table
+  `TYPE`/`PRINT` already use, so a `PRINT`/`TYPE` line and a `DATA` row
+  for the same object type are literally interchangeable. Two things
+  worth knowing: (1) `R` (plane) is genuinely special — its `DATA`/`PRINT`
+  form is `{ux,uy,uz,d}` (unit normal + signed distance from the
+  coordinate origin along that normal), but `gerlib.types.Plane` stores
+  `origin`+`normal` internally (a point *on* the plane, not a distance),
+  so building/printing `R` involves an actual conversion
+  (`origin = d·normal` one way, a dot product the other) rather than a
+  simple positional field mapping like every other type — this was
+  wrong in the initial `TYPE`/`PRINT` implementation above (it used a
+  6-number `origin+normal` layout by analogy with `L`/`M`, before this
+  authoritative source was found) and has been corrected; (2) `G` (3D
+  circle)'s canonical field order is *center, normal, radius* — also
+  corrected from an initially-wrong `center, radius, normal` guess.
+  `S`/`E`/`T`/`H` (chain/curve) and `F` (surface) remain **unsupported by
+  `DATA` on purpose, not as a gap** — `G06.md` explicitly separates these
+  as "složené" (compound, variable-length "external memory") objects,
+  for which `DATA`/`READ`/`GET`/`PRINT`/`WRITE`/`TYPE` are explicitly
+  undefined in the original language; they're built via `CRE`/`MOVE` or
+  dedicated opcodes (`E01`/`S01`/...) instead.
 - **`out:K`/`out:I`/`out:J` (integer output) storage**: the interpreter
   always computes with plain Python `float` (even for `I`/`J`/`K`
   variables), and `_store_outputs()` used to `setattr()` that float

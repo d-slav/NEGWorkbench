@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-"""Test nahlaseny uzivatelem: GL3 program s DATA pro nepodporovany 3D
-typ (Q) se ve FreeCADu tvaril, ze doebehl uspesne (vypis skoncil na
+"""Test nahlaseny uzivatelem: GL3 program s DATA pro tehdy nepodporovany
+3D typ (Q) se ve FreeCADu tvaril, ze doebehl uspesne (vypis skoncil na
 'Trace1', k 'Trace2' se nikdy nedostal, ale ZADNA chyba se nezobrazila
-v Report View).
+v Report View). Q uz mezitim byla doplnena (viz test_data_command.py) -
+tenhle test pouziva jiny, porad nepodporovany typ (E - "slozeny" objekt
+s promennou delkou dat) na overeni STEJNE korenove priciny.
 
 Korenova prycina: gl3_ops.NotYetImplemented (a
 gerlib.move_geom.MovePhraseNotYetImplemented) drive dedily z
@@ -53,18 +55,18 @@ def main():
         "vestaveneho NotImplementedError (stejny duvod)",
     )
 
-    # --- 2) presny priklad z nahlaseni: DATA s nepodporovanym 3D typem
-    #     (Q) vyhodi NASI vyjimku (viditelnou), NE vestaveny
-    #     NotImplementedError (ktery by FreeCAD tise polknul) ---
+    # --- 2) korenova pricina puvodniho nahlaseni: DATA s NEpodporovanym
+    #     typem (E - "slozeny" objekt s promennou delkou dat, viz
+    #     G06.md/gl3_ops.DATA_CONSTANTS_PER_OBJECT - Q uz mezitim byla
+    #     doplnena, viz test_data_command.py) vyhodi NASI vyjimku
+    #     (viditelnou), NE vestaveny NotImplementedError (ktery by
+    #     FreeCAD tise polknul) ---
     src = """
-SUBRO/TQ/out:D1
-DIMEN,Q1(4)
+SUBRO/TE/out:D1
+DIMEN,E1(1)
 TYPE,'Trace1'
-DATA,Q1,4
-0,0,0
-10,0,2
-20,0,0
-30,0,2
+DATA,E1,1
+1.0,2.0
 TYPE,'Trace2'
 D1=1.0
 RETSUB
@@ -74,11 +76,11 @@ END
     interp = Interpreter()
     try:
         interp.run(subdef, {})
-        check(False, "DATA,Q1 (3D, nepodporovano) mela vyhodit chybu")
+        check(False, "DATA,E1 ('slozeny' typ, nepodporovano) mela vyhodit chybu")
     except NotYetImplemented as e:
         check(
             not isinstance(e, NotImplementedError),
-            "DATA,Q1 vyhodilo NotYetImplemented, ktera NENI (uz) vestaveny "
+            "DATA,E1 vyhodilo NotYetImplemented, ktera NENI (uz) vestaveny "
             "NotImplementedError - dostalo %r" % type(e),
         )
 
