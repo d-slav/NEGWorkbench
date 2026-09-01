@@ -127,6 +127,59 @@ END
     check(env3.get("FLAG") == 1, "C34: IFN detekuje undefined")
     check("[Warning]" in out3 and "C34" in out3, "C34: varovani obsahuje jmeno operace")
 
+    # --- kategorie 2: PRINT/WRITE na nedefinovanem objektu (nahlaseno
+    #     uzivatelem - format vypisu se drive "zatoulal", chybelo
+    #     [Error]/jmeno programu/cislo radku) ---
+    src_print_undef = """
+SUBRO/Plocha/out:D1
+*PP=P00>10,10
+PRINT,PP
+D1=1.0
+RETSUB
+END
+"""
+    try:
+        run(src_print_undef)
+        check(False, "PRINT na nedefinovanem objektu mel vyhodit GL3RuntimeError")
+    except GL3RuntimeError as e:
+        msg = str(e)
+        check(msg.startswith("[Error] Plocha/"), "PRINT: hlaska zacina [Error] jmeno_programu/: %s" % msg)
+        check("/PRINT:" in msg, "PRINT: hlaska obsahuje operaci PRINT: %s" % msg)
+        check("objekt 'PP' neni definovan" in msg, "PRINT: text hlasky zachovan: %s" % msg)
+        check(msg == "[Error] Plocha/4/PRINT: objekt 'PP' neni definovan", (
+            "PRINT: presny format i cislo radku (3 - radek s PRINT,PP, "
+            "komentar na radku 2 se nepocita): %s" % msg
+        ))
+
+    # --- totez pro indexovany cil a WRITE (WRITE na nedefinovanem se
+    #     tise preskoci - viz G13.md - na rozdil od PRINT) ---
+    src_print_undef_idx = """
+SUBRO/Plocha2/out:D1
+DIMEN,PP(3)
+PRINT,PP(2)
+D1=1.0
+RETSUB
+END
+"""
+    try:
+        run(src_print_undef_idx)
+        check(False, "PRINT na nedefinovanem prvku pole mel vyhodit GL3RuntimeError")
+    except GL3RuntimeError as e:
+        msg = str(e)
+        check(msg == "[Error] Plocha2/4/PRINT: 'PP(2)' neni definovan", (
+            "PRINT indexovany: presny format: %s" % msg
+        ))
+
+    env_write, _ = run_capturing("""
+SUBRO/Plocha3/out:D1
+DIMEN,PP(3)
+WRITE,PP(2)
+D1=1.0
+RETSUB
+END
+""")
+    check(env_write.get("D1") == 1.0, "WRITE na nedefinovanem prvku pole se tise preskoci (beze zmeny)")
+
     print("Vse OK.")
 
 

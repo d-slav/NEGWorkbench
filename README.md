@@ -247,6 +247,31 @@ docs/
   for which `DATA`/`READ`/`GET`/`PRINT`/`WRITE`/`TYPE` are explicitly
   undefined in the original language; they're built via `CRE`/`MOVE` or
   dedicated opcodes (`E01`/`S01`/...) instead.
+- **`PRINT`/`WRITE` on an undefined object didn't use the standard error
+  format**: every other GL3-program-level runtime error goes through
+  `Interpreter._raise_gl3_error()`, producing the documented
+  `[Error] program/line/operation: message` shape (see
+  `_format_report()`) — but `_exec_output()` (backing `PRINT`/`WRITE`)
+  raised bare `NameError`/`ValueError`/`TypeError` directly instead,
+  losing the program name and — critically — the line number, which is
+  the one piece of context an author actually needs to find the mistake
+  in their source. Fixed by routing all of `_exec_output()`'s
+  program-level-mistake cases (undefined object, undefined array
+  element, indexing a non-array) through `_raise_gl3_error()` like every
+  other statement already does; the one case that's a missing *feature*
+  rather than a program mistake (`@` — "all defined objects of this
+  type") stays a `NotYetImplemented`, just now also carrying the same
+  formatted context via `_format_report()` directly, since
+  `_raise_gl3_error()` itself always raises `GL3RuntimeError`
+  specifically. A broader audit turned up roughly two dozen further
+  places elsewhere in `gl3_interpreter.py` with the same bare-exception
+  pattern — deliberately **not** touched here, since several are already
+  depended on by existing tests expecting those specific builtin
+  exception types, and because some genuinely represent internal
+  interpreter bugs (an unrecognized AST node type, for instance) rather
+  than GL3-program mistakes, where the distinct exception type is
+  arguably a useful signal, not a bug — worth a deliberate, separate pass
+  rather than folding into this fix.
 - **`out:K`/`out:I`/`out:J` (integer output) storage**: the interpreter
   always computes with plain Python `float` (even for `I`/`J`/`K`
   variables), and `_store_outputs()` used to `setattr()` that float
@@ -368,6 +393,7 @@ python3 test_type_command.py            # TYPE/TYPE1/TYPE2/TYPET (G13.md) + fixe
 python3 -m gl3fc.test_integer_output_offline  # out:K (I/J/K) stores a real int, not float ("type must be int, not float")
 python3 test_if_defined.py              # bare IF (definedness test, negation of IFN) - both original keywords, only IFN was ported before
 python3 test_not_implemented_hierarchy.py  # NotYetImplemented/MovePhraseNotYetImplemented must never inherit from builtin NotImplementedError
+python3 test_error_categories.py        # error category split ([Error]/[Warning] format with program/line/operation context, MESS/NOMESS), incl. PRINT/WRITE on an undefined object
 python3 -m gl3fc.test_short_traceback_offline  # execute() re-raises a fresh, short exception instead of propagating the full internal call chain
 cd ..
 python3 test_gl3_commands_offline.py   # workbench commands (Library/Program/Export creation), mocked FreeCAD/FreeCADGui

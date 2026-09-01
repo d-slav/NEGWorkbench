@@ -1410,25 +1410,29 @@ class Interpreter:
 
             if name.endswith("@"):
                 raise NotYetImplemented(
-                    "'%s' (vsechny definovane objekty daneho typu) jeste "
-                    "neni v %s podporovano." % (name, stmt.command)
+                    self._format_report(
+                        "Error",
+                        stmt.command,
+                        "'%s' (vsechny definovane objekty daneho typu) jeste "
+                        "neni podporovano." % (name,),
+                    )
                 )
 
             if name not in env:
                 if is_write:
                     continue
-                raise NameError("Prikaz %s: objekt '%s' neni definovan" % (stmt.command, name))
+                self._raise_gl3_error(stmt.command, "objekt '%s' neni definovan" % (name,))
             raw = env[name]
 
             if t.index is not None:
                 idx = int(round(self.eval_expr(t.index, env)))
                 if not isinstance(raw, list):
-                    raise TypeError("'%s' neni pole, nelze indexovat" % (name,))
+                    self._raise_gl3_error(stmt.command, "'%s' neni pole, nelze indexovat" % (name,))
                 value = raw[idx - 1] if 0 <= idx - 1 < len(raw) else None
                 if value is None:
                     if is_write:
                         continue
-                    raise ValueError("Prikaz %s: '%s(%d)' neni definovan" % (stmt.command, name, idx))
+                    self._raise_gl3_error(stmt.command, "'%s(%d)' neni definovan" % (name, idx))
                 self._print_one(name, idx, value)
                 continue
 
@@ -1440,13 +1444,13 @@ class Interpreter:
                 else:
                     value = raw[0] if raw else None
                     if value is None:
-                        raise ValueError("Prikaz %s: '%s(1)' neni definovan" % (stmt.command, name))
+                        self._raise_gl3_error(stmt.command, "'%s(1)' neni definovan" % (name,))
                     self._print_one(name, 1, value)
             else:
                 if raw is None:
                     if is_write:
                         continue
-                    raise ValueError("Prikaz %s: '%s' neni definovan" % (stmt.command, name))
+                    self._raise_gl3_error(stmt.command, "'%s' neni definovan" % (name,))
                 self._print_one(name, 1, raw)
 
     def _resolve_actual(self, actual_text, env):
