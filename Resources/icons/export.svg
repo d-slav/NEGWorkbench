@@ -48,8 +48,6 @@
      inkscape:current-layer="svg14" />
   <path
      d="M 4.1695058,9.9729128 H 22.169506 V 17.972913 H 4.1695058 Z"
-     fill="#e8e2d0"
-     stroke="#5a4020"
      stroke-width="1.5"
      stroke-linejoin="round"
      id="path2"
@@ -57,7 +55,6 @@
   <path
      d="m 22.169506,17.972913 v 24 H 4.1695058 Z"
      fill="none"
-     stroke="#5a4020"
      stroke-width="1.5"
      stroke-linejoin="round"
      stroke-dasharray="3, 2"
@@ -74,8 +71,6 @@
      id="path6" />
   <path
      d="m 40.976264,35.003351 h 18 v 24 h -18 z"
-     fill="#c9bfa0"
-     stroke="#5a4020"
      stroke-width="1.5"
      stroke-linejoin="round"
      id="path8"
@@ -83,7 +78,6 @@
   <path
      d="m 40.976264,35.003351 9,-6 9,6"
      fill="none"
-     stroke="#5a4020"
      stroke-width="1.5"
      stroke-linejoin="round"
      id="path10"
@@ -91,7 +85,6 @@
   <path
      d="m 40.976264,35.003351 9,6 9,-6 m -9,6 v 18"
      fill="none"
-     stroke="#5a4020"
      stroke-width="1.2"
      id="path12"
      style="stroke:#003cff;stroke-opacity:1" />

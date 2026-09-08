@@ -48,23 +48,18 @@
      inkscape:current-layer="svg12" />
   <path
      d="M 10 6 L 34 6 L 46 18 L 46 58 L 10 58 Z"
-     fill="#e8e2d0"
-     stroke="#5a4020"
      stroke-width="1.5"
      stroke-linejoin="round"
      id="path2"
      style="fill:#e5ecff;fill-opacity:1;stroke:#1f5cff;stroke-opacity:1" />
   <path
      d="M 34 6 L 34 18 L 46 18 Z"
-     fill="#c9bfa0"
-     stroke="#5a4020"
      stroke-width="1.5"
      stroke-linejoin="round"
      id="path4"
      style="fill:#b3c7ff;fill-opacity:1;stroke:#0044ff;stroke-opacity:1" />
   <path
      d="M 16 28 L 40 28 M 16 35 L 40 35 M 16 42 L 30 42"
-     stroke="#5a4020"
      stroke-width="2"
      stroke-linecap="round"
      id="path6"
