@@ -233,6 +233,39 @@ def main():
         )
         print("onChanged() s RecomputeOnlyManually=False: recompute() vyvolan: OK")
 
+        # --- 8) presna reprodukce hlaseneho bugu: pri skutecnem otevreni
+        #     ulozeneho dokumentu FreeCAD NEVOLA __init__ (Proxy se
+        #     obnovuje pres __setstate__, viz jeho docstring nize) - jen
+        #     "holy" Proxy (__new__ bez __init__), na ktery muze prijit
+        #     onChanged() (napr. behem obnovy hodnot property ze souboru)
+        #     JESTE PRED onDocumentRestored(). self._recompute_timer v tu
+        #     chvili jeste vubec neexistuje - drive to zpusobovalo
+        #     AttributeError (viz hlaseni uzivatele) ---
+        raw = FakeObj("RawRestore")
+        raw.addProperty("App::PropertyFloat", "D9", "GL3 In", "test vstup")
+        bare_proxy = GL3Program.__new__(GL3Program)  # presne to, co dela FreeCAD restore
+        raw.Proxy = bare_proxy
+        bare_proxy.onChanged(raw, "D9")  # nesmi spadnout na AttributeError
+        assert raw.Document.recompute_calls == 1, (
+            "i bez predchoziho __init__/onDocumentRestored se ma prepocet "
+            "provest (fallback synchronni cesta, App je v testu None)"
+        )
+        print("onChanged() na Proxy BEZ predchoziho __init__/onDocumentRestored "
+              "(presna reprodukce hlaseneho bugu) NESPADNE: OK")
+
+        # --- 9) onDocumentRestored() dopni chybejici property (vc.
+        #     migrace) i na takovem "holem" Proxy ---
+        raw2 = FakeObj("RawRestore2")
+        raw2.addProperty("App::PropertyBool", "RecomputeOnOpenDoc", "GL3 Options", "stara")
+        raw2.RecomputeOnOpenDoc = True
+        bare_proxy2 = GL3Program.__new__(GL3Program)
+        raw2.Proxy = bare_proxy2
+        bare_proxy2.onDocumentRestored(raw2)
+        assert not hasattr(raw2, "RecomputeOnOpenDoc"), "stara property se mela odstranit"
+        assert raw2.RecomputeOnlyManually is False, raw2.RecomputeOnlyManually
+        assert hasattr(raw2, "SourceFile"), "onDocumentRestored ma dopnit i chybejici property"
+        print("onDocumentRestored() dopni property (vc. migrace) i na 'holem' Proxy: OK")
+
     finally:
         gl3_program_mod.parse_program = orig_parse_program
 

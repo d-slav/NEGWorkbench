@@ -195,6 +195,10 @@ class GL3Program(object):
     def __init__(self, obj):
         obj.Proxy = self
         self.Type = "GL3Program"
+        self._reset_transient_state()
+        self._setup_properties(obj)
+
+    def _reset_transient_state(self):
         # Signatura (viz execute()) posledniho USPESNEHO execute() -
         # pouziva se k preskoceni draheho znovunacteni/beh interpretu, kdyz
         # execute() bylo vyvolano jen vedlejsim ucinkem (touch() z jinych
@@ -208,6 +212,7 @@ class GL3Program(object):
         self._recompute_timer = None
         self._pending_recompute_doc = None
 
+    def _setup_properties(self, obj):
         add_property(
             obj,
             "App::PropertyFile",
@@ -237,12 +242,13 @@ class GL3Program(object):
         #      recompute" + Refresh).
         #
         # self._exec_cache je jen v pameti (nulovana pri kazdem otevreni
-        # dokumentu - viz __getstate__/__setstate__ nize), takze prvni
-        # execute() po KAZDEM otevreni dokumentu by jinak vzdy udelal
-        # plny (mozna drahy) beh, i kdyz se od ulozeni nezmenilo vubec nic
-        # - to je bezpecny vychozi stav (RecomputeOnlyManually == False),
-        # zachyti zmeny v .GL3 zavislostech pres CALL i zmeny samotneho
-        # interpretu/doplnku, ktere cache nesleduje.
+        # dokumentu - viz _reset_transient_state/onDocumentRestored vyse),
+        # takze prvni execute() po KAZDEM otevreni dokumentu by jinak
+        # vzdy udelal plny (mozna drahy) beh, i kdyz se od ulozeni
+        # nezmenilo vubec nic - to je bezpecny vychozi stav
+        # (RecomputeOnlyManually == False), zachyti zmeny v .GL3
+        # zavislostech pres CALL i zmeny samotneho interpretu/doplnku,
+        # ktere cache nesleduje.
         #
         # Zapnutim (True) na VLASTNI ZODPOVEDNOST uzivatel rika "vim, ze
         # jsem od posledniho ulozeni nic needitoval (vc. zavislosti pres
@@ -258,7 +264,10 @@ class GL3Program(object):
         # nacteni takoveho dokumentu precte, stara property se odstrani a
         # nova RecomputeOnlyManually se nastavi na OPACNOU hodnotu (True
         # <-> False), takze uzivateli zustava puvodni fakticke chovani
-        # (co se bodu 1 tyce) i pod novym jmenem/logikou.
+        # (co se bodu 1 tyce) i pod novym jmenem/logikou. Volani je tady
+        # (v _setup_properties, ne primo v __init__) prave proto, aby se
+        # spolehlive provedlo i pro DRIVE ulozene dokumenty - viz
+        # onDocumentRestored vyse.
         migrate_renamed_property(
             obj,
             "RecomputeOnOpenDoc",
@@ -536,7 +545,7 @@ class GL3Program(object):
         # (viz nize), aby se pri opakovanem restartovani nehromadila
         # dalsi a dalsi Qt spojeni na tutez signal/slot dvojici.
         self._pending_recompute_doc = obj.Document.Name
-        if self._recompute_timer is None:
+        if getattr(self, "_recompute_timer", None) is None:
             timer = QTimer()
             timer.setSingleShot(True)
             timer.timeout.connect(self._fire_recompute)
@@ -787,7 +796,25 @@ class GL3Program(object):
             setattr(obj, name, value)
 
     def onDocumentRestored(self, obj):
+        """FreeCAD tohle vola JEDNOU, po kompletnim nacteni dokumentu -
+        puvodne tu bylo jen 'self.Type = "GL3Program"' (obnova atributu,
+        ktery __setstate__ nize netahne - viz jeho docstring). Ted navic
+        i _reset_transient_state()/_setup_properties(obj): na rozdil od
+        __init__ (ktery se pri obnove JIZ ULOZENEHO objektu, tedy pri
+        otevreni existujiciho .FCStd, NEVOLA vubec - Proxy se obnovuje
+        primo pres pickle-like __setstate__, bez __init__) je tohle
+        spolehlive misto, kde dopnit/migrovat property i znovu nastavit
+        prechodny (nepicklovany) stav teto instance (self._exec_cache,
+        self._recompute_timer, ...). Bez tohodle mohlo prvni onChanged()
+        po otevreni stareho souboru spadnout na chybejicim atributu
+        (AttributeError: '_recompute_timer', viz hlaseni uzivatele) -
+        _schedule_recompute() uz sice ma vlastni getattr(...) pojistku,
+        ale SEM (ne jen do __init__) patri i migrate_renamed_property()
+        volana uvnitr _setup_properties(), aby se spolehlive provedla i
+        pro DRIVE ulozene dokumenty (__init__ pro ne nikdy neprobehne)."""
         self.Type = "GL3Program"
+        self._reset_transient_state()
+        self._setup_properties(obj)
 
 
 class ViewProviderGL3Program(object):
