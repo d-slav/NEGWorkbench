@@ -1,19 +1,26 @@
 # -*- coding: utf-8 -*-
 """
-test_recompute_on_open_offline.py - overeni RecomputeOnOpenDoc (zadani
-uzivatele: moznost preskocit vzdy-drahy prepocet po otevreni dokumentu,
-kdyz se od ulozeni fakticky nic nezmenilo).
+test_recompute_only_manually_offline.py - overeni RecomputeOnlyManually
+(zadani uzivatele: prejmenovane + logicky obracene RecomputeOnOpenDoc,
+navic rozsirene o gating auto-prepoctu v onChanged() - viz gl3_program.py).
 
 self._exec_cache (GL3Program.execute()) je jen v pameti Proxy objektu -
 po "otevreni dokumentu" (v tomhle testu simulovanem vytvorenim NOVEHO
 Proxy na TOM SAMEM FakeObj - presne to, co dela __getstate__/__setstate__
 vraceci None) je vzdy None, takze prvni execute() vzdy udela plny beh,
-i kdyz RecomputeOnOpenDoc == False. Az DRUHY execute() (po "otevreni")
+i kdyz RecomputeOnlyManually == True. Az DRUHY execute() (po "otevreni")
 smi cache-hit vyuzit - a presne to se tu overuje.
 
 Skutecny "beh interpretu" se pozna podle poctu volani parse_program()
 (volane se jen na ceste PLNEHO behu, nikdy na cache-hit ceste) -
 monkeypatch pocitadlo v gl3fc.gl3_program modulu.
+
+App (FreeCAD) neni v tomhle offline prostredi k dispozici (viz
+gl3_program.py - "App = None" fallback), takze _schedule_recompute()
+vzdy pouzije svou synchronni fallback vetev (zadny QTimer/debounce) -
+presne to umoznuje testovat GATING (RecomputeOnlyManually potlaci
+onChanged()-driven auto-recompute) jednoduse pres pocitadlo volani
+FakeDocument.recompute(), bez nutnosti simulovat Qt event loop.
 """
 import os
 import sys
@@ -33,17 +40,30 @@ _TYPE_DEFAULTS = {
 }
 
 
+class FakeDocument(object):
+    """Jen pocita, kolikrat se na nem zavolalo recompute() - pro overeni
+    gatingu v onChanged() (viz _schedule_recompute v gl3_program.py)."""
+
+    def __init__(self, name):
+        self.Name = name
+        self.recompute_calls = 0
+
+    def recompute(self):
+        self.recompute_calls += 1
+
+
 class FakeObj(object):
     """Stejna napodobenina jako v test_offline.py, navic setPropertyStatus
     (no-op - jen at neni potreba try/except AttributeError zavisely na
-    tomhle testu) a Document (staci None - RecomputeOnOpenDoc/_ExecCache
-    ho vubec nepotrebuji)."""
+    tomhle testu), removeProperty (pro migrate_renamed_property) a
+    Document jako FakeDocument (pro pocitani recompute() volani z
+    onChanged())."""
 
     def __init__(self, name):
         self.Name = name
         self.Proxy = None
         self.ViewObject = None
-        self.Document = None
+        self.Document = FakeDocument(name + "Doc")
         self._prop_types = {}
         self._prop_groups = {}
         self._prop_status = {}
@@ -80,8 +100,8 @@ def _reopen(obj):
     """Simuluje zavreni a znovuotevreni dokumentu: FreeCAD by vytvoril
     NOVY Proxy (viz __getstate__/__setstate__ v gl3_program.py, oboje
     vraci None - Python stav Proxy se NEPRENASI), ale VSECHNY FC
-    properties (vc. _ExecCache a RecomputeOnOpenDoc) na 'obj' zustavaji
-    tak, jak byly ulozeny."""
+    properties (vc. _ExecCache a RecomputeOnlyManually) na 'obj'
+    zustavaji tak, jak byly ulozeny."""
     from gl3fc.gl3_program import GL3Program
     GL3Program(obj)  # novy Proxy - novy __init__, self._exec_cache = None
 
@@ -109,13 +129,13 @@ def main():
 
     gl3_program_mod.parse_program = counting_parse_program
     try:
-        # --- 1) RecomputeOnOpenDoc vychozi hodnota na novem objektu ---
+        # --- 1) RecomputeOnlyManually vychozi hodnota na novem objektu ---
         obj = FakeObj("Prog1")
         GL3Program(obj)
-        assert obj.RecomputeOnOpenDoc is True, obj.RecomputeOnOpenDoc
-        print("Novy GL3Program: RecomputeOnOpenDoc vychozi True: OK")
+        assert obj.RecomputeOnlyManually is False, obj.RecomputeOnlyManually
+        print("Novy GL3Program: RecomputeOnlyManually vychozi False: OK")
 
-        # --- 2) prvni beh (RecomputeOnOpenDoc == True, vychozi) ---
+        # --- 2) prvni beh (RecomputeOnlyManually == False, vychozi) ---
         obj.SourceFile = src_path
         obj.Library = lib_obj
         obj.Proxy.execute(obj)
@@ -124,40 +144,40 @@ def main():
         assert obj._ExecCache, "_ExecCache se ma naplnit po uspesnem behu"
         print("Prvni beh: skutecny prepocet (parse_program zavolan): OK")
 
-        # --- 3) "otevreni dokumentu" (novy Proxy), RecomputeOnOpenDoc
-        #     zustava True (vychozi) -> i kdyz se nic nezmenilo, DALSI
+        # --- 3) "otevreni dokumentu" (novy Proxy), RecomputeOnlyManually
+        #     zustava False (vychozi) -> i kdyz se nic nezmenilo, DALSI
         #     execute() musi udelat SKUTECNY beh znovu (bezpecny vychozi
         #     stav - viz diskuze s uzivatelem) ---
         _reopen(obj)
         obj.Proxy.execute(obj)
         assert call_count["n"] == 2, call_count["n"]
-        print("Po 'otevreni dokumentu' s RecomputeOnOpenDoc=True: "
+        print("Po 'otevreni dokumentu' s RecomputeOnlyManually=False: "
               "skutecny prepocet i beze zmeny: OK")
 
-        # --- 4) uzivatel vypne RecomputeOnOpenDoc - ve STEJNE session
+        # --- 4) uzivatel zapne RecomputeOnlyManually - ve STEJNE session
         #     (self._exec_cache v pameti pořád plati) execute() zustava
-        #     no-op jako predtim (RecomputeOnOpenDoc ovlivnuje jen to, co
-        #     se stane, kdyz self._exec_cache je None - viz nize) ---
-        obj.RecomputeOnOpenDoc = False
+        #     no-op jako predtim (RecomputeOnlyManually ovlivnuje jen to,
+        #     co se stane, kdyz self._exec_cache je None - viz nize) ---
+        obj.RecomputeOnlyManually = True
         obj.Proxy.execute(obj)
         assert call_count["n"] == 2, call_count["n"]
-        print("Zmena RecomputeOnOpenDoc na False sama o sobe (ve stejne "
+        print("Zmena RecomputeOnlyManually na True sama o sobe (ve stejne "
               "session, self._exec_cache uz plati) nevynuti dalsi beh: OK")
 
         _reopen(obj)  # simuluje zavreni+otevreni - self._exec_cache -> None,
                        # ale obj._ExecCache (perzistentni) zustava
         obj.Proxy.execute(obj)
         assert call_count["n"] == 2, (
-            "RecomputeOnOpenDoc=False + nezmeneny SourceFile/inputs -> "
+            "RecomputeOnlyManually=True + nezmeneny SourceFile/inputs -> "
             "prepocet se MEL preskocit, ale parse_program se zavolal "
             "znovu (count=%d)" % call_count["n"]
         )
         assert obj.D1 == 11.0, obj.D1  # vystup zustal spravne dopocitany z minula
-        print("Po 'otevreni dokumentu' s RecomputeOnOpenDoc=False, nic "
+        print("Po 'otevreni dokumentu' s RecomputeOnlyManually=True, nic "
               "se nezmenilo: skutecny prepocet PRESKOCEN (persistovana "
               "_ExecCache pouzita): OK - D1=%r" % (obj.D1,))
 
-        # --- 5) zmena vstupu i pri RecomputeOnOpenDoc=False musi po
+        # --- 5) zmena vstupu i pri RecomputeOnlyManually=True musi po
         #     'otevreni' vynutit skutecny beh (signatura uz nesedi) ---
         obj.D2 = 0.0  # vystup - nema vliv, jen simulace "necoho zmeneneho"
         # zmenime SourceFile na jiny soubor - signatura (path) uz nebude sedet
@@ -167,15 +187,60 @@ def main():
         obj.Proxy.execute(obj)
         assert call_count["n"] == 3, call_count["n"]
         assert obj.D1 == 22.0, obj.D1  # CHILDPROG.GL3 cte child_data.txt
-        print("Zmena SourceFile pred 'otevrenim' i s RecomputeOnOpenDoc=False "
+        print("Zmena SourceFile pred 'otevrenim' i s RecomputeOnlyManually=True "
               "-> skutecny prepocet SE PROVEDE (signatura nesedi): OK")
+
+        # --- 6) migrace ze stare property "RecomputeOnOpenDoc" (dokument
+        #     ulozeny PRED touto zmenou) - hodnota se invertuje, aby
+        #     fakticke chovani (bod 1 z diskuze - "skip po otevreni")
+        #     zustalo stejne jako drive pod starym jmenem/logikou ---
+        old_true = FakeObj("OldTrue")
+        old_true.addProperty("App::PropertyBool", "RecomputeOnOpenDoc", "GL3 Options", "stara")
+        old_true.RecomputeOnOpenDoc = True  # stare "vzdy prepocitat po otevreni"
+        GL3Program(old_true)
+        assert not hasattr(old_true, "RecomputeOnOpenDoc"), "stara property se mela odstranit"
+        assert old_true.RecomputeOnlyManually is False, old_true.RecomputeOnlyManually
+        print("Migrace RecomputeOnOpenDoc=True -> RecomputeOnlyManually=False: OK")
+
+        old_false = FakeObj("OldFalse")
+        old_false.addProperty("App::PropertyBool", "RecomputeOnOpenDoc", "GL3 Options", "stara")
+        old_false.RecomputeOnOpenDoc = False  # stare "presuskocit, pokud nic nezmeneno"
+        GL3Program(old_false)
+        assert not hasattr(old_false, "RecomputeOnOpenDoc"), "stara property se mela odstranit"
+        assert old_false.RecomputeOnlyManually is True, old_false.RecomputeOnlyManually
+        print("Migrace RecomputeOnOpenDoc=False -> RecomputeOnlyManually=True: OK")
+
+        # --- 7) onChanged() gating: RecomputeOnlyManually=True potlaci
+        #     auto-recompute po zmene "GL3 In" vstupu (App je v tomhle
+        #     offline prostredi None, takze _schedule_recompute() by
+        #     jinak pouzila svou synchronni fallback vetev - viz modulovy
+        #     docstring) ---
+        gated = FakeObj("Gated1")
+        GL3Program(gated)
+        gated.addProperty("App::PropertyFloat", "D9", "GL3 In", "test vstup")
+        gated.RecomputeOnlyManually = True
+        gated.Proxy.onChanged(gated, "D9")
+        assert gated.Document.recompute_calls == 0, (
+            "RecomputeOnlyManually=True mel potlacit auto-recompute z onChanged()"
+        )
+        print("onChanged() s RecomputeOnlyManually=True: recompute() NEvyvolan: OK")
+
+        gated.RecomputeOnlyManually = False
+        gated.Proxy.onChanged(gated, "D9")
+        assert gated.Document.recompute_calls == 1, (
+            "RecomputeOnlyManually=False ma auto-recompute pustit (synchronne, "
+            "App je v testu None -> zadny debounce)"
+        )
+        print("onChanged() s RecomputeOnlyManually=False: recompute() vyvolan: OK")
 
     finally:
         gl3_program_mod.parse_program = orig_parse_program
 
     print()
-    print("VSE OK - RecomputeOnOpenDoc funguje (vychozi True = puvodni "
-          "chovani, False + nezmeneny stav preskoci prepocet po otevreni).")
+    print("VSE OK - RecomputeOnlyManually funguje (vychozi False = puvodni "
+          "automaticke chovani, True preskoci prepocet po otevreni A "
+          "potlaci auto-recompute z onChanged() - jen rucne), vc. migrace "
+          "ze stare RecomputeOnOpenDoc.")
 
 
 if __name__ == "__main__":

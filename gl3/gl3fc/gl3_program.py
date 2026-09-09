@@ -90,7 +90,7 @@ from gl3fc.gl3_placeholder_context import static_placeholders
 from gerlib.serialize import dump_json, load_json, serialize
 from gerlib.types import Point
 from gl3fc.gl3_registry import Gl3FileRegistry
-from gl3fc.gl3_props import add_property, add_hidden_link, parse_ref, icon_path
+from gl3fc.gl3_props import add_property, add_hidden_link, migrate_renamed_property, parse_ref, icon_path
 from gl3fc.gl3_export import build_shape
 
 try:
@@ -99,6 +99,23 @@ try:
 except ImportError:  # umoznuje syntax-check/testy mimo FreeCAD
     App = None
     Part = None
+
+# QTimer pro debounce auto-prepoctu v onChanged() (viz nize) - zkousi se
+# postupne novejsi/starsi PySide binding podle toho, co dana FreeCAD verze
+# skutecne nabizi. Kdyz neni k dispozici zadny (typicky mimo FreeCAD -
+# offline testy/syntax-check), QTimer zustane None a onChanged() se tise
+# vrati k puvodnimu okamzitemu recompute() (viz nize) - zadna funkcionalita
+# se tim NEZTRACI, jen se v takovem prostredi neuplatni debounce.
+try:
+    from PySide6.QtCore import QTimer
+except ImportError:
+    try:
+        from PySide2.QtCore import QTimer
+    except ImportError:
+        try:
+            from PySide.QtCore import QTimer
+        except ImportError:
+            QTimer = None
 
 _MISSING = object()  # sentinel pro "property s timhle jmenem neexistuje"
 
@@ -183,6 +200,13 @@ class GL3Program(object):
         # execute() bylo vyvolano jen vedlejsim ucinkem (touch() z jinych
         # duvodu nez skutecna zmena zavislosti - viz gl3_export.create()).
         self._exec_cache = None
+        # Debounce timer pro auto-prepocet po editaci in: parametru (viz
+        # onChanged() nize) - jen v pameti (neni v __getstate__/
+        # __setstate__, stejne jako self._exec_cache vyse), QTimer
+        # stejne neni picklovatelny a po kazdem otevreni dokumentu se
+        # da bez problemu vytvorit znovu (lazy, viz onChanged()).
+        self._recompute_timer = None
+        self._pending_recompute_doc = None
 
         add_property(
             obj,
@@ -200,37 +224,56 @@ class GL3Program(object):
             "pokud vlastni SUBRO nekoho vola)",
         )
 
-        # RecomputeOnOpenDoc (vychozi True = puvodni chovani beze zmeny) -
-        # viz diskuze s uzivatelem: self._exec_cache prezije jen v ramci
-        # jedne session (neni soucasti __getstate__/__setstate__ nize -
-        # zamerne, viz jejich komentar), takze prvni execute() po KAZDEM
-        # otevreni dokumentu vzdy udela plny (mozna drahy) beh, i kdyz se
-        # od ulozeni nezmenilo vubec nic - to je bezpecny vychozi stav
-        # (zachyti zmeny v .GL3 zavislostech pres CALL i zmeny samotneho
-        # interpretu/doplnku, ktere cache nesleduje).
+        # RecomputeOnlyManually (vychozi False = puvodni automaticke
+        # chovani beze zmeny) - viz diskuze s uzivatelem. Jedna property
+        # nyni rika DVE veci najednou (proto to sjednoceni pod jednim
+        # jasnym jmenem, misto puvodniho uzsiho "RecomputeOnOpenDoc"):
+        #   1) po OTEVRENI dokumentu se preskoci vzdy-plny-prepocet a
+        #      pouzije se misto toho signatura z _ExecCache (viz nize) -
+        #      puvodni vyznam RecomputeOnOpenDoc, jen s obracenou logikou.
+        #   2) auto-prepocet po ZMENE in: parametru (viz onChanged() nize)
+        #      se VUBEC NESPOUSTI - prepocet je mozne vyvolat jen rucne
+        #      (tlacitko "Reload GL3 Program", nebo bezne FreeCAD "Mark to
+        #      recompute" + Refresh).
         #
-        # Vypnutim (False) na VLASTNI ZODPOVEDNOST uzivatel rika "vim, ze
-        # jsem od posledniho ulozeni nic needitoval, preskakuj prepocet po
-        # otevreni, pokud se fakticky nic nezmenilo" - k tomu navic
-        # potrebujeme signaturu posledniho uspesneho behu, ktera PREZIJE
-        # ulozeni/otevreni (viz _ExecCache nize - narozdil od
-        # self._exec_cache je to skutecna FC property).
-        is_new = not hasattr(obj, "RecomputeOnOpenDoc")
-        add_property(
+        # self._exec_cache je jen v pameti (nulovana pri kazdem otevreni
+        # dokumentu - viz __getstate__/__setstate__ nize), takze prvni
+        # execute() po KAZDEM otevreni dokumentu by jinak vzdy udelal
+        # plny (mozna drahy) beh, i kdyz se od ulozeni nezmenilo vubec nic
+        # - to je bezpecny vychozi stav (RecomputeOnlyManually == False),
+        # zachyti zmeny v .GL3 zavislostech pres CALL i zmeny samotneho
+        # interpretu/doplnku, ktere cache nesleduje.
+        #
+        # Zapnutim (True) na VLASTNI ZODPOVEDNOST uzivatel rika "vim, ze
+        # jsem od posledniho ulozeni nic needitoval (vc. zavislosti pres
+        # CALL), preskakuj automaticky prepocet uplne, delam ho jen
+        # rucne, kdyz sam chci" - k bodu 1) navic potrebujeme signaturu
+        # posledniho uspesneho behu, ktera PREZIJE ulozeni/otevreni (viz
+        # _ExecCache nize - narozdil od self._exec_cache je to skutecna
+        # FC property).
+        #
+        # migrate_renamed_property() zachova hodnotu z jiz ulozenych
+        # dokumentu se starou property "RecomputeOnOpenDoc" (predchozi
+        # jmeno/logika - jen bod 1) vyse) - jeji hodnota se pri prvnim
+        # nacteni takoveho dokumentu precte, stara property se odstrani a
+        # nova RecomputeOnlyManually se nastavi na OPACNOU hodnotu (True
+        # <-> False), takze uzivateli zustava puvodni fakticke chovani
+        # (co se bodu 1 tyce) i pod novym jmenem/logikou.
+        migrate_renamed_property(
             obj,
-            "App::PropertyBool",
             "RecomputeOnOpenDoc",
+            "RecomputeOnlyManually",
+            "App::PropertyBool",
             "GL3 Options",
-            "Po otevreni dokumentu VZDY prepocitat, i kdyz se od ulozeni "
-            "nic nezmenilo (bezpecny vychozi stav - zachyti zmeny .GL3 "
-            "zavislosti pres CALL i zmeny doplnku samotneho, ktere "
-            "nasledujici kontrola nesleduje). Vypni jen pokud vis jiste, "
-            "ze od ulozeni nic (vc. zavislosti pres CALL) needitoval - pak "
-            "se prepocet po otevreni preskoci, pokud se obsah SourceFile "
-            "(mtime), Library ani hodnoty in: parametru nezmenily.",
+            "Prepocet (po otevreni dokumentu i po zmene in: parametru) "
+            "spoustet jen RUCNE (tlacitkem 'Reload GL3 Program', nebo "
+            "beznym FreeCAD 'Mark to recompute' + Refresh) - vypni jen "
+            "pokud vis jiste, ze od posledniho ulozeni nic (vc. "
+            "zavislosti pres CALL) needitoval, jinak muzou vysledky "
+            "zustat tise zastarale.",
+            default=False,
+            transform=lambda old_recompute_on_open_doc: not old_recompute_on_open_doc,
         )
-        if is_new:
-            obj.RecomputeOnOpenDoc = True
 
         # EditCommand (zadani uzivatele) - shellovy prikaz, kterym
         # NEG_EditProgram (gl3_commands.py) otevre SourceFile v externim
@@ -255,7 +298,7 @@ class GL3Program(object):
         # Interni (Hidden) - JSON signatura posledniho uspesneho execute()
         # (viz konec execute()), na rozdil od self._exec_cache PREZIJE
         # ulozeni/otevreni dokumentu (skutecna FC property) - cte se jen
-        # kdyz je RecomputeOnOpenDoc == False (viz execute()). Skupina
+        # kdyz je RecomputeOnlyManually == True (viz execute()). Skupina
         # "GL3 Options" (NE "GL3"!) - "GL3" je ve trigger setu onChanged()
         # (viz nize), a zapis do teto property se deje PRIMO UVNITR
         # execute(), takze by ve skupine "GL3" zpusobil dalsi zbytecny
@@ -339,10 +382,10 @@ class GL3Program(object):
         library_name = getattr(getattr(obj, "Library", None), "Name", None)
 
         cache = getattr(self, "_exec_cache", None)
-        if cache is None and not getattr(obj, "RecomputeOnOpenDoc", True):
+        if cache is None and getattr(obj, "RecomputeOnlyManually", False):
             # self._exec_cache je jen v pameti (nulovana pri kazdem
             # otevreni dokumentu - viz __getstate__/__setstate__ nize) -
-            # RecomputeOnOpenDoc == False rika, ze uzivatel na vlastni
+            # RecomputeOnlyManually == True rika, ze uzivatel na vlastni
             # zodpovednost chce zkusit obnovit signaturu POSLEDNIHO
             # uspesneho behu z _ExecCache (skutecna FC property, tu uz
             # otevreni dokumentu prezije).
@@ -408,7 +451,7 @@ class GL3Program(object):
         }
         # Stejna signatura navic i jako skutecna FC property (_ExecCache) -
         # ta na rozdil od self._exec_cache PREZIJE ulozeni/otevreni
-        # dokumentu, viz RecomputeOnOpenDoc vyse. Selhani serializace
+        # dokumentu, viz RecomputeOnlyManually vyse. Selhani serializace
         # (nemelo by nastat - "inputs" jsou vzdy scalar/string hodnoty
         # FC properties, viz _gather_inputs) se tise ignoruje - v
         # nejhorsim pripade se priste jen provede plny beh znovu.
@@ -433,9 +476,9 @@ class GL3Program(object):
             self._resync_composite_link(obj, prop)
 
         # Auto-recompute: zmena VSTUPU (SourceFile/Library/GL3 In - vc.
-        # composite in: textove reference) ma rovnou spustit prepocet
-        # tohoto objektu (a tim padem i navazanych GL3Export, ktere na
-        # nem zavisi) - jinak by uzivatel musel po kazde zmene parametru
+        # composite in: textove reference) ma spustit prepocet tohoto
+        # objektu (a tim padem i navazanych GL3Export, ktere na nem
+        # zavisi) - jinak by uzivatel musel po kazde zmene parametru
         # rucne kliknout Refresh. Skryte "_Link" shadow property (viz
         # vyse) vynechavame - to je interni bookkeeping, ne uzivatelska
         # zmena, a uz se vyresilo pri resyncu radek vyse.
@@ -453,10 +496,68 @@ class GL3Program(object):
             return
         if group not in ("GL3", "GL3 In"):
             return
+        if getattr(obj, "RecomputeOnlyManually", False):
+            # Uzivatel si vypnul auto-prepocet uplne (viz __init__) -
+            # prepocet je mozne vyvolat jen rucne (tlacitko "Reload GL3
+            # Program", nebo bezne FreeCAD "Mark to recompute" + Refresh).
+            return
+        self._schedule_recompute(obj)
+
+    _RECOMPUTE_DEBOUNCE_MS = 500
+
+    def _schedule_recompute(self, obj):
+        """Naplanuje obj.Document.recompute() az po _RECOMPUTE_DEBOUNCE_MS
+        ms ticha (zadna dalsi zmena vstupu) - misto okamziteho prepoctu
+        po KAZDE jednotlive zmene (typicky kazdy napsany znak v Property
+        editoru). Opakovane volani v mezicase, kdy predchozi timer jeste
+        nedobehl, ho proste jen restartuje (QTimer.start() na jiz
+        bezicim singleShot timeru zrusi predchozi odpocet a zacne znovu -
+        zadny rucni stop() neni potreba), takze skutecny prepocet
+        probehne az _RECOMPUTE_DEBOUNCE_MS ms PO POSLEDNI zmene.
+
+        Debounce se uplatni jen kdyz je k dispozici QTimer (viz import
+        nahore) A bezi GUI (App.GuiUp) - v offline/skriptovem behu
+        (vc. testu) by timer nikdy nedostal sanci se spustit (zadna Qt
+        event loop bezici na pozadi), takze by se misto ZPOZDENEHO
+        prepoctu tise nestal ZADNY - proto se tam prepocet spusti hned,
+        synchronne, presne jako drive (puvodni chovani beze zmeny)."""
+        if QTimer is None or App is None or not getattr(App, "GuiUp", False):
+            try:
+                obj.Document.recompute()
+            except AttributeError:
+                pass  # napr. objekt jeste neni plne pripojeny k dokumentu
+            return
+
+        # Jmeno dokumentu (ne primo 'obj'/'obj.Document' - viz jinde v
+        # tomto souboru poznamka o Python wrapperech kolem FC objektu,
+        # radsi neuchovavat referenci na FC objekt/dokument samotny pres
+        # cely odklad) se pri kazdem volani prepise na aktualni - timer
+        # samotny se vytvari a pripojuje na _fire_recompute jen JEDNOU
+        # (viz nize), aby se pri opakovanem restartovani nehromadila
+        # dalsi a dalsi Qt spojeni na tutez signal/slot dvojici.
+        self._pending_recompute_doc = obj.Document.Name
+        if self._recompute_timer is None:
+            timer = QTimer()
+            timer.setSingleShot(True)
+            timer.timeout.connect(self._fire_recompute)
+            self._recompute_timer = timer
+        self._recompute_timer.start(self._RECOMPUTE_DEBOUNCE_MS)
+
+    def _fire_recompute(self):
+        """Slot pro _recompute_timer.timeout (viz _schedule_recompute) -
+        pouziva jmeno dokumentu ulozene TESNE PRED odpalenim timeru
+        (nemuze byt zastarale/z jineho dokumentu, viz tam), ne zadnou
+        drive drzenou referenci primo na FC objekt/dokument."""
+        doc_name = getattr(self, "_pending_recompute_doc", None)
+        if doc_name is None or App is None:
+            return
+        doc = App.getDocument(doc_name)
+        if doc is None:
+            return  # dokument mezitim zavreny
         try:
-            obj.Document.recompute()
-        except AttributeError:
-            pass  # napr. objekt jeste neni plne pripojeny k dokumentu
+            doc.recompute()
+        except Exception:
+            pass  # chyba GL3 programu se hlasi az uvnitr execute() sameho
 
     @staticmethod
     def _shadow_link_name(param_name):

@@ -159,3 +159,42 @@ def add_property(obj, type_name, name, group, doc, read_only=False):
             pass
 
     return obj
+
+
+def migrate_renamed_property(obj, old_name, new_name, type_name, group, doc, default, transform=lambda v: v):
+    """Obecna migrace prejmenovane property (pripadne se zmenou vyznamu,
+    napr. invertovana boolean logika) - pouzij misto rucniho if/hasattr
+    kdykoliv se stavajici property prejmenovava/meni semantika, aby se
+    hodnota nastavena uzivatelem na jiz ulozenych dokumentech nezratila.
+
+    Tri pripady:
+    - nova property uz existuje (bezny pripad pri kazdem dalsim
+      __init__ na jiz migrovanem objektu) - nic se nedela.
+    - stara property existuje, nova jeste ne (dokument ulozeny PRED
+      touto migraci, prave se otevira/nacita) - precte se hodnota
+      stare property, stara property se (pokud to FreeCAD verze
+      podporuje) SMAZE pres removeProperty (jinak zustane jako
+      neskodny, uz nepouzivany sirotek), nova se prida a nastavi na
+      transform(stara_hodnota) - napr. 'lambda v: not v' pro
+      invertovanou logiku.
+    - ani stara, ani nova property neexistuje (uplne novy objekt) -
+      nova se prida a nastavi na 'default'.
+
+    Vraci True, pokud byla 'new_name' property v tomto volani prave
+    (nove) pridana - at uz migraci ze stare, nebo jako brand-new
+    default - False, pokud uz existovala (nic se nezmenilo)."""
+    if hasattr(obj, new_name):
+        return False
+    if hasattr(obj, old_name):
+        old_value = getattr(obj, old_name)
+        try:
+            obj.removeProperty(old_name)
+        except AttributeError:
+            pass  # starsi FreeCAD bez removeProperty() - stara property
+                  # zustane vedle nove jako neskodny, uz nepouzivany sirotek
+        add_property(obj, type_name, new_name, group, doc)
+        setattr(obj, new_name, transform(old_value))
+        return True
+    add_property(obj, type_name, new_name, group, doc)
+    setattr(obj, new_name, default)
+    return True
