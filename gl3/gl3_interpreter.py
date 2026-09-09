@@ -22,6 +22,40 @@ try:
 except ImportError:  # offline beh (testy, CLI) - beze zmeny, prosty text
     App = None
 
+try:
+    import FreeCADGui as Gui
+except ImportError:  # offline beh, nebo FreeCAD spusteny bez GUI (-c/skript)
+    Gui = None
+
+
+def _emit_line(text):
+    """Jeden radek vystupu PRINT/WRITE/TYPE (viz _print_one/_exec_type
+    nize) - pouziva App.Console.PrintMessage() (Report View), pokud bezi
+    FreeCAD, jinak obycejny print() (offline beh - testy, CLI).
+
+    Zadani uzivatele: pri dlouho bezicim programu, ktery prubezne neco
+    vypisuje, se cely vypis ve skutecnem FreeCADu objevi v Report View
+    az po dokonceni CELEHO programu, misto prubezne za behu. Duvod: cely
+    execute() bezi synchronne uvnitr JEDNOHO zavolani Qt event loop
+    (jedno "kolecko" recompute) - i kdyz by text sam byl do Report View
+    zapsan hned (coz uz PrintMessage/PrintWarning dela), samotny WIDGET
+    se prekresli az ve chvili, kdy se rizeni vrati zpet do Qt event
+    loop - tedy az po celem execute(). App.Console.PrintMessage() sama
+    o sobe tohle NERESI (jen zapise do bufferu Report View, nevynuti
+    prekresleni) - proto navic Gui.updateGui() (bezny FreeCAD-idiom pro
+    prubezne obcerstveni GUI behem dlouho bezicich synchronnich maker),
+    ktery Qt donuti zpracovat cekajici udalosti (vc. prekresleni Report
+    View) hned, bez cekani na navrat z execute()."""
+    if App is not None and hasattr(App, "Console"):
+        App.Console.PrintMessage(text + "\n")
+    else:
+        print(text)
+    if Gui is not None and App is not None and getattr(App, "GuiUp", False):
+        try:
+            Gui.updateGui()
+        except Exception:
+            pass  # nikdy nesmi shodit beh GL3 programu jen kvuli obcerstveni GUI
+
 from gl3_lang import (
     Var, Num, Str, BinOp, UnaryMinus, OpCall,
     Assign, CallStmt, CommandStmt, DimenStmt, DataStmt,
@@ -1430,7 +1464,7 @@ class Interpreter:
         label = "%s(%d)" % (name, idx)
         prefix = name[0].upper()
         parts = format_components(prefix, value)
-        print("%-10s%s" % (label, "".join("%12s" % p for p in parts)))
+        _emit_line("%-10s%s" % (label, "".join("%12s" % p for p in parts)))
 
     def _exec_type(self, stmt, env):
         """TYPE/TYPE1/TYPE2/TYPET - viz G13.md 'PRIKAZY VYSTUPU TYPU
@@ -1452,7 +1486,7 @@ class Interpreter:
             value = self.eval_expr(item, env)
             prefix = item.name[0].upper() if isinstance(item, Var) else "D"
             parts.extend(format_components(prefix, value))
-        print(" ".join(parts))
+        _emit_line(" ".join(parts))
 
     def _exec_output(self, stmt, env):
         is_write = stmt.command.startswith("WRITE")
