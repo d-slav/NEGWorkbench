@@ -291,7 +291,7 @@ def main():
     # 1. recompute selze na IDEV, ale property uz vytvori).
     try:
         prog_obj.Proxy.execute(prog_obj)
-    except OSError:
+    except Exception:
         pass  # ocekavano - BJM/DH jeste nejsou vyplnene, schema uz ale existuje
 
     assert prog_obj._prop_types.get("PO") == "App::PropertyString"
@@ -435,8 +435,8 @@ def main():
         from gl3fc.gl3_program import GL3Program
 
         GL3Program(edit_prog)
-        assert edit_prog.EditCommand == "edit ${gl3_file_path}/${gl3_file_name}", (
-            "vychozi EditCommand musi byt presne 'edit ${gl3_file_path}/${gl3_file_name}'"
+        assert edit_prog.EditCommand == "Notepad ${gl3_file_path}/${gl3_file_name}", (
+            "vychozi EditCommand musi byt presne 'Notepad ${gl3_file_path}/${gl3_file_name}'"
         )
         edit_prog.SourceFile = src_path
         FakeSelection._selection = [edit_prog]
@@ -444,7 +444,7 @@ def main():
         result = edit_cmd.Activated()
         assert result is edit_prog
         assert len(captured_commands) == 1
-        assert captured_commands[0] == "edit %s/MAINPROG.GL3" % fixtures_dir, captured_commands[0]
+        assert captured_commands[0] == "Notepad %s/MAINPROG.GL3" % fixtures_dir, captured_commands[0]
         print("Activated() s vychozim EditCommand: OK - spusteno %r" % (captured_commands[0],))
 
         # vlastni EditCommand (uzivatelska hodnota) se ma pouzit misto vychozi
@@ -456,7 +456,7 @@ def main():
 
         # neplatny SourceFile -> jasna chyba, zadny prikaz spusten
         captured_commands.clear()
-        edit_prog.EditCommand = "edit ${gl3_file_path}/${gl3_file_name}"
+        edit_prog.EditCommand = "Notepad ${gl3_file_path}/${gl3_file_name}"
         edit_prog.SourceFile = os.path.join(fixtures_dir, "NEEXISTUJE.GL3")
         assert edit_cmd.Activated() is None
         assert not captured_commands

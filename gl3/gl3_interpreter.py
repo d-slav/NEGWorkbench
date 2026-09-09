@@ -291,16 +291,19 @@ class Interpreter:
             pass
         except (BreakSignal, ContinueSignal) as exc:
             kw = "BREAK" if isinstance(exc, BreakSignal) else "CONTINUE"
-            raise GL3RuntimeError(
-                "%s pouzit mimo cyklus (DO/FOR nebo REPEATWHILE)" % (kw,)
-            )
+            self._raise_gl3_error(kw, "pouzit mimo cyklus (DO/FOR nebo REPEATWHILE)")
         finally:
-            self._program_name_stack.pop()
-            self._source_path_stack.pop()
+            # POZOR na poradi: _pop_hidden_chain_frame se vola JESTE PRED
+            # popnutim _program_name_stack/_source_path_stack - muze sam
+            # vyhodit GL3RuntimeError (dangling INI, viz nize) a jeho
+            # hlaseni potrebuje spravny (jeste nepopnuty) kontext prave
+            # koncici SUBRO (viz GL3RuntimeError docstring vyse).
             had_error = sys.exc_info()[0] is not None
             top_level_points = self._pop_hidden_chain_frame(
                 parent_frame=None, suppress_dangling_check=had_error
             )
+            self._program_name_stack.pop()
+            self._source_path_stack.pop()
             self.hidden_chain = (
                 _gerlib_make_chain_with_gaps(top_level_points) if top_level_points else None
             )
@@ -349,9 +352,10 @@ class Interpreter:
         nezadouci prekryla)."""
         frame = self._hidden_chain_stack.pop()
         if frame["ini_builder"] is not None and not suppress_dangling_check:
-            raise GL3RuntimeError(
-                "INI bez odpovidajiciho CLOSE pred koncem SUBRO "
-                "(skryty retezec zustal otevreny)"
+            self._raise_gl3_error(
+                "INI",
+                "bez odpovidajiciho CLOSE pred koncem SUBRO "
+                "(skryty retezec zustal otevreny)",
             )
         points = frame["points"]
         if parent_frame is not None and points:
@@ -416,7 +420,7 @@ class Interpreter:
             args = []
             for i, a in enumerate(node.args):
                 if i in array_ref_positions:
-                    args.append(self._eval_array_ref(a, env))
+                    args.append(self._eval_array_ref(a, env, operation=node.opcode))
                 else:
                     args.append(self.eval_expr(a, env))
             for i, v in enumerate(args):
@@ -434,20 +438,24 @@ class Interpreter:
 
         raise TypeError("Neznamy typ uzlu vyrazu: %r" % (node,))
 
-    def _eval_array_ref(self, node, env):
+    def _eval_array_ref(self, node, env, operation=None):
         """Pro operace jako E01 (a pozdeji S01), ktere v puvodnim Fortranu
         ocekavaji 'adresu prvniho prvku pole + pocet' (zapis 'P(1),N' -
         precti N prvku pole P pocinaje P(1)): vrati podpole (list) zacinajici
-        na danem indexu, ne jen jeden vyhodnoceny prvek."""
+        na danem indexu, ne jen jeden vyhodnoceny prvek.
+
+        'operation' - jmeno prikazu/opcode, ktery toto volal (napr. SCALE,
+        TRA23, opcode) - jen pro hlaseni chyb nize (viz _raise_gl3_error)."""
         if isinstance(node, Var):
             if node.name not in env:
-                raise NameError("Promenna '%s' nebyla pred pouzitim nastavena" % (node.name,))
+                self._raise_gl3_error(operation, "promenna '%s' nebyla pred pouzitim nastavena" % (node.name,))
             value = env[node.name]
             if not isinstance(value, list):
                 if node.index is not None:
-                    raise TypeError(
+                    self._raise_gl3_error(
+                        operation,
                         "'%s' se pouziva jako pole bodu (P(1),N) s indexem, ale "
-                        "neni to pole" % (node.name,)
+                        "neni to pole" % (node.name,),
                     )
                 # Fortranovska konvence: i "obycejnou" (nepolovou) promennou
                 # lze adresovat jako pole o jednom prvku (scalar-as-array-of-1)
@@ -458,20 +466,24 @@ class Interpreter:
                 return value
             idx = int(round(self.eval_expr(node.index, env)))
             return value[idx - 1:]
-        raise TypeError(
-            "Ocekavano jmeno pole (napr. P nebo P(1)), dostal jiny vyraz: %r" % (node,)
+        self._raise_gl3_error(
+            operation,
+            "ocekavano jmeno pole (napr. P nebo P(1)), dostal jiny vyraz: %r" % (node,),
         )
 
-    def _set_indexed(self, array, idx1, value):
+    def _set_indexed(self, array, idx1, value, operation=None):
         """Zapise 'value' na 1-based index 'idx1' do 'array'. Pokud je index
         za soucasnou delkou pole, pole se automaticky dopadne None - hlavicky
         SUBRO typu 'out:PO(2)' jsou v realnych GL3 programech casto jen
         orientacni/zastarale (viz HLO.GL3: PI(2)/PO(2), ale skutecne se
         pouzivaji desitky bodu), takze davat tvrdou chybu na 'prilis male
         pole' by bylo v rozporu s tim, jak se puvodni jazyk skutecne
-        pouzival."""
+        pouzival.
+
+        'operation' - jmeno prikazu, ktery toto volal, jen pro hlaseni chyb
+        nize (viz _raise_gl3_error)."""
         if idx1 < 1:
-            raise IndexError("index musi byt >= 1 (dostal %d)" % (idx1,))
+            self._raise_gl3_error(operation, "index musi byt >= 1 (dostal %d)" % (idx1,))
         if idx1 > len(array):
             array.extend([None] * (idx1 - len(array)))
         array[idx1 - 1] = value
@@ -508,23 +520,24 @@ class Interpreter:
             else:
                 idx = int(round(self.eval_expr(stmt.target_index, env)))
                 if stmt.target not in env:
-                    raise NameError(
-                        "Pole '%s' nebylo deklarovano (DIMEN) pred zapisem"
-                        % stmt.target
+                    self._raise_gl3_error(
+                        stmt.target,
+                        "pole '%s' nebylo deklarovano (DIMEN) pred zapisem" % stmt.target,
                     )
-                self._set_indexed(env[stmt.target], idx, value)
+                self._set_indexed(env[stmt.target], idx, value, operation=stmt.target)
             return
 
         if isinstance(stmt, DimenStmt):
             input_names = self._input_names_by_env.get(id(env), ())
             for name, size in stmt.entries:
                 if name in input_names:
-                    raise ValueError(
-                        "DIMEN,%s(...): '%s' uz je vstupni parametr (in:) "
-                        "teto subrutiny - DIMEN by tise prepsal jeho "
-                        "hodnotu na prazdne pole. Vstupni composite pole "
-                        "(napr. in:P(N)) netreba znovu deklarovat pres "
-                        "DIMEN, je uz k dispozici primo." % (name, name)
+                    self._raise_gl3_error(
+                        "DIMEN",
+                        "%s(...): '%s' uz je vstupni parametr (in:) teto "
+                        "subrutiny - DIMEN by tise prepsal jeho hodnotu na "
+                        "prazdne pole. Vstupni composite pole (napr. in:P(N)) "
+                        "netreba znovu deklarovat pres DIMEN, je uz k "
+                        "dispozici primo." % (name, name),
                     )
                 env[name] = [None] * size
             return
@@ -582,8 +595,8 @@ class Interpreter:
             end = int(round(self.eval_expr(stmt.end, env)))
             step = int(round(self.eval_expr(stmt.step, env))) if stmt.step is not None else 1
             if step == 0:
-                raise GL3RuntimeError(
-                    "DO/FOR: krok (vi3) nesmi byt 0 (promenna %r)" % (stmt.var,)
+                self._raise_gl3_error(
+                    "DO/FOR", "krok (vi3) nesmi byt 0 (promenna %r)" % (stmt.var,)
                 )
             i = start
             while (i <= end) if step > 0 else (i >= end):
@@ -673,33 +686,41 @@ class Interpreter:
         mezera k dodelani."""
         count = int(round(self.eval_expr(stmt.count, env)))
         if count < 0:
-            raise ValueError("DATA,%s,...: pocet objektu (vi) nesmi byt zaporny" % stmt.target_name)
+            self._raise_gl3_error(
+                "DATA", "%s,...: pocet objektu (vi) nesmi byt zaporny" % stmt.target_name
+            )
 
         prefix = stmt.target_name[0].upper()
         per_object = DATA_CONSTANTS_PER_OBJECT.get(prefix)
         if per_object is None:
             raise NotYetImplemented(
-                "DATA,%s: typ s prefixem '%s' neni podporovan - DATA jde "
-                "jen pro 'jednoduche' objekty s pevnym poctem slozek "
-                "(A,D,I,J,K,B,P,V,C,L,Q,U,R,M,G); retezec/krivka (S,E,T,H) "
-                "a plocha (F) maji promennou delku dat a DATA/READ/GET/"
-                "PRINT/WRITE/TYPE pro ne nejsou v originale definovane"
-                % (stmt.target_name, prefix)
+                self._format_report(
+                    "Error",
+                    "DATA",
+                    "%s: typ s prefixem '%s' neni podporovan - DATA jde "
+                    "jen pro 'jednoduche' objekty s pevnym poctem slozek "
+                    "(A,D,I,J,K,B,P,V,C,L,Q,U,R,M,G); retezec/krivka (S,E,T,H) "
+                    "a plocha (F) maji promennou delku dat a DATA/READ/GET/"
+                    "PRINT/WRITE/TYPE pro ne nejsou v originale definovane"
+                    % (stmt.target_name, prefix),
+                )
             )
 
         values = [self.eval_expr(v, env) for v in stmt.values]
         expected = count * per_object
         if len(values) != expected:
-            raise ValueError(
-                "DATA,%s,%d: ocekavano %d konstant (%d objekt(u) x %d na typ "
+            self._raise_gl3_error(
+                "DATA",
+                "%s,%d: ocekavano %d konstant (%d objekt(u) x %d na typ "
                 "'%s'), nalezeno %d"
-                % (stmt.target_name, count, expected, count, per_object, prefix, len(values))
+                % (stmt.target_name, count, expected, count, per_object, prefix, len(values)),
             )
 
         if stmt.target_name not in env or not isinstance(env[stmt.target_name], list):
-            raise NameError(
-                "DATA,%s: pole '%s' nebylo deklarovano (DIMEN) pred pouzitim"
-                % (stmt.target_name, stmt.target_name)
+            self._raise_gl3_error(
+                "DATA",
+                "%s: pole '%s' nebylo deklarovano (DIMEN) pred pouzitim"
+                % (stmt.target_name, stmt.target_name),
             )
         target_array = env[stmt.target_name]
 
@@ -710,7 +731,7 @@ class Interpreter:
         for i in range(count):
             chunk = values[i * per_object:(i + 1) * per_object]
             obj = _build_data_object(prefix, chunk)
-            self._set_indexed(target_array, start_idx + i, obj)
+            self._set_indexed(target_array, start_idx + i, obj, operation="DATA")
 
     def _exec_command(self, stmt, env):
         if stmt.name == "SCALE":
@@ -720,15 +741,15 @@ class Interpreter:
             # pocet transformovanych objektu.
             target_node, source_node, factor_node, count_node = stmt.args
             if not isinstance(target_node, Var):
-                raise SyntaxError(
-                    "SCALE ocekava jako 1. argument jmeno pole/promenne (pripadne indexovane)"
+                self._raise_gl3_error(
+                    "SCALE", "ocekava jako 1. argument jmeno pole/promenne (pripadne indexovane)"
                 )
             if not isinstance(source_node, Var):
-                raise SyntaxError(
-                    "SCALE ocekava jako 2. argument jmeno pole/promenne (pripadne indexovane)"
+                self._raise_gl3_error(
+                    "SCALE", "ocekava jako 2. argument jmeno pole/promenne (pripadne indexovane)"
                 )
 
-            source_ref = self._eval_array_ref(source_node, env)
+            source_ref = self._eval_array_ref(source_node, env, operation="SCALE")
             factor = self.eval_expr(factor_node, env)
             count = int(round(self.eval_expr(count_node, env)))
 
@@ -744,9 +765,9 @@ class Interpreter:
             if isinstance(target_array, list):
                 for k in range(count):
                     if k >= len(source_ref) or source_ref[k] is None:
-                        raise ValueError("SCALE: zdrojovy prvek c. %d neni definovan" % (k + 1))
+                        self._raise_gl3_error("SCALE", "zdrojovy prvek c. %d neni definovan" % (k + 1))
                     result = fn(self, source_ref[k], factor)
-                    self._set_indexed(target_array, target_start + k + 1, result)
+                    self._set_indexed(target_array, target_start + k + 1, result, operation="SCALE")
                 return
 
             # Cil neni (zatim) pole - Fortranovska konvence dovoluje zapsat
@@ -754,12 +775,13 @@ class Interpreter:
             # vysledek, typicky "SCALE,S,SP,1000/DH,1" kde S ma vzniknout
             # jako novy skalar (Spline), ne prvek pole.
             if target_node.index is not None or count != 1:
-                raise TypeError(
-                    "SCALE: cil '%s' neni pole (DIMEN) - takhle lze zapsat "
-                    "jen jeden neindexovany vysledek" % target_node.name
+                self._raise_gl3_error(
+                    "SCALE",
+                    "cil '%s' neni pole (DIMEN) - takhle lze zapsat jen "
+                    "jeden neindexovany vysledek" % target_node.name,
                 )
             if not source_ref or source_ref[0] is None:
-                raise ValueError("SCALE: zdrojovy prvek c. 1 neni definovan")
+                self._raise_gl3_error("SCALE", "zdrojovy prvek c. 1 neni definovan")
             env[target_node.name] = fn(self, source_ref[0], factor)
             return
 
@@ -806,9 +828,11 @@ class Interpreter:
             self.draw_mode = "INCRE"
             return
 
-        raise KeyError("Neznamy prikaz '%s'" % stmt.name)
+        self._raise_gl3_error(
+            stmt.name, "neznamy prikaz - neni v registru COMMANDS vubec zaveden (ani jako stub)"
+        )
 
-    def _assign_result(self, target_name, target_index, value, env):
+    def _assign_result(self, target_name, target_index, value, env, operation=None):
         """Zapise 'value' do 'target_name' (pripadne indexovane pole) v
         'env' - stejna logika jako u _exec_stmt(Assign, ...), sdilena i
         pro cil prikazu CRE...ENDCRE (viz _exec_endcre)."""
@@ -817,25 +841,26 @@ class Interpreter:
             return
         idx = int(round(self.eval_expr(target_index, env)))
         if target_name not in env:
-            raise NameError(
-                "Pole '%s' nebylo deklarovano (DIMEN) pred zapisem" % target_name
+            self._raise_gl3_error(
+                operation, "pole '%s' nebylo deklarovano (DIMEN) pred zapisem" % target_name
             )
-        self._set_indexed(env[target_name], idx, value)
+        self._set_indexed(env[target_name], idx, value, operation=operation)
 
     def _exec_cre(self, stmt, env):
         """CRE,pg - zahajeni vytvareni retezce (viz G10.md 'VYTVARENI
         RETEZCU POMOCI KRESLICICH PRIKAZU'). Nasledujici prikazy MOVE az
         do ENDCRE budujici body retezce 'pg' - viz _exec_move."""
         if self._chain_builder is not None:
-            raise GL3RuntimeError(
-                "CRE,%s: vnorene bloky CRE...ENDCRE nejsou (zatim) "
-                "podporovany (predchozi blok jeste neni uzavren ENDCRE)"
-                % stmt.target_name
+            self._raise_gl3_error(
+                "CRE",
+                "%s: vnorene bloky CRE...ENDCRE nejsou (zatim) podporovany "
+                "(predchozi blok jeste neni uzavren ENDCRE)" % stmt.target_name,
             )
         if self._open_ini_count > 0:
-            raise GL3RuntimeError(
-                "CRE,%s: nelze zahajit uvnitr otevreneho bloku INI...CLOSE "
-                "(kresleni se nesmi prolinat, viz G10.md)" % stmt.target_name
+            self._raise_gl3_error(
+                "CRE",
+                "%s: nelze zahajit uvnitr otevreneho bloku INI...CLOSE "
+                "(kresleni se nesmi prolinat, viz G10.md)" % stmt.target_name,
             )
         self._chain_builder = {
             "target_name": stmt.target_name,
@@ -855,17 +880,20 @@ class Interpreter:
         _exec_move a gerlib.e01.make_chain_with_gaps."""
         builder = self._chain_builder
         if builder is None:
-            raise GL3RuntimeError("ENDCRE bez odpovidajiciho predchoziho CRE")
+            self._raise_gl3_error("ENDCRE", "bez odpovidajiciho predchoziho CRE")
         defined_count = sum(1 for p in builder["points"] if p is not None)
         if defined_count < 2:
-            raise GL3RuntimeError(
+            self._raise_gl3_error(
+                "ENDCRE",
                 "CRE,%s...ENDCRE: retezec ma min nez 2 definovane (viditelne) "
                 "body - je potreba aspon jeden pohyb MOVE 'se spustenym "
                 "perem' (*) za zakladajicim pohybem 'se zdviženym perem' (/)"
-                % builder["target_name"]
+                % builder["target_name"],
             )
         chain = _gerlib_make_chain_with_gaps(builder["points"])
-        self._assign_result(builder["target_name"], builder["target_index"], chain, builder["env"])
+        self._assign_result(
+            builder["target_name"], builder["target_index"], chain, builder["env"], operation="CRE"
+        )
         self._chain_builder = None
 
     def _exec_ini(self, stmt, env):
@@ -876,16 +904,18 @@ class Interpreter:
         zpusobem jako CRE...ENDCRE - viz _exec_move/_active_move_builder."""
         frame = self._hidden_chain_stack[-1]
         if frame["ini_builder"] is not None:
-            raise GL3RuntimeError(
-                "INI: vnorene bloky INI...CLOSE (v ramci jedne SUBRO) "
-                "nejsou podporovany (predchozi blok jeste neni uzavren "
-                "CLOSE) - kazda volana SUBRO ma ale svuj VLASTNI skryty "
-                "retezec, viz CALL"
+            self._raise_gl3_error(
+                "INI",
+                "vnorene bloky INI...CLOSE (v ramci jedne SUBRO) nejsou "
+                "podporovany (predchozi blok jeste neni uzavren CLOSE) - "
+                "kazda volana SUBRO ma ale svuj VLASTNI skryty retezec, "
+                "viz CALL",
             )
         if self._chain_builder is not None:
-            raise GL3RuntimeError(
-                "INI: nelze zahajit uvnitr otevreneho bloku CRE...ENDCRE "
-                "(kresleni se nesmi prolinat, viz G10.md)"
+            self._raise_gl3_error(
+                "INI",
+                "nelze zahajit uvnitr otevreneho bloku CRE...ENDCRE "
+                "(kresleni se nesmi prolinat, viz G10.md)",
             )
         frame["ini_builder"] = {
             "points": [], "current_point": None, "last_direction": None, "founding_pen": None,
@@ -907,14 +937,15 @@ class Interpreter:
         frame = self._hidden_chain_stack[-1]
         builder = frame["ini_builder"]
         if builder is None:
-            raise GL3RuntimeError("CLOSE bez odpovidajiciho predchoziho INI")
+            self._raise_gl3_error("CLOSE", "bez odpovidajiciho predchoziho INI")
         defined_count = sum(1 for p in builder["points"] if p is not None)
         if defined_count < 2:
-            raise GL3RuntimeError(
+            self._raise_gl3_error(
+                "CLOSE",
                 "INI...CLOSE: nakreslena cast ma min nez 2 definovane "
                 "(viditelne) body - je potreba aspon jeden pohyb MOVE "
                 "'se spustenym perem' (*) za zakladajicim pohybem 'se "
-                "zdviženym perem' (/)"
+                "zdviženym perem' (/)",
             )
         if not frame["points"]:
             frame["starts_with_gap"] = (builder["founding_pen"] == "up")
@@ -944,9 +975,10 @@ class Interpreter:
         _exec_close) - stejna frazova logika pro oba pripady."""
         builder = self._active_move_builder()
         if builder is None:
-            raise GL3RuntimeError(
-                "MOVE: podporovano jen uvnitr bloku CRE...ENDCRE (retezec) "
-                "nebo INI...CLOSE (skryty retezec)"
+            self._raise_gl3_error(
+                "MOVE",
+                "podporovano jen uvnitr bloku CRE...ENDCRE (retezec) nebo "
+                "INI...CLOSE (skryty retezec)",
             )
 
         for phrase in stmt.phrases:
@@ -965,9 +997,9 @@ class Interpreter:
                         founding=True,
                     )
                 except MovePhraseNotYetImplemented as exc:
-                    raise NotYetImplemented(str(exc))
+                    raise NotYetImplemented(self._format_report("Error", "MOVE", str(exc)))
                 except MovePhraseError as exc:
-                    raise GL3RuntimeError("MOVE (zakladajici fraze): %s" % exc)
+                    self._raise_gl3_error("MOVE", "zakladajici fraze: %s" % exc)
                 if phrase.pen == "down":
                     # Zakladajici fraze 'se spustenym perem' - retezcove/
                     # obloukove/krivkove fraze (napr. cely retezec *E nebo
@@ -992,9 +1024,9 @@ class Interpreter:
                     phrase.sep, values
                 )
             except MovePhraseNotYetImplemented as exc:
-                raise NotYetImplemented(str(exc))
+                raise NotYetImplemented(self._format_report("Error", "MOVE", str(exc)))
             except MovePhraseError as exc:
-                raise GL3RuntimeError("MOVE: %s" % exc)
+                self._raise_gl3_error("MOVE", str(exc))
 
             if phrase.pen == "down":
                 builder["points"].extend(points)
@@ -1019,17 +1051,15 @@ class Interpreter:
         soustavy c. vi (1..10), viz gerlib.dcoos3.define_coord_system3()
         pro vyznam vg1(pocatek)/vg2(smer x')/vg3(napoveda pro y')."""
         if len(stmt.args) != 4:
-            raise SyntaxError(
-                "DCOOS3 ocekava presne 4 argumenty (vi,vg1,vg2,vg3), dostal %d"
-                % len(stmt.args)
+            self._raise_gl3_error(
+                "DCOOS3", "ocekava presne 4 argumenty (vi,vg1,vg2,vg3), dostal %d" % len(stmt.args)
             )
         vi_node, vg1_node, vg2_node, vg3_node = stmt.args
 
         vi = int(round(self.eval_expr(vi_node, env)))
         if not (1 <= vi <= 10):
-            raise ValueError(
-                "DCOOS3: cislo souradnicove soustavy musi byt v rozsahu "
-                "1..10, je %d" % vi
+            self._raise_gl3_error(
+                "DCOOS3", "cislo souradnicove soustavy musi byt v rozsahu 1..10, je %d" % vi
             )
 
         origin = self.eval_expr(vg1_node, env)
@@ -1048,48 +1078,45 @@ class Interpreter:
         dela AZ ZA BEHU podle skutecne hodnoty pg2 (list, nebo ne),
         protoze GL3 jazyk sam typ staticky nerozlisuje."""
         if len(stmt.args) != 4:
-            raise SyntaxError(
-                "TRA23 ocekava presne 4 argumenty (pg1,pg2,vi1,vi2), dostal %d"
-                % len(stmt.args)
+            self._raise_gl3_error(
+                "TRA23", "ocekava presne 4 argumenty (pg1,pg2,vi1,vi2), dostal %d" % len(stmt.args)
             )
         target_node, source_node, count_node, coord_id_node = stmt.args
 
         if not isinstance(target_node, Var):
-            raise SyntaxError(
-                "TRA23 ocekava jako 1. argument jmeno pole/promenne (pripadne indexovane)"
+            self._raise_gl3_error(
+                "TRA23", "ocekava jako 1. argument jmeno pole/promenne (pripadne indexovane)"
             )
         if not isinstance(source_node, Var):
-            raise SyntaxError(
-                "TRA23 ocekava jako 2. argument jmeno pole/promenne (pripadne indexovane)"
+            self._raise_gl3_error(
+                "TRA23", "ocekava jako 2. argument jmeno pole/promenne (pripadne indexovane)"
             )
 
         coord_id = int(round(self.eval_expr(coord_id_node, env)))
         coord_system = self.coordinate_systems.get(coord_id)
         if coord_system is None:
-            raise ValueError(
-                "TRA23: souradnicova soustava c. %d nebyla definovana "
-                "(DCOOS3)" % coord_id
+            self._raise_gl3_error(
+                "TRA23", "souradnicova soustava c. %d nebyla definovana (DCOOS3)" % coord_id
             )
 
         if source_node.name not in env:
-            raise NameError(
-                "Promenna '%s' nebyla pred pouzitim nastavena" % (source_node.name,)
+            self._raise_gl3_error(
+                "TRA23", "promenna '%s' nebyla pred pouzitim nastavena" % (source_node.name,)
             )
         source_value = env[source_node.name]
 
         if isinstance(source_value, list):
             # Pole (napr. P(1),N -> Q(1)) - stejna smycka jako SCALE.
             count = int(round(self.eval_expr(count_node, env)))
-            source_ref = self._eval_array_ref(source_node, env)
+            source_ref = self._eval_array_ref(source_node, env, operation="TRA23")
 
             if target_node.name not in env:
-                raise NameError(
-                    "Pole '%s' nebylo deklarovano (DIMEN) pred zapisem"
-                    % (target_node.name,)
+                self._raise_gl3_error(
+                    "TRA23", "pole '%s' nebylo deklarovano (DIMEN) pred zapisem" % (target_node.name,)
                 )
             target_array = env[target_node.name]
             if not isinstance(target_array, list):
-                raise TypeError("TRA23: cil '%s' neni pole" % (target_node.name,))
+                self._raise_gl3_error("TRA23", "cil '%s' neni pole" % (target_node.name,))
 
             target_start = (
                 0 if target_node.index is None
@@ -1097,35 +1124,34 @@ class Interpreter:
             )
             for k in range(count):
                 if k >= len(source_ref) or source_ref[k] is None:
-                    raise ValueError("TRA23: zdrojovy prvek c. %d neni definovan" % (k + 1))
+                    self._raise_gl3_error("TRA23", "zdrojovy prvek c. %d neni definovan" % (k + 1))
                 result = transform3(source_ref[k], coord_system)
-                self._set_indexed(target_array, target_start + k + 1, result)
+                self._set_indexed(target_array, target_start + k + 1, result, operation="TRA23")
             return
 
         # Jednotlivy objekt (napr. cela Spline S -> T) - vi1 (count) se
         # netyka, viz specifikace "Plati pouze pro pole".
         if source_value is None:
-            raise ValueError(
-                "TRA23: zdrojova promenna '%s' neni definovana" % (source_node.name,)
+            self._raise_gl3_error(
+                "TRA23", "zdrojova promenna '%s' neni definovana" % (source_node.name,)
             )
         result = transform3(source_value, coord_system)
         if target_node.index is None:
             env[target_node.name] = result
         else:
             if target_node.name not in env:
-                raise NameError(
-                    "Pole '%s' nebylo deklarovano (DIMEN) pred zapisem"
-                    % (target_node.name,)
+                self._raise_gl3_error(
+                    "TRA23", "pole '%s' nebylo deklarovano (DIMEN) pred zapisem" % (target_node.name,)
                 )
             idx = int(round(self.eval_expr(target_node.index, env)))
-            self._set_indexed(env[target_node.name], idx, result)
+            self._set_indexed(env[target_node.name], idx, result, operation="TRA23")
 
     def _exec_call(self, stmt, env):
         if stmt.name not in self.registry:
-            raise KeyError(
-                "CALL na '%s' - tento podprogram jeste neni v registru "
-                "(dodej jeho .GL3 zdroj a pridej do registry pred spustenim)"
-                % stmt.name
+            self._raise_gl3_error(
+                "CALL",
+                "na '%s' - tento podprogram jeste neni v registru (dodej "
+                "jeho .GL3 zdroj a pridej do registry pred spustenim)" % stmt.name,
             )
 
         callee = self.registry[stmt.name]
@@ -1163,19 +1189,23 @@ class Interpreter:
             pass
         except (BreakSignal, ContinueSignal) as exc:
             kw = "BREAK" if isinstance(exc, BreakSignal) else "CONTINUE"
-            raise GL3RuntimeError(
-                "%s pouzit mimo cyklus (DO/FOR nebo REPEATWHILE) v podprogramu %r"
-                % (kw, stmt.name)
+            self._raise_gl3_error(
+                kw, "pouzit mimo cyklus (DO/FOR nebo REPEATWHILE) v podprogramu %r" % (stmt.name,)
             )
         finally:
-            self._program_name_stack.pop()
-            self._source_path_stack.pop()
-            self.current_line_no = saved_line_no
+            # POZOR na poradi (stejne jako v run()): _pop_hidden_chain_frame
+            # se vola JESTE PRED popnutim _program_name_stack/
+            # _source_path_stack/current_line_no - muze sam vyhodit
+            # GL3RuntimeError (dangling INI) a jeho hlaseni potrebuje
+            # spravny (jeste nepopnuty) kontext prave koncici SUBRO.
             # stack je [..., parent_frame, callee_frame] - callee_frame
             # (prave dobehnuvsi) je na vrcholu, parent_frame je pod nim.
             parent_frame = self._hidden_chain_stack[-2]
             had_error = sys.exc_info()[0] is not None
             self._pop_hidden_chain_frame(parent_frame=parent_frame, suppress_dangling_check=had_error)
+            self._program_name_stack.pop()
+            self._source_path_stack.pop()
+            self.current_line_no = saved_line_no
 
         for i, (formal_name, _dim, _dir, _hint) in enumerate(callee_params):
             if i >= len(stmt.args):
@@ -1211,9 +1241,8 @@ class Interpreter:
     def _exec_idev(self, stmt, env):
         filename = self.eval_expr(stmt.filename, env)
         if not isinstance(filename, str):
-            raise TypeError(
-                "IDEV ocekava jmeno souboru jako retezec (napr. 'A'), "
-                "dostal: %r" % (filename,)
+            self._raise_gl3_error(
+                "IDEV", "ocekava jmeno souboru jako retezec (napr. 'A'), dostal: %r" % (filename,)
             )
         filename = self._resolve_path(filename)
         channel = (
@@ -1221,7 +1250,7 @@ class Interpreter:
             if stmt.channel is not None else 0
         )
         if channel not in (0, 1, 2):
-            raise ValueError("IDEV: kanal musi byt 0, 1 nebo 2 (dostal %r)" % (channel,))
+            self._raise_gl3_error("IDEV", "kanal musi byt 0, 1 nebo 2 (dostal %r)" % (channel,))
 
         old = self.io_channels.get(channel)
         if old is not None:
@@ -1236,24 +1265,34 @@ class Interpreter:
         try:
             f = open(path, "r", encoding="utf-8")
         except OSError as e:
-            raise OSError("IDEV: nepodarilo se otevrit soubor '%s' (kanal %d): %s" % (path, channel, e))
+            self._raise_gl3_error(
+                "IDEV", "nepodarilo se otevrit soubor '%s' (kanal %d): %s" % (path, channel, e)
+            )
         self.io_channels[channel] = {"file": f, "path": path}
 
-    def _next_raw_line(self, channel):
+    def _next_raw_line(self, channel, operation=None):
         """Vrati dalsi neprazdny radek z kanalu (jako text, komentar '< ...'
         orezan - stejna konvence jako ve zdrojovem kodu, viz E374.TXT),
-        nebo None pri konci souboru (misto vyjimky - umoznuje test IFN)."""
+        nebo None pri konci souboru (misto vyjimky - umoznuje test IFN).
+
+        'operation' - jmeno prikazu (GET/READ/...), jen pro hlaseni chyb
+        nize (viz _raise_gl3_error/_format_report)."""
         if channel == "T":
             raise NotYetImplemented(
-                "Cteni z terminalu (GETT/READT) neni v davkovem interpretru "
-                "podporovano - pouzij IDEV a kanal 0/1/2."
+                self._format_report(
+                    "Error",
+                    operation,
+                    "cteni z terminalu (GETT/READT) neni v davkovem "
+                    "interpretru podporovano - pouzij IDEV a kanal 0/1/2.",
+                )
             )
         state = self.io_channels.get(channel)
         if state is None:
-            raise ValueError(
-                "Kanal %d neni otevren - chybi IDEV pred ctenim z tohoto "
+            self._raise_gl3_error(
+                operation,
+                "kanal %d neni otevren - chybi IDEV pred ctenim z tohoto "
                 "kanalu (cteni z terminalu neni v davkovem interpretru "
-                "podporovano)" % (channel,)
+                "podporovano)" % (channel,),
             )
         f = state["file"]
         while True:
@@ -1265,15 +1304,15 @@ class Interpreter:
                 continue
             return line
 
-    def _next_record(self, channel):
+    def _next_record(self, channel, operation=None):
         """Vrati dalsi zaznam jako list textovych tokenu (cisla oddelena
         carkou/mezerou/tabulatorem), nebo None na konci souboru."""
-        line = self._next_raw_line(channel)
+        line = self._next_raw_line(channel, operation=operation)
         if line is None:
             return None
         return re.split(r"[,\s]+", line)
 
-    def _component_count(self, name):
+    def _component_count(self, name, operation=None):
         """Kolik cisel v zaznamu zabira jeden cil daneho jmena. Zatim jen
         skalary (1 cislo) a 2D body prefixu P (2 cisla: X, Y) - ostatni
         slozene typy pri cteni jeste nejsou podporovany."""
@@ -1282,18 +1321,28 @@ class Interpreter:
             return 1
         if kind == "string":
             raise NotYetImplemented(
-                "Cteni textove promenne '%s' prikazem GET neni podporovano "
-                "- pouzij READ (cte cely radek jako text)." % (name,)
+                self._format_report(
+                    "Error",
+                    operation,
+                    "cteni textove promenne '%s' prikazem GET neni "
+                    "podporovano - pouzij READ (cte cely radek jako text)."
+                    % (name,),
+                )
             )
         prefix = name[0].upper()
         if prefix == "P":
             return 2
         raise NotYetImplemented(
-            "Cteni typu '%s' (promenna %s) zatim v GET/READ neni podporovano "
-            "- zatim jen skalary (D/K/I) a 2D body (P)." % (prefix, name)
+            self._format_report(
+                "Error",
+                operation,
+                "cteni typu '%s' (promenna %s) zatim v GET/READ neni "
+                "podporovano - zatim jen skalary (D/K/I) a 2D body (P)."
+                % (prefix, name),
+            )
         )
 
-    def _make_value(self, name, tokens):
+    def _make_value(self, name, tokens, operation=None):
         kind, fc_type = classify(name)
         if kind == "scalar":
             raw = float(tokens[0])
@@ -1303,18 +1352,20 @@ class Interpreter:
         prefix = name[0].upper()
         if prefix == "P":
             return Point(float(tokens[0]), float(tokens[1]))
-        raise NotYetImplemented("Cteni typu '%s' neni podporovano" % (prefix,))
+        raise NotYetImplemented(
+            self._format_report("Error", operation, "cteni typu '%s' neni podporovano" % (prefix,))
+        )
 
-    def _assign_target(self, target, value, env):
+    def _assign_target(self, target, value, env, operation=None):
         if target.index is None:
             env[target.name] = value
             return
         idx = int(round(self.eval_expr(target.index, env)))
         if target.name not in env:
-            raise NameError(
-                "Pole '%s' nebylo deklarovano (DIMEN) pred zapisem" % (target.name,)
+            self._raise_gl3_error(
+                operation, "pole '%s' nebylo deklarovano (DIMEN) pred zapisem" % (target.name,)
             )
-        self._set_indexed(env[target.name], idx, value)
+        self._set_indexed(env[target.name], idx, value, operation=operation)
 
     def _exec_input(self, stmt, env):
         channel = _CHANNEL_BY_COMMAND[stmt.command]
@@ -1323,23 +1374,23 @@ class Interpreter:
         if is_get:
             # GET: presne jeden zaznam, rozdeleny mezi vsechny cile podle
             # souctu poctu jejich slozek. Na konci souboru -> vsem cilum None.
-            needed = sum(self._component_count(t.name) for t in stmt.targets)
-            tokens = self._next_record(channel)
+            needed = sum(self._component_count(t.name, operation=stmt.command) for t in stmt.targets)
+            tokens = self._next_record(channel, operation=stmt.command)
             if tokens is None:
                 for t in stmt.targets:
-                    self._assign_target(t, None, env)
+                    self._assign_target(t, None, env, operation=stmt.command)
                 return
             if len(tokens) < needed:
-                raise ValueError(
-                    "%s: zaznam obsahuje %d cislo/cisla, ale je potreba %d"
-                    % (stmt.command, len(tokens), needed)
+                self._raise_gl3_error(
+                    stmt.command,
+                    "zaznam obsahuje %d cislo/cisla, ale je potreba %d" % (len(tokens), needed),
                 )
             pos = 0
             for t in stmt.targets:
-                n = self._component_count(t.name)
-                value = self._make_value(t.name, tokens[pos:pos + n])
+                n = self._component_count(t.name, operation=stmt.command)
+                value = self._make_value(t.name, tokens[pos:pos + n], operation=stmt.command)
                 pos += n
-                self._assign_target(t, value, env)
+                self._assign_target(t, value, env, operation=stmt.command)
         else:
             # READ: kazdy cil ze sveho vlastniho (noveho) zaznamu; pripadna
             # nadbytecna cisla v zaznamu se ignoruji. Textove promenne (B)
@@ -1347,21 +1398,22 @@ class Interpreter:
             for t in stmt.targets:
                 kind, _ = classify(t.name)
                 if kind == "string":
-                    line = self._next_raw_line(channel)
-                    self._assign_target(t, line, env)
+                    line = self._next_raw_line(channel, operation=stmt.command)
+                    self._assign_target(t, line, env, operation=stmt.command)
                     continue
-                n = self._component_count(t.name)
-                tokens = self._next_record(channel)
+                n = self._component_count(t.name, operation=stmt.command)
+                tokens = self._next_record(channel, operation=stmt.command)
                 if tokens is None:
-                    self._assign_target(t, None, env)
+                    self._assign_target(t, None, env, operation=stmt.command)
                     continue
                 if len(tokens) < n:
-                    raise ValueError(
-                        "%s,%s: zaznam obsahuje %d cislo/cisla, ale je "
-                        "potreba %d" % (stmt.command, t.name, len(tokens), n)
+                    self._raise_gl3_error(
+                        stmt.command,
+                        "%s: zaznam obsahuje %d cislo/cisla, ale je potreba %d"
+                        % (t.name, len(tokens), n),
                     )
-                value = self._make_value(t.name, tokens[:n])
-                self._assign_target(t, value, env)
+                value = self._make_value(t.name, tokens[:n], operation=stmt.command)
+                self._assign_target(t, value, env, operation=stmt.command)
 
     # ------------------------------------------------------------------
     # PRINT/WRITE (vystup na konzoli - ODEV/ODEVB jeste neni implementovano,

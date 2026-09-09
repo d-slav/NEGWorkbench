@@ -103,7 +103,7 @@ def main():
         assert False, "DATA,E1 ('slozeny' typ, nepodporovano) mela vyhodit chybu"
     except NotYetImplemented as e:
         msg = str(e)
-        assert "DATA,E1" in msg and "E" in msg, msg
+        assert "[Error]" in msg and "DATA" in msg and "E1" in msg and "'E'" in msg, msg
         frames = _frame_count(e)
         assert frames <= 2, (
             "traceback ma %d ramcu - ocekavano nejvyse 2 (volaci misto + "

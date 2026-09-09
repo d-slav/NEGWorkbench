@@ -180,6 +180,107 @@ END
 """)
     check(env_write.get("D1") == 1.0, "WRITE na nedefinovanem prvku pole se tise preskoci (beze zmeny)")
 
+    # --- SCALE: format [Error] program/radek/SCALE ---
+    src_scale = """
+SUBRO/TScale/out:K
+DIMEN,P(2)
+SCALE,Q,P,2.0,1
+K=1
+RETSUB
+END
+"""
+    try:
+        run(src_scale)
+        check(False, "SCALE na nedefinovanem zdrojovem prvku mel vyhodit GL3RuntimeError")
+    except GL3RuntimeError as e:
+        msg = str(e)
+        check(msg.startswith("[Error] TScale/") and "/SCALE:" in msg, "SCALE: spravny format (%s)" % msg)
+        check("zdrojovy prvek c. 1 neni definovan" in msg, "SCALE: text hlasky (%s)" % msg)
+
+    # --- DCOOS3: format [Error] program/radek/DCOOS3 ---
+    src_dcoos3 = """
+SUBRO/TDcoos3/out:K
+DCOOS3,11,Q0,UX,UY
+K=1
+RETSUB
+END
+"""
+    try:
+        run(src_dcoos3)
+        check(False, "DCOOS3 s cislem mimo rozsah mel vyhodit GL3RuntimeError")
+    except GL3RuntimeError as e:
+        msg = str(e)
+        check(msg.startswith("[Error] TDcoos3/") and "/DCOOS3:" in msg, "DCOOS3: spravny format (%s)" % msg)
+        check("1..10" in msg, "DCOOS3: text hlasky (%s)" % msg)
+
+    # --- TRA23: format [Error] program/radek/TRA23 ---
+    src_tra23 = """
+SUBRO/TTra23/out:K
+TRA23,Q(1),P(1),1,7
+K=1
+RETSUB
+END
+"""
+    try:
+        run(src_tra23)
+        check(False, "TRA23 na nedefinovanou soustavu mel vyhodit GL3RuntimeError")
+    except GL3RuntimeError as e:
+        msg = str(e)
+        check(msg.startswith("[Error] TTra23/") and "/TRA23:" in msg, "TRA23: spravny format (%s)" % msg)
+        check("nebyla definovana" in msg, "TRA23: text hlasky (%s)" % msg)
+
+    # --- CALL: neregistrovany podprogram ---
+    src_call = """
+SUBRO/TCall/out:K
+CALL/NEEXISTUJICI_SUBRO/K
+RETSUB
+END
+"""
+    try:
+        run(src_call)
+        check(False, "CALL na neregistrovany podprogram mel vyhodit GL3RuntimeError")
+    except GL3RuntimeError as e:
+        msg = str(e)
+        check(msg.startswith("[Error] TCall/") and "/CALL:" in msg, "CALL: spravny format (%s)" % msg)
+        check("neni v registru" in msg, "CALL: text hlasky (%s)" % msg)
+
+    # --- IDEV: soubor/kanal problem (otevreni neexistujiciho souboru) ---
+    src_idev = """
+SUBRO/TIdev/out:K
+IDEV,'NEEXISTUJICI_SOUBOR_XYZ.TXT',0
+K=1
+RETSUB
+END
+"""
+    try:
+        run(src_idev)
+        check(False, "IDEV na neexistujici soubor mel vyhodit GL3RuntimeError")
+    except GL3RuntimeError as e:
+        msg = str(e)
+        check(msg.startswith("[Error] TIdev/") and "/IDEV:" in msg, "IDEV: spravny format (%s)" % msg)
+
+    # --- GET: zaznam kratsi nez je treba ---
+    tmp_get_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "gl3test_get_short.txt")
+    with open(tmp_get_path, "w", encoding="utf-8") as f:
+        f.write("1.0\n")
+    src_get = """
+SUBRO/TGet/out:D1
+IDEV,'%s',0
+GET,D1,D2
+RETSUB
+END
+""" % tmp_get_path.replace("\\", "/")
+    try:
+        try:
+            run(src_get)
+            check(False, "GET se zaznamem s malo cisly mel vyhodit GL3RuntimeError")
+        except GL3RuntimeError as e:
+            msg = str(e)
+            check(msg.startswith("[Error] TGet/") and "/GET:" in msg, "GET: spravny format (%s)" % msg)
+            check("potreba 2" in msg, "GET: text hlasky (%s)" % msg)
+    finally:
+        os.remove(tmp_get_path)
+
     print("Vse OK.")
 
 

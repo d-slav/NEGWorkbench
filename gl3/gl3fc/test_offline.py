@@ -103,10 +103,10 @@ def main():
     try:
         prog.Proxy.execute(prog)
         raised = False
-    except OSError:
+    except Exception:
         raised = True
     print("Po 1. recompute (bez vyplnenych vstupu): ocekavana chyba =", raised)
-    assert raised, "ocekavana OSError z IDEV na prazdnem BJM"
+    assert raised, "ocekavana chyba z IDEV na prazdnem BJM"
 
     print("  BJM =", repr(prog.BJM), " DH =", prog.DH)
     print("  ma PO?", hasattr(prog, "PO"), " ma S?", hasattr(prog, "S"))

@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from gl3_lang import parse_program
-from gl3_interpreter import Interpreter
+from gl3_interpreter import Interpreter, GL3RuntimeError
 from gl3_ops import NotYetImplemented
 
 
@@ -123,9 +123,9 @@ END
 """
     try:
         run(bad1)
-        check(False, "DATA: spatny pocet konstant mel vyhodit ValueError")
-    except ValueError:
-        check(True, "DATA: spatny pocet konstant -> ValueError")
+        check(False, "DATA: spatny pocet konstant mel vyhodit GL3RuntimeError")
+    except GL3RuntimeError:
+        check(True, "DATA: spatny pocet konstant -> GL3RuntimeError")
 
     # --- 3D typy (Q/U/R/M/G) ted funguji - viz G06.md. Vysledny objekt
     #     se vraci CELY (mimo GL3 typovou konvenci, jen pro test) a jeho
@@ -221,9 +221,9 @@ END
 """
     try:
         run(bad2)
-        check(False, "DATA: chybejici DIMEN mel vyhodit NameError")
-    except NameError:
-        check(True, "DATA: chybejici DIMEN -> NameError")
+        check(False, "DATA: chybejici DIMEN mel vyhodit GL3RuntimeError")
+    except GL3RuntimeError:
+        check(True, "DATA: chybejici DIMEN -> GL3RuntimeError")
 
     # --- chybovy stav: "slozeny" objekt (retezec E - promenna delka)
     #     neni DATA vubec podporovan (viz G06.md - spravne portovane

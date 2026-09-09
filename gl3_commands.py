@@ -425,7 +425,7 @@ class EditGL3ProgramCommand(object):
     """Spusti obj.EditCommand (zadani uzivatele) vybraneho GL3Program -
     shellovy prikaz s vyresenymi zastupnymi texty (viz
     gl3fc.gl3_program.resolve_edit_command/gl3_placeholders.py),
-    vychozi 'edit ${gl3_file_path}\\${gl3_file_name}' - otevre SourceFile
+    vychozi 'Notepad ${gl3_file_path}\\${gl3_file_name}' - otevre SourceFile
     v externim editoru bez nutnosti hledat cestu k souboru rucne.
 
     Prikaz se spousti NEBLOKUJICE (subprocess.Popen) - FreeCAD nesmi

@@ -7,7 +7,7 @@ ne jen cistou geometrii (viz test_dcoos3_tra23.py pro tu).
 import math
 
 from gl3_lang import parse_program
-from gl3_interpreter import Interpreter
+from gl3_interpreter import Interpreter, GL3RuntimeError
 from gerlib import Point, Vector
 from gerlib.types import Spline, Curve
 
@@ -92,8 +92,8 @@ END
     interp4 = Interpreter()
     try:
         interp4.run(subdef4, {"P": [Point(0.0, 0.0, 0.0)]})
-        raise AssertionError("melo vyhodit ValueError - souradnicova soustava 7 neexistuje")
-    except ValueError as e:
+        raise AssertionError("melo vyhodit GL3RuntimeError - souradnicova soustava 7 neexistuje")
+    except GL3RuntimeError as e:
         assert "nebyla definovana" in str(e)
         print("TRA23 na nedefinovanou soustavu: OK - jasna chyba (%s)" % e)
 
@@ -108,8 +108,8 @@ END
     interp5 = Interpreter()
     try:
         interp5.run(subdef5, {})
-        raise AssertionError("melo vyhodit ValueError - cislo soustavy mimo rozsah 1..10")
-    except ValueError as e:
+        raise AssertionError("melo vyhodit GL3RuntimeError - cislo soustavy mimo rozsah 1..10")
+    except GL3RuntimeError as e:
         assert "1..10" in str(e)
         print("DCOOS3 s cislem mimo rozsah: OK - jasna chyba (%s)" % e)
 

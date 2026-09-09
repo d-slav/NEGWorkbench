@@ -13,7 +13,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from gl3_lang import parse_program
-from gl3_interpreter import Interpreter
+from gl3_interpreter import Interpreter, GL3RuntimeError
 from gerlib import Point
 
 
@@ -46,9 +46,9 @@ END
 """
     try:
         Interpreter().run(parse_program(src_bad), inputs={"P": pts})
-        check(False, "DIMEN na in: vstup mel vyhodit ValueError")
-    except ValueError as e:
-        check("uz je vstupni parametr" in str(e), "DIMEN na in: vstup -> jasna ValueError (%s)" % e)
+        check(False, "DIMEN na in: vstup mel vyhodit GL3RuntimeError")
+    except GL3RuntimeError as e:
+        check("uz je vstupni parametr" in str(e), "DIMEN na in: vstup -> jasna GL3RuntimeError (%s)" % e)
 
     # 3) scoping pres vnorene CALL - vnitrni subrutina ma VLASTNI lokalni P
     # s legitimnim DIMEN,P(3), nezavisle na vnejsim in:P
