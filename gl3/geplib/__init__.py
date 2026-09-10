@@ -25,6 +25,8 @@ from .tra23 import (
     transform3, transform_point3, transform_vector3, transform_spline3, transform_curve3,
 )
 from .q00 import make_point3
+from .q02 import make_point_by_component
+from .q15 import make_point_by_parameter
 from .u00 import make_vector3
 from .plane import Plane, make_plane_r01
 from .t01 import make_spatial_spline
@@ -39,6 +41,7 @@ __all__ = [
     "transform3", "transform_point3", "transform_vector3", "transform_spline3",
     "transform_curve3",
     "make_point3", "make_vector3",
+    "make_point_by_component", "make_point_by_parameter",
     "Plane", "make_plane_r01",
     "make_spatial_spline",
     "make_closed_spatial_spline",

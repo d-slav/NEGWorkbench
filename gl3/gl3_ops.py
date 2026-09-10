@@ -76,6 +76,8 @@ from gerlib import (
 )
 from geplib import (
     make_point3 as _geplib_make_point3,
+    make_point_by_component as _geplib_make_point_by_component,
+    make_point_by_parameter as _geplib_make_point_by_parameter,
     make_vector3 as _geplib_make_vector3,
     make_plane_r01 as _geplib_make_plane_r01,
     make_spatial_spline as _geplib_make_spatial_spline,
@@ -639,6 +641,18 @@ def _op_q00(d1, d2, d3):
     return _geplib_make_point3(d1, d2, d3)
 
 
+def _op_q02(q, d, k):
+    """Q02: QM=Q02>Q,D,K - bod zmenou K-te souradnice bodu Q na hodnotu
+    D, viz geplib.q02."""
+    return _geplib_make_point_by_component(q, d, k)
+
+
+def _op_q15(q1, q2, d):
+    """Q15: QM=Q15>Q1,Q2,D - bod parametrem D na primce Q1-Q2, viz
+    geplib.q15."""
+    return _geplib_make_point_by_parameter(q1, q2, d)
+
+
 def _op_u00(d1, d2, d3):
     """U00: UM=U00>D1,D2,D3 - vektor tremi slozkami, viz geplib.u00."""
     return _geplib_make_vector3(d1, d2, d3)
@@ -741,6 +755,8 @@ OPERATIONS = {
 
     # --- prostorove (3D) - viz geplib ---
     "Q00": _op_q00,
+    "Q02": _op_q02,
+    "Q15": _op_q15,
     "U00": _op_u00,
     "R01": _op_r01,
     "T01": _op_t01,
