@@ -398,6 +398,8 @@ python3 gl3_test.py                    # interpreter regression tests
 python3 -m gerlib.test_serialize       # serialization round-trip
 python3 -m gerlib.test_s01             # S01 (chordal) vs S03 (uniform) on real profile data
 python3 -m gerlib.test_s10             # S10 - closed/periodic curve, cyclic tridiagonal solve (symmetry check)
+python3 -m geplib.test_t01             # T01 - spatial open curve, chord-length (thin wrapper over S01)
+python3 -m geplib.test_t03             # T03 - spatial open curve, uniform param., length-sensitive (thin wrapper over S03)
 python3 -m geplib.test_t10             # T10 - spatial closed curve (thin wrapper over S10)
 python3 test_dcoos3_tra23.py           # DCOOS3/TRA23/Q00/U00 pure geometry (geplib)
 python3 test_dcoos3_tra23_interpreter.py # DCOOS3/TRA23 on real GL3 source (parse_program + Interpreter.run())

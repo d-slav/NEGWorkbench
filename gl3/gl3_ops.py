@@ -81,6 +81,7 @@ from geplib import (
     make_vector3 as _geplib_make_vector3,
     make_plane_r01 as _geplib_make_plane_r01,
     make_spatial_spline as _geplib_make_spatial_spline,
+    make_spatial_spline03 as _geplib_make_spatial_spline03,
     make_closed_spatial_spline as _geplib_make_closed_spatial_spline,
     curve_plane_intersection as _geplib_curve_plane_intersection,
     rotate_vector_about_line as _geplib_rotate_vector_about_line,
@@ -590,6 +591,16 @@ def _op_t01(points_ref, k, *rest):
     return _geplib_make_spatial_spline(points_ref, k, u1, uk)
 
 
+def _op_t03(points_ref, k, *rest):
+    """T03: TM=T03>Q(I),K[,[U1],[UK][,N]] - prostorova obdoba S03, viz
+    geplib.make_spatial_spline03 (tenky wrapper nad
+    gerlib.s03.make_spline)."""
+    u1 = rest[0] if len(rest) >= 1 else None
+    uk = rest[1] if len(rest) >= 2 else None
+    n = rest[2] if len(rest) >= 3 else None
+    return _geplib_make_spatial_spline03(points_ref, k, u1, uk, n)
+
+
 def _op_s10(points_ref, k):
     """S10: SM=S10>P(I),K - uzavrena krivka K body (vc. opakovaneho
     uzaviraciho bodu), sečnova parametrizace, viz gerlib.s10.make_spline
@@ -674,6 +685,7 @@ ARRAY_REF_OPS = {
     "S03": {0},
     "S10": {0},
     "T01": {0},
+    "T03": {0},
     "T10": {0},
 }
 
@@ -760,6 +772,7 @@ OPERATIONS = {
     "U00": _op_u00,
     "R01": _op_r01,
     "T01": _op_t01,
+    "T03": _op_t03,
     "T10": _op_t10,
     "Q38": _op_q38,
     "U19": _op_u19,

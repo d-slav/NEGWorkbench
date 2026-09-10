@@ -20,33 +20,45 @@ Uziti (GL3): SM=S03>P(I),K[,[V1],[VK][,N]]
 Skutecny vypocet tecnych vektoru je v dsn.py (DSN.FOR) - SPLIN.FOR sam je
 jen infrastrukturni wrapper (cteni/zapis zaznamu RTAB - stejna
 infrastruktura jako E01/L46), pro nas uz neni potreba.
-"""
+
+'opcode' parametr (vychozi "S03") - umoznuje geplib.t03 (prostorova
+varianta, viz tamni docstring) pouzit tuhle stejnou funkci a presto
+oznacit vyslednou Spline spravne jako opcode="T03" (zadani uzivatele:
+"[T03] je stejny jako S03" - zadny fortranovy zdroj navic netreba,
+uplne stejna matematika, jen jina provenience/oznaceni krivky)."""
 
 from .types import Point, Vector, Spline
 from .dsn import tangent_vectors
 
+MAX_POINTS = 128
 
-def make_spline(points_ref, k, v1=None, vk=None, n=None):
+
+def make_spline(points_ref, k, v1=None, vk=None, n=None, opcode="S03"):
     k_int = int(round(k))
     if k_int < 2:
-        raise ValueError("S03: K (pocet bodu krivky) musi byt >= 2 (dostal %r)" % (k,))
+        raise ValueError("%s: K (pocet bodu krivky) musi byt >= 2 (dostal %r)" % (opcode, k))
+    if k_int > MAX_POINTS:
+        raise ValueError(
+            "%s: K (pocet bodu krivky) nesmi prekrocit %d (dostal %d)"
+            % (opcode, MAX_POINTS, k_int)
+        )
     step = int(round(n)) if n is not None else 1
     if step < 1:
-        raise ValueError("S03: N (krok mezi uzly v poli) musi byt >= 1 (dostal %r)" % (n,))
+        raise ValueError("%s: N (krok mezi uzly v poli) musi byt >= 1 (dostal %r)" % (opcode, n))
 
     needed_span = (k_int - 1) * step + 1
     if len(points_ref) < needed_span:
         raise ValueError(
-            "S03: pole bodu obsahuje jen %d prvku, ale je potreba %d (K=%d, N=%d)"
-            % (len(points_ref), needed_span, k_int, step)
+            "%s: pole bodu obsahuje jen %d prvku, ale je potreba %d (K=%d, N=%d)"
+            % (opcode, len(points_ref), needed_span, k_int, step)
         )
 
     nodes = [points_ref[i * step] for i in range(k_int)]
     for i, p in enumerate(nodes):
         if p is None:
-            raise ValueError("S03: uzlovy bod c. %d neni definovan" % (i + 1,))
+            raise ValueError("%s: uzlovy bod c. %d neni definovan" % (opcode, i + 1))
         if not isinstance(p, Point):
-            raise TypeError("S03: prvek c. %d neni bod (Point), ale %r" % (i + 1, p))
+            raise TypeError("%s: prvek c. %d neni bod (Point), ale %r" % (opcode, i + 1, p))
 
     if k_int == 2:
         # SPLIN.FOR: DSN vyzaduje aspon 3 body. Pro presne K=2 je to
@@ -61,4 +73,4 @@ def make_spline(points_ref, k, v1=None, vk=None, n=None):
     else:
         tangents = tangent_vectors(nodes, v1, vk)
 
-    return Spline(nodes, tangents, closed=False)
+    return Spline(nodes, tangents, closed=False, opcode=opcode, parametrization="uniform")

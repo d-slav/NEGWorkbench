@@ -30,6 +30,7 @@ from .q15 import make_point_by_parameter
 from .u00 import make_vector3
 from .plane import Plane, make_plane_r01
 from .t01 import make_spatial_spline
+from .t03 import make_spatial_spline as make_spatial_spline03
 from .t10 import make_spatial_spline as make_closed_spatial_spline
 from .q38 import curve_plane_intersection
 from .u19 import rotate_vector_about_line
@@ -44,6 +45,7 @@ __all__ = [
     "make_point_by_component", "make_point_by_parameter",
     "Plane", "make_plane_r01",
     "make_spatial_spline",
+    "make_spatial_spline03",
     "make_closed_spatial_spline",
     "curve_plane_intersection",
     "rotate_vector_about_line",
