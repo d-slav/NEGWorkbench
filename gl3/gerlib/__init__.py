@@ -96,6 +96,7 @@ from .p86 import tangent_point_from_line
 from .l46 import tangent_line
 from .s03 import make_spline
 from .s01 import make_spline as make_spline1
+from .s10 import make_spline as make_closed_spline1
 
 from .p51 import line_chain_intersection, line_chain_intersections
 from .p58 import point_at_distance_along_chain
@@ -138,7 +139,7 @@ __all__ = [
     "solve_nonlinear", "sgpat_nearest_distance", "offset_curve",
     "make_chain", "make_chain_with_gaps", "tangent_point_on_chain",
     "tangent_point", "tangent_point_from_line", "tangent_line",
-    "make_spline", "make_spline1",
+    "make_spline", "make_spline1", "make_closed_spline1",
     "scale",
     "point_from_coords", "circle_from_coords", "circle_from_point",
     "tangent_through_point",

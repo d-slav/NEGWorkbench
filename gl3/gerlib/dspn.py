@@ -32,7 +32,7 @@ resic jako u DSN, jen jina prava strana/vahy.
 
 from .types import Vector
 from .vnorm import is_zero_vector
-from .gtrin import solve_tridiagonal
+from .gtrin import solve_tridiagonal, solve_cyclic_tridiagonal
 
 
 def _chord(a, b):
@@ -119,4 +119,66 @@ def tangent_vectors(nodes, v1=None, vk=None):
         ]
 
     solved = solve_tridiagonal(w, us)
+    return [Vector(row[0], row[1], row[2]) for row in solved]
+
+
+def tangent_vectors_closed(ring):
+    """Tecne vektory (chordalni parametrizace) v uzlovych bodech
+    UZAVRENEHO (periodickeho) kubickeho splajnu - viz gerlib.s10 (S10/
+    T10). Na rozdil od tangent_vectors() vyse (otevrena krivka, dva
+    volne/zadane okrajove uzly) tu VSECHNY uzly maji sousedy na OBOU
+    stranach (indexovano cyklicky modulo pocet bodu) - zadny volny
+    okraj neexistuje, a soustava je proto CYKLICKA (viz
+    gerlib.gtrin.solve_cyclic_tridiagonal), ne obycejna trojdiagonalni.
+
+    ring - seznam bodu (Point) tvoricich prstenec, DELKA M>=3 - BEZ
+           opakovaneho uzaviraciho bodu na konci (ten si privesi az
+           volajici, viz gerlib.s10.make_spline - P(I) a P(I+K-1) jsou
+           tam ZADANY duplikat téhož bodu, sem uz patri jen M=K-1
+           unikatnich bodu prstence).
+
+    Vraci M tecnych vektoru (Vector), jeden na kazdy bod 'ring', ve
+    stejnem poradi."""
+    m = len(ring)
+    if m < 3:
+        raise ValueError("DSPN (uzavrena krivka): pocet unikatnich bodu prstence musi byt >= 3 (dostal %d)" % (m,))
+
+    h = []
+    for i in range(m):
+        d = _chord(ring[i], ring[(i + 1) % m])
+        if d <= 1e-3:
+            raise ValueError(
+                "DSPN (uzavrena krivka): body c. %d a %d jsou totozne"
+                % (i + 1, (i + 1) % m + 1)
+            )
+        h.append(d)
+
+    w = [[0.0, 0.0, 0.0] for _ in range(m)]
+    us = [[0.0, 0.0, 0.0] for _ in range(m)]
+
+    for i in range(m):
+        h_back, h_fwd = h[(i - 1) % m], h[i]
+        w1 = h_fwd / (h_fwd + h_back)
+        w3 = 1.0 - w1
+        prev_pt, next_pt = ring[(i - 1) % m], ring[(i + 1) % m]
+        # w[i][0]/w[i][2] se pro i==0/i==m-1 nikdy nectou (rohove prvky
+        # jdou zvlast jako alpha/beta nize) - viz solve_cyclic_tridiagonal
+        # docstring - proto 0.0 jen jako neskodna vyplna.
+        w[i][0] = w1 if i > 0 else 0.0
+        w[i][1] = 2.0
+        w[i][2] = w3 if i < m - 1 else 0.0
+        us[i] = [
+            3.0 * w1 * (ring[i].x - prev_pt.x) / h_back + 3.0 * w3 * (next_pt.x - ring[i].x) / h_fwd,
+            3.0 * w1 * (ring[i].y - prev_pt.y) / h_back + 3.0 * w3 * (next_pt.y - ring[i].y) / h_fwd,
+            3.0 * w1 * (ring[i].z - prev_pt.z) / h_back + 3.0 * w3 * (next_pt.z - ring[i].z) / h_fwd,
+        ]
+
+    # alpha = A[0][m-1] (koeficient U[m-1] v rovnici radku 0) = w1(0)
+    # beta  = A[m-1][0] (koeficient U[0] v rovnici radku m-1) = w3(m-1)
+    h_back0, h_fwd0 = h[m - 1], h[0]
+    alpha = h_fwd0 / (h_fwd0 + h_back0)
+    h_back_last, h_fwd_last = h[m - 2], h[m - 1]
+    beta = h_back_last / (h_fwd_last + h_back_last)
+
+    solved = solve_cyclic_tridiagonal(w, us, alpha, beta)
     return [Vector(row[0], row[1], row[2]) for row in solved]

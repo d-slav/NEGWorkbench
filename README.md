@@ -121,6 +121,20 @@ docs/
   length), `Spline` also supports per-segment tangent pairs
   (`segment_tangents`) in addition to the simpler shared per-node
   `tangents` (which remains sufficient for `S03`).
+- **Closed/periodic curves** (`S10`/`T10`, `gerlib/s10.py`): same chord-
+  length weighting as `S01`/`T01` (same underlying Fortran routine per
+  the original), but every node has neighbors on *both* sides (no free/
+  open boundary), so the tangent equations form a *cyclic* tridiagonal
+  system instead of `S01`'s ordinary one. Solved via Sherman-Morrison
+  (`gerlib/gtrin.py`'s `solve_cyclic_tridiagonal`, reusing the existing
+  `solve_tridiagonal` twice) rather than a naive "pad with one wrapped
+  point on each side and reuse the open solver" shortcut — that shortcut
+  was tried first and demonstrably wrong (gives *unequal* tangent
+  magnitudes at the 4 corners of a perfectly symmetric square, which is
+  mathematically impossible for a correct solution; see `test_s10.py`'s
+  symmetry check and the comment at the top of `s10.py`). `P(1)` and
+  `P(K)` (first and last of the `K` supplied points) must coincide —
+  that repeated point is how the closure is expressed, per `G10.md`.
 - **Path placeholders** (`gl3_placeholders.py`): any string used as a
   file/directory path — `GL3Program.SourceFile`, `GL3Library.SearchPaths`
   entries, and the filename argument of `IDEV` inside a `.GL3` program's
@@ -383,6 +397,8 @@ cd gl3
 python3 gl3_test.py                    # interpreter regression tests
 python3 -m gerlib.test_serialize       # serialization round-trip
 python3 -m gerlib.test_s01             # S01 (chordal) vs S03 (uniform) on real profile data
+python3 -m gerlib.test_s10             # S10 - closed/periodic curve, cyclic tridiagonal solve (symmetry check)
+python3 -m geplib.test_t10             # T10 - spatial closed curve (thin wrapper over S10)
 python3 test_dcoos3_tra23.py           # DCOOS3/TRA23/Q00/U00 pure geometry (geplib)
 python3 test_dcoos3_tra23_interpreter.py # DCOOS3/TRA23 on real GL3 source (parse_program + Interpreter.run())
 python3 test_then_else_endif.py        # G12.md IFxx/.../THEN...ELSE...ENDIF (incl. nesting, backward-compat THEN-only)
