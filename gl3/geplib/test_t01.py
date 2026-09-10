@@ -53,14 +53,32 @@ def main():
     check(vec_isclose(t0, 1.0, 2.0, 3.0) and vec_isclose(t1, 1.0, 2.0, 3.0),
           "K=2 bez tecen: primy usek, tecna = sekanta (3D)")
 
-    # --- K=2 s explicitnimi tecnami ---
+    # --- K=2 s explicitnimi tecnami: SMER se respektuje, DELKA ne (viz
+    #     G10.md - "Tvar krivky neni ovlivnen delkou vektoru V1 a VK",
+    #     plati stejne pro K=2 jako pro K>2) - vysledna tecna je tedy
+    #     zadany smer ZNORMOVANY a preskalovany SKUTECNOU delkou tetivy
+    #     segmentu (tady 1.0, viz body 3D nize), ne surovy zadany
+    #     vektor. Drive tu byl bug (surovy vektor zachovan beze zmeny,
+    #     spatne zkopirovano z S03 - u S03 na delce ale ZALEZI, u
+    #     S01/T01 ne) - nahlaseno uzivatelem, opraveno v gerlib/s01.py.
     sp_line2 = make_spatial_spline(
         [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0)], 2,
         Vector(0.0, 1.0, 0.5), Vector(0.0, -1.0, 0.5),
     )
     t0b, t1b = sp_line2.segment_tangent_pair(0)
-    check(vec_isclose(t0b, 0.0, 1.0, 0.5), "K=2 s tecnami: pocatecni tecna zachovana (smer, ne sekanta)")
-    check(vec_isclose(t1b, 0.0, -1.0, 0.5), "K=2 s tecnami: koncova tecna zachovana")
+    check(vec_isclose(t0b, 0.0, 0.8944271910, 0.4472135955, eps=1e-9),
+          "K=2 s tecnami: pocatecni tecna = SMER V1 znormovany*delka segmentu (ne surovy V1)")
+    check(vec_isclose(t1b, 0.0, -0.8944271910, 0.4472135955, eps=1e-9),
+          "K=2 s tecnami: koncova tecna stejne (jen smer VK, ne jeho delka)")
+
+    # ruzna DELKA (stejny smer) musi dat STEJNY vysledek
+    sp_line2_scaled = make_spatial_spline(
+        [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0)], 2,
+        Vector(0.0, 50.0, 25.0), Vector(0.0, -50.0, 25.0),
+    )
+    t0c, t1c = sp_line2_scaled.segment_tangent_pair(0)
+    check(vec_isclose(t0c, t0b.x, t0b.y, t0b.z) and vec_isclose(t1c, t1b.x, t1b.y, t1b.z),
+          "K=2: 100x delsi V1/VK (stejny smer) -> STEJNY vysledek jako kratsi")
 
     # --- K>2 bez okrajovych tecen: relaxovana okrajova podminka (nesmi spadnout) ---
     sp_relaxed = make_spatial_spline(

@@ -6,7 +6,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from gerlib.types import Point
+from gerlib.types import Point, Vector
 from gerlib import make_spline, make_spline1
 from gerlib.serialize import serialize, deserialize
 
@@ -151,6 +151,32 @@ def main():
     n_seg = len(points) - 1
     assert len(poles) == 3 * n_seg + 1
     print("Export S01 -> jedna BSplineCurve hrana (%d polu, %d segmentu): OK" % (len(poles), n_seg))
+
+    # --- K=2: delka V1/VK NESMI ovlivnit tvar (viz G10.md - "Tvar
+    #     krivky neni ovlivnen delkou vektoru V1 a VK", plati i pro
+    #     K=2, ne jen K>2 - drive tu byl bug, kdy K=2 vetev delku
+    #     respektovala (spatne zkopirovano z S03, kde delka naopak
+    #     zamerne NA tvar VLIV MA) - nahlaseno uzivatelem ---
+    p0, p1 = Point(0.0, 0.0, 0.0), Point(10.0, 0.0, 0.0)
+    same_dir_short = Vector(0.0, 1.0, 0.0)
+    same_dir_long = Vector(0.0, 100.0, 0.0)
+    s_short = make_spline1([p0, p1], 2, v1=same_dir_short, vk=same_dir_short)
+    s_long = make_spline1([p0, p1], 2, v1=same_dir_long, vk=same_dir_long)
+    t_short = (round(s_short.tangents[0].x, 9), round(s_short.tangents[0].y, 9), round(s_short.tangents[0].z, 9))
+    t_long = (round(s_long.tangents[0].x, 9), round(s_long.tangents[0].y, 9), round(s_long.tangents[0].z, 9))
+    assert t_short == t_long == (0.0, 10.0, 0.0), (t_short, t_long)
+    print("K=2: ruzna DELKA V1/VK (stejny smer) -> STEJNY vysledek (10x delka segmentu, ne delka V1/VK): OK")
+
+    # opacny smer musi dat opacnou tecnu (smer se tedy respektuje, jen
+    # delka ne)
+    s_opposite = make_spline1([p0, p1], 2, v1=Vector(0.0, -1.0, 0.0), vk=Vector(0.0, -1.0, 0.0))
+    assert (round(s_opposite.tangents[0].x, 9), round(s_opposite.tangents[0].y, 9)) == (0.0, -10.0)
+    print("K=2: opacny SMER V1 -> opacna tecna (smer se na rozdil od delky respektuje): OK")
+
+    # bez V1/VK zadaneho vubec (K=2) -> primy segment (sekanta)
+    s_plain = make_spline1([p0, p1], 2)
+    assert (round(s_plain.tangents[0].x, 9), round(s_plain.tangents[0].y, 9), round(s_plain.tangents[0].z, 9)) == (10.0, 0.0, 0.0)
+    print("K=2 bez V1/VK -> primy segment (tecna = sekanta): OK")
 
     print()
     print("VSE OK - S01 (GLSPL, chordalni) funguje samostatne vedle S03 (uniformni),")

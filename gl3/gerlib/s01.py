@@ -69,15 +69,38 @@ def make_spline(points_ref, k, v1=None, vk=None, opcode="S01"):
             raise TypeError("%s: prvek c. %d neni bod (Point), ale %r" % (opcode, i + 1, p))
 
     if k_int == 2:
-        # GLSPL.FOR: pro presne 2 body je to primy segment - smer je
-        # sekanta (znormovana, ale pak zase vynasobena stejnou delkou
-        # tetivy = beze zmeny), tedy proste rovnou surova sekanta.
-        secant = Vector(nodes[1].x - nodes[0].x, nodes[1].y - nodes[0].y, nodes[1].z - nodes[0].z)
+        # GLSPL.FOR: pro presne 2 body je jediny segment krivky. I tady
+        # (stejne jako pro K>2 nize) plati "Tvar krivky neni ovlivnen
+        # delkou vektoru V1 a VK" (viz G10.md, S01) - proto se V1/VK
+        # (je-li zadan a nenulovy) nejdriv ZNORMUJE na jednotkovy smer
+        # (stejne jako DSPN dela pro "clamped" okrajovy uzel u K>2, viz
+        # dspn._normalize), a teprve pak preskaluje SKUTECNOU delkou
+        # (jedineho) segmentu - presne stejny princip jako scale-by-
+        # chord-length pouzity nize pro K>2, jen specialni pripad, kdy
+        # OBA konce sdileji tentyz jediny segment (a tedy i tutez delku
+        # tetivy). Bez teto normalizace by (na rozdil od K>2 pripadu)
+        # delka V1/VK tvar krivky ovlivnila - to byl bug, nahlaseno
+        # uzivatelem.
+        chord_vec = Vector(nodes[1].x - nodes[0].x, nodes[1].y - nodes[0].y, nodes[1].z - nodes[0].z)
+        chord_len = _chord(nodes[0], nodes[1])
 
-        def _pick(v):
-            return v if (v is not None and (v.x, v.y, v.z) != (0.0, 0.0, 0.0)) else secant
+        def _direction(v):
+            # nezadany/nulovy vektor = pouzij samotnou (dosud
+            # neznormovanou) sekantu jako smer - _unit() ji nize stejne
+            # znormuje, takze vysledek je "cista" jednotkova sekanta.
+            if v is None or (v.x, v.y, v.z) == (0.0, 0.0, 0.0):
+                return chord_vec
+            return v
 
-        t0, t1 = _pick(v1), _pick(vk)
+        def _unit(v):
+            length = (v.x * v.x + v.y * v.y + v.z * v.z) ** 0.5
+            if length <= 1e-10:
+                length = 1.0
+            return Vector(v.x / length, v.y / length, v.z / length)
+
+        d0, d1 = _unit(_direction(v1)), _unit(_direction(vk))
+        t0 = Vector(d0.x * chord_len, d0.y * chord_len, d0.z * chord_len)
+        t1 = Vector(d1.x * chord_len, d1.y * chord_len, d1.z * chord_len)
         return Spline(
             nodes, [t0, t1], closed=False,
             opcode=opcode, parametrization="chordal",
