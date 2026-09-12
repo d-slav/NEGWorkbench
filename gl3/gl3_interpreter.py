@@ -1241,7 +1241,7 @@ class Interpreter:
             self._source_path_stack.pop()
             self.current_line_no = saved_line_no
 
-        for i, (formal_name, _dim, _dir, _hint) in enumerate(callee_params):
+        for i, (formal_name, dim, _dir, _hint) in enumerate(callee_params):
             if i >= len(stmt.args):
                 continue
             if directions.get(formal_name) != "out":
@@ -1257,6 +1257,19 @@ class Interpreter:
             if not isinstance(target_node, Var):
                 continue
             value = local_env.get(formal_name)
+            if dim == 1 and isinstance(value, list) and len(value) == 1:
+                # out:T(1) - pole o JEDNOM prvku deklarovane v hlavicce
+                # callee (napr. kvuli Fortranove konvenci, i kdyz jde
+                # fakticky o jedinou hodnotu) se tu odbali na tu jedinou
+                # hodnotu - stejna "scalar-as-array-of-1" konvence jako
+                # uz existuje v _eval_array_ref() (viz tam) pro cteni v
+                # opacnem smeru. Bez tohohle by 'T(3)=...' i holy
+                # identifikator 'TT=...' dostaly OBALENOU jednoprvkovou
+                # LIST hodnotu misto same hodnoty - navenek vypadalo,
+                # ze se nic nestalo (nasledny kod cekajici napr. Point
+                # dostane misto toho [Point], jeho typ neodpovida a tise
+                # se s nim nepocita) - nahlaseno uzivatelem.
+                value = value[0]
             if target_node.index is None:
                 env[target_node.name] = value
                 continue

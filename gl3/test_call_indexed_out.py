@@ -33,11 +33,35 @@ RETSUB
 END
 """
 
+# Stejne jako MAKECUT, ale out: parametr je deklarovan S DIM=1 (napr.
+# "out:T(1)") - Fortranova konvence, kdy i jedina hodnota jde v poli -
+# tenhle tvar hlavicky drive zpusoboval, ze se hodnota pri zapisu zpet
+# (bare identifikator I indexovany cil) OBALILA do jednoprvkoveho listu
+# misto same hodnoty (nahlaseno uzivatelem, viz test_dim1_*).
+MAKECUT_DIM1 = """
+SUBRO/MakeCutD1/in:P(2),in:II,in:DposX,in:DoffY,out:T(1)
+T(1)=Q00>DposX,DoffY,0
+RETSUB
+END
+"""
 
-def run(main_src):
+# Skutecny multi-element out: pole (dim=2) - pro kontrolu, ze se
+# unwrap-na-1-prvek NEUPLATNI a cely pole zustane bez zmeny (bare
+# identifikator na CALL cili ma dostat cele pole, jako drive).
+MAKETWO = """
+SUBRO/MakeTwo/out:PO(2)
+PO(1)=Q00>1,1,1
+PO(2)=Q00>2,2,2
+RETSUB
+END
+"""
+
+
+def run(main_src, registry=None):
     main_def = parse_program(main_src)
-    sub_def = parse_program(MAKECUT)
-    return Interpreter(registry={"MakeCut": sub_def}).run(main_def, {})
+    if registry is None:
+        registry = {"MakeCut": parse_program(MAKECUT)}
+    return Interpreter(registry=registry).run(main_def, {})
 
 
 def main():
@@ -115,6 +139,59 @@ END
 """
     env4 = run(src4)
     check(env4["TT"].x == 50.0 and env4["TT"].y == 60.0, "CALL s holym identifikatorem (TT) funguje beze zmeny")
+
+    # --- 5) out: parametr deklarovany S DIM=1 (napr. "out:T(1)") -
+    #     zapis do indexovaneho cile NESMI hodnotu obalit do
+    #     jednoprvkoveho listu (drivejsi bug, nahlaseno uzivatelem) ---
+    dim1_registry = {"MakeCutD1": parse_program(MAKECUT_DIM1)}
+    src5 = """
+SUBRO/MAIN5/out:D1
+DIMEN,P(2)
+DIMEN,I(2)
+DIMEN,T(5)
+P(1)=Q00>0,0,0
+P(2)=Q00>1,1,1
+I(1)=1
+CALL/MakeCutD1/P,I,230,100,T(3)
+D1=1.0
+RETSUB
+END
+"""
+    env5 = run(src5, dim1_registry)
+    t5 = env5["T"][2]
+    check(t5.x == 230.0 and t5.y == 100.0, "out:T(1) + indexovany cil T(3): hodnota NENI obalena v listu")
+
+    # --- 6) totez, ale s holym identifikatorem (out:T(1) je preexistujici
+    #     bug, netykal se jen indexovaneho cile - overit i tuhle cestu) ---
+    src6 = """
+SUBRO/MAIN6/out:D1
+DIMEN,P(2)
+DIMEN,I(2)
+P(1)=Q00>0,0,0
+P(2)=Q00>1,1,1
+I(1)=1
+CALL/MakeCutD1/P,I,230,100,TT
+D1=1.0
+RETSUB
+END
+"""
+    env6 = run(src6, dim1_registry)
+    check(env6["TT"].x == 230.0 and env6["TT"].y == 100.0, "out:T(1) + holy identifikator TT: hodnota NENI obalena v listu")
+
+    # --- 7) skutecny multi-element out: pole (dim=2) - unwrap se NESMI
+    #     uplatnit, bare identifikator ma dostat CELE pole ---
+    two_registry = {"MakeTwo": parse_program(MAKETWO)}
+    src7 = """
+SUBRO/MAIN7/out:D1
+CALL/MakeTwo/PP
+D1=1.0
+RETSUB
+END
+"""
+    env7 = run(src7, two_registry)
+    pp = env7["PP"]
+    check(isinstance(pp, list) and len(pp) == 2, "out: pole s dim=2 zustava cele pole (zadny unwrap)")
+    check(pp[0].x == 1.0 and pp[1].x == 2.0, "out: pole s dim=2 ma spravne prvky")
 
     print("\nVSE OK - CALL s indexovanym cilem pro out: parametr.")
 
