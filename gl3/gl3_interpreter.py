@@ -1244,11 +1244,31 @@ class Interpreter:
         for i, (formal_name, _dim, _dir, _hint) in enumerate(callee_params):
             if i >= len(stmt.args):
                 continue
+            if directions.get(formal_name) != "out":
+                continue
             actual_text = stmt.args[i]
-            if directions.get(formal_name) == "out":
-                if _is_identifier(actual_text):
-                    env[actual_text] = local_env.get(formal_name)
-                # jinak (literal na miste vystupu) - neni kam zapsat, ignoruj
+            # 'T' (holy identifikator) i 'T(3)' (indexovany cil) - obojí
+            # se parsuje stejnym vyrazovym parserem jako kdekoliv jinde v
+            # jazyce (Assign, DIMEN, ...), aby index mohl byt i vyraz/
+            # promenna (T(I)), ne jen literal. Cokoliv jineho (literal,
+            # slozitejsi vyraz) neni platny cil pro zapis - ignoruj, jako
+            # drive.
+            target_node = parse_expr_text(actual_text)
+            if not isinstance(target_node, Var):
+                continue
+            value = local_env.get(formal_name)
+            if target_node.index is None:
+                env[target_node.name] = value
+                continue
+            idx = int(round(self.eval_expr(target_node.index, env)))
+            if target_node.name not in env:
+                self._raise_gl3_error(
+                    "CALL",
+                    "vystup '%s' ma byt zapsan do '%s(%d)', ale pole '%s' "
+                    "nebylo deklarovano (DIMEN) pred volanim"
+                    % (formal_name, target_node.name, idx, target_node.name),
+                )
+            self._set_indexed(env[target_node.name], idx, value, operation="CALL")
 
     # ------------------------------------------------------------------
     # Zastupne texty v cestach (${workbench_path}/${fc_file_path}/
