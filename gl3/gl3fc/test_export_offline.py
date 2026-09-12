@@ -164,16 +164,41 @@ def main():
     assert len(edges) == n - 2, "2 segmenty sousedici s mezerou se maji preskocit"
     print("Spline s nedefinovanou mezerou -> fallback Wire, %d segmentu: OK" % len(edges))
 
-    # --- uzavrena Spline (synteticky test wrap-segmentu) ---
+    # --- uzavrena Spline (S10/T10 konvence - opakovany uzaviraci bod +
+    #     kompletni segment_tangents, viz gerlib.s10) -> JEDNA hrana,
+    #     stejne jako otevrena Spline (zadani uzivatele: uzavrena
+    #     krivka se nema "rozsekavat" na segmenty) ---
+    closed_pts = [Point(0, 0), Point(1, 1), Point(2, 0), Point(0, 0)]  # posledni = prvni
+    closed_tangents = [Vector(1, 1), Vector(1, -1), Vector(-1, -1), Vector(1, 1)]
+    closed_seg_tangents = [
+        (closed_tangents[0], closed_tangents[1]),
+        (closed_tangents[1], closed_tangents[2]),
+        (closed_tangents[2], closed_tangents[3]),
+    ]
     closed_spline = Spline(
-        [Point(0, 0), Point(1, 1), Point(2, 0)],
-        [Vector(1, 1), Vector(1, -1), Vector(-1, -1)],
-        closed=True,
+        closed_pts, closed_tangents, closed=True,
+        segment_tangents=closed_seg_tangents,
     )
     slot = serialize(closed_spline)
+    kind, poles, mults, knots = build_shape(slot)
+    assert kind == "BSplineEdge", "plne definovana uzavrena Spline musi jit jako JEDNA BSplineCurve, stejne jako otevrena"
+    assert len(poles) == 3 * 3 + 1, "spatny pocet polu (3 segmenty vc. uzaviraciho)"
+    print("Uzavrena Spline (S10/T10 konvence) -> JEDNA BSplineCurve hrana "
+          "(%d polu, %d segmentu vc. uzaviraciho, chova se stejne jako "
+          "otevrena): OK" % (len(poles), 3))
+
+    # --- uzavrena Spline s nedefinovanou mezerou -> porad fallback na
+    #     Wire po segmentech (vc. syntetickeho wrap segmentu, viz kod) ---
+    gap_closed_pts = list(closed_pts)
+    gap_closed_pts[1] = None
+    gap_closed_spline = Spline(
+        gap_closed_pts, closed_tangents, closed=True,
+        segment_tangents=closed_seg_tangents,
+    )
+    slot = serialize(gap_closed_spline)
     kind, edges = build_shape(slot)
-    assert len(edges) == 3, "uzavrena Spline o 3 bodech musi mit 3 segmenty (vc. wrap)"
-    print("Uzavrena Spline (synteticky test) -> %d segmentu (vc. wrap uzaviraciho): OK" % len(edges))
+    assert kind == "Wire", "s nedefinovanou mezerou (i u uzavrene) se musi pouzit fallback Wire"
+    print("Uzavrena Spline s nedefinovanou mezerou -> fallback Wire, %d segmentu: OK" % len(edges))
 
     # --- Curve (E01) s nedefinovanou mezerou ---
     from gerlib.e01 import make_chain

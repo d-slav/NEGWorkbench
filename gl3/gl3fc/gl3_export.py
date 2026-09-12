@@ -280,12 +280,23 @@ def _build_spline(slot):
 
     all_defined = all(p is not None for p in points) and all(pr is not None for pr in segment_pairs)
 
-    if all_defined and not closed and len(points) >= 2:
+    if all_defined and len(points) >= 2:
+        # Jedna souvisla BSplineCurve hrana - funguje STEJNE pro otevrenou
+        # i uzavrenou Spline (viz zadani uzivatele): S10/T10 (jediny
+        # skutecny producent closed=True Spline, viz gerlib.s10) uz
+        # sam pole 'points' konci OPAKOVANYM uzaviracim bodem (P(1)==
+        # P(K), viz G10.md) a 'segment_tangents' uz obsahuje VSECHNY
+        # K-1 segmentu vc. uzaviraciho - presne ty same udaje, ktere by
+        # jinak sly do N-1 samostatnych Bezier hran, tady jen slozene
+        # do JEDNE hrany/krivky (misto rozsekane na segmenty). Zadny
+        # dalsi "wrap" segment tedy netreba pridavat.
         return _single_bspline_edge(points, segment_pairs)
 
-    # Fallback: nedefinovane mezery, nebo uzavrena Spline (periodicky BSpline
-    # zatim neni implementovan) - puvodni pristup po segmentech, kazdy
-    # segment vlastni hrana, spojene do Wire.
+    # Fallback: nektera data chybi (nedefinovany uzel/tecna nekde
+    # uvnitr) - puvodni pristup po segmentech, kazdy segment vlastni
+    # hrana, spojene do Wire (preskoci jen segmenty sousedici s
+    # mezerou). Pro plne definovanou Spline (otevrenou i uzavrenou) se
+    # sem uz vubec nedojde, viz vyse.
     edges = []
     for i in range(n_segments):
         if points[i] is None or points[i + 1] is None or segment_pairs[i] is None:
@@ -294,9 +305,15 @@ def _build_spline(slot):
         edges.append(_hermite_to_bezier_edge(points[i], points[i + 1], t0, t1))
 
     if closed and len(points) > 1 and points[-1] is not None and points[0] is not None:
-        # wrap segment (posledni bod -> prvni) - jen pro spolecnou tecnu na
-        # uzel (S03 styl); segment_tangents (S01) periodicky pripad zatim
-        # neresi (DSPP/GTRIP nejsou implementovany - viz projektove poznamky).
+        # Wrap segment (posledni bod -> prvni), pro pripad, ze by
+        # nekdy vznikla uzavrena Spline BEZ opakovaneho uzaviraciho
+        # bodu na konci pole 'points' (S10/T10 - jediny skutecny
+        # producent closed=True - tuhle konvenci nepouziva, viz vyse,
+        # takze normalne se tahle vetev neuplatni; ponechano jako
+        # bezpecnostni sit pro necekana/rucne sestavena data). Pouziva
+        # jen spolecnou tecnu na uzel (S03 styl, 'tangents') - pro
+        # segment_tangents (S01/S10 styl) periodicky pripad zde reseny
+        # neni.
         tangents = [_vector3(item) for item in _array_items(slot.get("tangents"))]
         if tangents and tangents[-1] is not None and tangents[0] is not None:
             edges.append(_hermite_to_bezier_edge(points[-1], points[0], tangents[-1], tangents[0]))
