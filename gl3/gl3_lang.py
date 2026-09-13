@@ -89,6 +89,49 @@ class _OmittedSentinelType:
 OMITTED = _OmittedSentinelType()
 
 
+# Pocet konstant na jeden objekt pro prikaz DATA - PRESNE podle G06.md
+# "ZOBRAZENI JEDNODUCHYCH GEOMETRICKYCH OBJEKTU" (autoritativni zdroj -
+# A{d}, D{d}, P{x,y}, V{ux,uy}, C{xs,ys,r}, L{x,y,ux,uy}, Q{x,y,z},
+# U{ux,uy,uz}, R{ux,uy,uz,d}, M{x,y,z,ux,uy,uz}, G{xs,ys,zs,ux,uy,uz,r}).
+# I/J/K jsou u nas vsechny celociselny skalar (1 cislo), stejne jako
+# A/D (viz TYPE_PREFIX_INFO v gl3_ops.py).
+#
+# DULEZITE - R (rovina) je {ux,uy,uz,d} (4 cisla: normala + VZDALENOST
+# od pocatku), NE "bod+normala" (6 cisel) - ackoliv gerlib.types.Plane
+# interne uklada origin+normal (bod na rovine, ne vzdalenost), viz
+# _build_data_object a format_components v gl3_ops.py, kde se mezi
+# temito dvema reprezentacemi prevadi.
+#
+# S/E/T/H (retezec/krivka) a F (plocha) SEM ZAMERNE NEPATRI - G06.md je
+# vyslovne oznacuje jako "slozene" objekty (promenna delka dat "ve
+# vnejsi pameti pocitace"), na rozdil od "jednoduchych" objektu vyse
+# (konstantni pocet racionalnich cisel) - a DATA je vyslovne popsana
+# jen pro jednoduche objekty (stejne jako READ/GET/PRINT/TRACE/WRITE/
+# TYPE). Neni to tedy "zatim nepodporovano", je to spravne portovane
+# omezeni original jazyka.
+#
+# Definovano TADY (ne v gl3_ops.py, kde se pouziva pro skutecne
+# vytvareni objektu v _build_data_object) - gl3_ops.py uz importuje z
+# gl3_lang.py (OMITTED), takze obracene (gl3_lang.py importujici z
+# gl3_ops.py) by byl cyklicky import. Parser (_parse_one nize) tuhle
+# tabulku potrebuje uz PRI PARSOVANI (ne az za behu) - viz DATA
+# vyrazove hodnoty, kde presny pocet ocekavanych hodnot (count *
+# pocet-na-objekt) rika parseru, kolik radku jeste patri k DATA bloku,
+# misto puvodni heuristiky "vypada tenhle radek jako holé konstanty".
+DATA_CONSTANTS_PER_OBJECT = {
+    "A": 1, "D": 1,
+    "I": 1, "J": 1, "K": 1,
+    "B": 1,
+    "P": 2, "V": 2,
+    "C": 3,
+    "L": 4,
+    "Q": 3, "U": 3,
+    "R": 4,
+    "M": 6,
+    "G": 7,
+}
+
+
 @dataclass
 class Compare:
     rel: str  # GT, LT, EQ, NE, GE, LE
@@ -335,8 +378,12 @@ def _is_data_constants_line(line):
     """True, kdyz 'line' vypada jako cisty seznam konstant (cisla a/nebo
     retezcove literaly oddelene carkami) pro pokracovani prikazu DATA -
     pouziva se k rozpoznani, kolik nasledujicich radku jeste patri k
-    DATA bloku (zadny jiny GL3 prikaz takhle nezacina - vzdy identifikator
-    nebo klicove slovo, nikdy cislo/apostrof)."""
+    DATA bloku, POKUD presny pocet ocekavanych hodnot neni znamy uz pri
+    parsovani (viz DATA vetev v _parse_one - kdyz JE znamy, tj. count
+    je literal a cil ma pevny pocet slozek na objekt, hodnoty smi byt i
+    vyrazy a tahle funkce se vubec nepouzije). Jinak (fallback): zadny
+    jiny GL3 prikaz takhle nezacina - vzdy identifikator nebo klicove
+    slovo, nikdy cislo/apostrof."""
     if not line:
         return False
     parts = split_top_level(line, ",")
@@ -825,14 +872,58 @@ def _parse_one(line, cursor):
         target_index = parse_expr_text(m.group(2)) if m.group(2) else None
         count_expr = parse_expr_text(count_text)
 
-        value_texts = []
-        while True:
-            nxt = cursor.peek()
-            if nxt is None or not _is_data_constants_line(nxt):
-                break
-            value_texts.extend(split_top_level(cursor.advance(), ","))
+        # Presny pocet ocekavanych HODNOT (count * pocet-konstant-na-
+        # objekt) znamy uz PRI PARSOVANI, pokud je count doslovny
+        # literal (cislo primo v kodu, ne promenna/vyraz - to zadani
+        # uzivatele vyslovne nechce resit ted) A cil ma znamy pevny
+        # pocet slozek na objekt (DATA_CONSTANTS_PER_OBJECT). V tom
+        # pripade se hodnoty sbiraji jako SKUTECNE VYRAZY (ne uz jen
+        # holé konstanty - zadani uzivatele) pres libovolny pocet
+        # radku - misto stareho "vypada radek jako konstanty" testu se
+        # kazdy KANDIDATNI radek proste rovnou ZKUSI cely rozparsovat
+        # jako seznam vyrazu (viz nize); pokud se to nepovede (napr.
+        # je to uz dalsi, nesouvisejici prikaz jako 'K=1'), radek se
+        # nekonzumuje a cyklus konci - i kdyby to znamenalo min hodnot,
+        # nez presne 'needed' - NEVYHAZUJEME tu vlastni SyntaxError za
+        # 'spatny pocet', to porad rika (jako drive) az runtime kontrola
+        # v _exec_data (GL3RuntimeError) - zachovava se tak puvodni typ
+        # i format teto konkretni chyby.
+        count_literal_match = re.match(r"^\d+$", count_text.strip())
+        per_object = DATA_CONSTANTS_PER_OBJECT.get(target_name[0].upper())
+        needed = (
+            int(count_literal_match.group(0)) * per_object
+            if count_literal_match is not None and per_object is not None
+            else None
+        )
 
-        values = [parse_expr_text(v) for v in value_texts]
+        values = []
+        if needed is not None:
+            while len(values) < needed:
+                nxt = cursor.peek()
+                if nxt is None:
+                    break
+                try:
+                    candidate_nodes = [parse_expr_text(p) for p in split_top_level(nxt, ",")]
+                except SyntaxError:
+                    break  # nevypada (uz) jako pokracovani dat - dalsi prikaz
+                cursor.advance()
+                values.extend(candidate_nodes)
+        else:
+            # count je promenna/vyraz (ne literal), nebo cil ma
+            # neznamy/promenlivy pocet slozek - presny pocet hodnot
+            # dopredu neznamy. Zustava puvodni heuristika (jen HOLÉ
+            # KONSTANTY na pokracovacich radcich, viz
+            # _is_data_constants_line) - podpora vyrazu jako hodnot
+            # DATA prikazu s promennym count je zamerne mimo rozsah
+            # teto zmeny (zadani uzivatele).
+            value_texts = []
+            while True:
+                nxt = cursor.peek()
+                if nxt is None or not _is_data_constants_line(nxt):
+                    break
+                value_texts.extend(split_top_level(cursor.advance(), ","))
+            values = [parse_expr_text(v) for v in value_texts]
+
         return DataStmt(target_name, target_index, count_expr, values)
 
     if line == "BREAK":

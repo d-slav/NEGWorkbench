@@ -402,6 +402,7 @@ python3 -m geplib.test_t01             # T01 - spatial open curve, chord-length 
 python3 -m geplib.test_t03             # T03 - spatial open curve, uniform param., length-sensitive (thin wrapper over S03)
 python3 -m geplib.test_t10             # T10 - spatial closed curve (thin wrapper over S10)
 python3 test_dcoos3_tra23.py           # DCOOS3/TRA23/Q00/U00 pure geometry (geplib)
+python3 test_data_expr_values.py       # DATA values as expressions (not just literal constants), comma-only continuation
 python3 test_dcoos3_tra23_interpreter.py # DCOOS3/TRA23 on real GL3 source (parse_program + Interpreter.run())
 python3 test_then_else_endif.py        # G12.md IFxx/.../THEN...ELSE...ENDIF (incl. nesting, backward-compat THEN-only)
 python3 -m gl3fc.test_offline          # GL3Library/GL3Program, mocked FreeCAD

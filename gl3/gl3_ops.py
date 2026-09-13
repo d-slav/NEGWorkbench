@@ -20,7 +20,7 @@ kde arg1/arg2 uz jsou vyhodnocene Python hodnoty (float, nebo gerlib.Point/
 Vector/Circle/Line/Plane/Curve).
 """
 
-from gl3_lang import OMITTED
+from gl3_lang import OMITTED, DATA_CONSTANTS_PER_OBJECT
 
 from gerlib import (
     Point, Vector, Line, Circle, Plane, Curve, Spline, NoSolution,
@@ -137,42 +137,11 @@ TYPE_PREFIX_INFO = {
 }
 
 
-# Pocet konstant na jeden objekt pro prikaz DATA (viz manual - tabulka
-# v hlavicce _exec_data v gl3_interpreter.py). "Zatim jen rovinne
-# objekty" - Q/U/R/M/G (3D) zamerne chybi, DATA je pro ne zatim
-# neimplementovana (viz _build_data_object).
-# Pocet konstant na jeden objekt pro prikaz DATA - PRESNE podle G06.md
-# "ZOBRAZENI JEDNODUCHYCH GEOMETRICKYCH OBJEKTU" (autoritativni zdroj -
-# A{d}, D{d}, P{x,y}, V{ux,uy}, C{xs,ys,r}, L{x,y,ux,uy}, Q{x,y,z},
-# U{ux,uy,uz}, R{ux,uy,uz,d}, M{x,y,z,ux,uy,uz}, G{xs,ys,zs,ux,uy,uz,r}).
-# I/J/K jsou u nas vsechny celociselny skalar (1 cislo), stejne jako
-# A/D (viz TYPE_PREFIX_INFO).
-#
-# DULEZITE - R (rovina) je {ux,uy,uz,d} (4 cisla: normala + VZDALENOST
-# od pocatku), NE "bod+normala" (6 cisel) - ackoliv gerlib.types.Plane
-# interne uklada origin+normal (bod na rovine, ne vzdalenost), viz
-# _build_data_object a format_components nize, kde se mezi temito
-# dvema reprezentacemi prevadi.
-#
-# S/E/T/H (retezec/krivka) a F (plocha) SEM ZAMERNE NEPATRI - G06.md je
-# vyslovne oznacuje jako "slozene" objekty (promenna delka dat "ve
-# vnejsi pameti pocitace"), na rozdil od "jednoduchych" objektu vyse
-# (konstantni pocet racionalnich cisel) - a DATA je vyslovne popsana
-# jen pro jednoduche objekty (stejne jako READ/GET/PRINT/TRACE/WRITE/
-# TYPE). Neni to tedy "zatim nepodporovano", je to spravne portovane
-# omezeni original jazyka.
-DATA_CONSTANTS_PER_OBJECT = {
-    "A": 1, "D": 1,
-    "I": 1, "J": 1, "K": 1,
-    "B": 1,
-    "P": 2, "V": 2,
-    "C": 3,
-    "L": 4,
-    "Q": 3, "U": 3,
-    "R": 4,
-    "M": 6,
-    "G": 7,
-}
+# Pocet konstant na jeden objekt pro prikaz DATA - definovano v
+# gl3_lang.py (viz tam duvod: parser to potrebuje uz pri parsovani,
+# ne az za behu, a gl3_lang.py nesmi importovat z tohoto modulu kvuli
+# cyklickemu importu - je to naopak, gl3_ops.py uz z gl3_lang.py
+# importuje OMITTED nize).
 
 
 # Pocet a vyznam ciselnych slozek OBJEKTU pro PRINT/WRITE/TYPE (viz
