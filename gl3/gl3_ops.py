@@ -40,6 +40,9 @@ from gerlib import (
     curve_node as _gerlib_curve_node,
     nearest_point as _gerlib_nearest_point,
     curve_normal_at_point as _gerlib_curve_normal_at_point,
+    make_vector2 as _gerlib_make_vector2,
+    make_vector_between as _gerlib_make_vector_between,
+    make_unit_vector as _gerlib_make_unit_vector,
     perpendicular_to_curve as _gerlib_perpendicular_to_curve,
     radius_of_curvature as _gerlib_radius_of_curvature,
     line_curve_intersection as _gerlib_line_curve_intersection,
@@ -349,6 +352,23 @@ def _op_p43(circle, line):
 def _op_p42(point, spline, k):
     """P42: PM=P42>P,S,K< - viz gerlib.nearest_point (paty kolmic na krivku)."""
     return _gerlib_nearest_point(spline, point, k)
+
+
+def _op_v00(d1, d2):
+    """V00: VM=V00>D1,D2 - rovinny vektor slozkami x,y (z=0), viz
+    gerlib.v00."""
+    return _gerlib_make_vector2(d1, d2)
+
+
+def _op_v01(p1, p2):
+    """V01: VM=V01>P1,P2 - vektor orientovany z P1 do P2, viz
+    gerlib.v01."""
+    return _gerlib_make_vector_between(p1, p2)
+
+
+def _op_v20(v):
+    """V20: VM=V20>V - jednotkovy vektor ve smeru V, viz gerlib.v20."""
+    return _gerlib_make_unit_vector(v)
 
 
 def _op_v34(point, spline, k):
@@ -719,6 +739,9 @@ OPERATIONS = {
     "P86": _op_p86,
 
     # --- vektory ---
+    "V00": _op_v00,
+    "V01": _op_v01,
+    "V20": _op_v20,
     "V34": _op_v34,
 
     # --- primky ---
