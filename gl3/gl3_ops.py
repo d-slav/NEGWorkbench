@@ -67,6 +67,7 @@ from gerlib import (
     make_spline as _gerlib_make_spline,
     make_spline1 as _gerlib_make_spline1,
     make_closed_spline1 as _gerlib_make_closed_spline1,
+    make_joined_spline as _gerlib_make_joined_spline,
     line_chain_intersection as _gerlib_line_chain_intersection,
     point_at_distance_along_chain as _gerlib_point_at_distance_along_chain,
     point_on_chain_by_coord as _gerlib_point_on_chain_by_coord,
@@ -83,6 +84,7 @@ from geplib import (
     make_spatial_spline as _geplib_make_spatial_spline,
     make_spatial_spline03 as _geplib_make_spatial_spline03,
     make_closed_spatial_spline as _geplib_make_closed_spatial_spline,
+    make_joined_spatial_spline as _geplib_make_joined_spatial_spline,
     curve_plane_intersection as _geplib_curve_plane_intersection,
     rotate_vector_about_line as _geplib_rotate_vector_about_line,
     make_chain3 as _geplib_make_chain3,
@@ -577,11 +579,25 @@ def _op_s10(points_ref, k):
     return _gerlib_make_closed_spline1(points_ref, k)
 
 
+def _op_s47(spline1, spline2, *rest):
+    """S47: SM=S47>S1,S2[,K] - spojeni dvou krivek, viz
+    gerlib.s47.make_joined_spline."""
+    k = rest[0] if len(rest) >= 1 else None
+    return _gerlib_make_joined_spline(spline1, spline2, k)
+
+
 def _op_t10(points_ref, k):
     """T10: TM=T10>Q(I),K - prostorova obdoba S10, viz
     geplib.make_closed_spatial_spline (tenky wrapper nad
     gerlib.s10.make_spline)."""
     return _geplib_make_closed_spatial_spline(points_ref, k)
+
+
+def _op_t47(spline1, spline2, *rest):
+    """T47: TM=T47>T1,T2[,K] - spojeni dvou 3D krivek, viz
+    geplib.t47.make_joined_spatial_spline."""
+    k = rest[0] if len(rest) >= 1 else None
+    return _geplib_make_joined_spatial_spline(spline1, spline2, k)
 
 
 def _op_q38(curve, plane, k):
@@ -728,6 +744,7 @@ OPERATIONS = {
     "S01": _op_s01,
     "S03": _op_s03,
     "S10": _op_s10,
+    "S47": _op_s47,
     "S51": _op_s51,
 
     # --- retezce ---
@@ -743,6 +760,7 @@ OPERATIONS = {
     "T01": _op_t01,
     "T03": _op_t03,
     "T10": _op_t10,
+    "T47": _op_t47,
     "Q38": _op_q38,
     "U19": _op_u19,
     "H02": _op_h02,

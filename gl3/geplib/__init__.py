@@ -32,6 +32,7 @@ from .plane import Plane, make_plane_r01
 from .t01 import make_spatial_spline
 from .t03 import make_spatial_spline as make_spatial_spline03
 from .t10 import make_spatial_spline as make_closed_spatial_spline
+from .t47 import make_joined_spatial_spline
 from .q38 import curve_plane_intersection
 from .u19 import rotate_vector_about_line
 from .h02 import make_chain3
@@ -47,6 +48,7 @@ __all__ = [
     "make_spatial_spline",
     "make_spatial_spline03",
     "make_closed_spatial_spline",
+    "make_joined_spatial_spline",
     "curve_plane_intersection",
     "rotate_vector_about_line",
     "make_chain3",

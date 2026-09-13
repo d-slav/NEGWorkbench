@@ -135,6 +135,23 @@ docs/
   symmetry check and the comment at the top of `s10.py`). `P(1)` and
   `P(K)` (first and last of the `K` supplied points) must coincide —
   that repeated point is how the closure is expressed, per `G10.md`.
+- **Joining two curves** (`S47`/`T47`, `gerlib/s47.py`): `G10.md` documents
+  only `SM=S47>S1,S2` / `TM=T47>T1,T2`, but the real grammar takes an
+  optional trailing `K` (`[,K]`) controlling how the tangent discontinuity
+  at the join is handled — not mentioned anywhere in the docs, reverse-
+  engineered from `S47.FOR` (supplied by the user): `K=0` (default, and
+  anything outside `0..3`) leaves each curve's own tangent untouched at
+  the join (position-continuous only, possibly a visible kink); `K=1`/`K=2`
+  copies curve 1's/curve 2's own tangent onto both sides of the join;
+  `K=3` averages the two original tangents component-wise. Separately
+  (independent of `K`, computed from each curve's *original*, unmodified
+  end tangents — this matches the Fortran, which derives it from the
+  source files before any `K`-based patching) the joined curve's `closed`
+  flag is set when walking `S1` into `S2` and also `S2`'s far end back into
+  `S1`'s start are *both* position- and tangent-continuous — i.e., the two
+  curves happen to close up into one smooth loop regardless of which `K`
+  the join itself uses. `T47` shares this exact logic (thin wrapper, same
+  source file per the user).
 - **Path placeholders** (`gl3_placeholders.py`): any string used as a
   file/directory path — `GL3Program.SourceFile`, `GL3Library.SearchPaths`
   entries, and the filename argument of `IDEV` inside a `.GL3` program's
@@ -398,9 +415,11 @@ python3 gl3_test.py                    # interpreter regression tests
 python3 -m gerlib.test_serialize       # serialization round-trip
 python3 -m gerlib.test_s01             # S01 (chordal) vs S03 (uniform) on real profile data
 python3 -m gerlib.test_s10             # S10 - closed/periodic curve, cyclic tridiagonal solve (symmetry check)
+python3 -m gerlib.test_s47             # S47 - join two curves, incl. undocumented K parameter (0/1/2/3) and closed-loop detection
 python3 -m geplib.test_t01             # T01 - spatial open curve, chord-length (thin wrapper over S01)
 python3 -m geplib.test_t03             # T03 - spatial open curve, uniform param., length-sensitive (thin wrapper over S03)
 python3 -m geplib.test_t10             # T10 - spatial closed curve (thin wrapper over S10)
+python3 -m geplib.test_t47             # T47 - spatial curve join (thin wrapper over S47)
 python3 test_dcoos3_tra23.py           # DCOOS3/TRA23/Q00/U00 pure geometry (geplib)
 python3 test_data_expr_values.py       # DATA values as expressions (not just literal constants), comma-only continuation
 python3 test_dcoos3_tra23_interpreter.py # DCOOS3/TRA23 on real GL3 source (parse_program + Interpreter.run())
