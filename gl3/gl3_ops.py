@@ -42,6 +42,7 @@ from gerlib import (
     curve_normal_at_point as _gerlib_curve_normal_at_point,
     make_vector2 as _gerlib_make_vector2,
     make_vector_between as _gerlib_make_vector_between,
+    rotate_vector as _gerlib_rotate_vector,
     make_unit_vector as _gerlib_make_unit_vector,
     scale_to_length as _gerlib_scale_to_length,
     scale_vector as _gerlib_scale_vector,
@@ -366,6 +367,12 @@ def _op_v01(p1, p2):
     """V01: VM=V01>P1,P2 - vektor orientovany z P1 do P2, viz
     gerlib.v01."""
     return _gerlib_make_vector_between(p1, p2)
+
+
+def _op_v08(v, a, k=0):
+    """V08: VM=V08>V,A[,K] - vektor V otoceny o uhel A, delka
+    zachovana, viz gerlib.v08. Default K=0 (ccw)."""
+    return _gerlib_rotate_vector(v, a, k)
 
 
 def _op_v20(v):
@@ -754,6 +761,7 @@ OPERATIONS = {
     # --- vektory ---
     "V00": _op_v00,
     "V01": _op_v01,
+    "V08": _op_v08,
     "V20": _op_v20,
     "V34": _op_v34,
     "V41": _op_v41,

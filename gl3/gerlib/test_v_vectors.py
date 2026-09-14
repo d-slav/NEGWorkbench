@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Test V00, V01, V20, V41, V42 (viz G10.md - 'V - vektor rovinny')."""
+"""Test V00, V01, V08, V20, V41, V42 (viz G10.md - 'V - vektor rovinny')."""
+import math
 import os
 import sys
 
@@ -8,6 +9,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from gerlib.types import Point, Vector
 from gerlib.v00 import make_vector2
 from gerlib.v01 import make_vector_between
+from gerlib.v08 import rotate_vector
 from gerlib.v20 import make_unit_vector
 from gerlib.v41 import scale_to_length
 from gerlib.v42 import scale_vector
@@ -31,6 +33,37 @@ def main():
 
     v01_same = make_vector_between(Point(5.0, 5.0, 5.0), Point(5.0, 5.0, 5.0))
     check((v01_same.x, v01_same.y, v01_same.z) == (0.0, 0.0, 0.0), "V01: totozne body -> nulovy vektor")
+
+    # --- V08: vektor otoceny o uhel (delka zachovana) ---
+    v08_90 = rotate_vector(Vector(1.0, 0.0, 0.0), 90.0)
+    check(abs(v08_90.x) < 1e-9 and abs(v08_90.y - 1.0) < 1e-9,
+          "V08: default K=0, (1,0) o +90 stupnu -> (0,1) (ccw)")
+
+    v08_k0 = rotate_vector(Vector(1.0, 0.0, 0.0), 90.0, 0)
+    check(abs(v08_k0.x - v08_90.x) < 1e-9 and abs(v08_k0.y - v08_90.y) < 1e-9,
+          "V08: explicitni K=0 == default")
+
+    v08_k1 = rotate_vector(Vector(1.0, 0.0, 0.0), 90.0, 1)
+    check(abs(v08_k1.x) < 1e-9 and abs(v08_k1.y + 1.0) < 1e-9,
+          "V08: K=1, (1,0) o +90 stupnu -> (0,-1) (cw, opacne nez K=0)")
+
+    v08_len = Vector(3.0, 4.0, 0.0)
+    v08_rot = rotate_vector(v08_len, 37.0)
+    check(abs(math.hypot(v08_rot.x, v08_rot.y) - 5.0) < 1e-9, "V08: delka vektoru zachovana")
+
+    v08_360 = rotate_vector(Vector(3.0, -4.0, 0.0), 360.0)
+    check(abs(v08_360.x - 3.0) < 1e-6 and abs(v08_360.y + 4.0) < 1e-6,
+          "V08: otoceni o 360 stupnu vraci puvodni vektor")
+
+    v08_neg_a = rotate_vector(Vector(1.0, 0.0, 0.0), -90.0)
+    check(abs(v08_neg_a.x) < 1e-9 and abs(v08_neg_a.y + 1.0) < 1e-9,
+          "V08: zaporny uhel obraci smysl otaceni (K=0, -90 stupnu -> cw)")
+
+    try:
+        rotate_vector(Vector(0.0, 0.0, 0.0), 45.0)
+        check(False, "V08 s nulovym vstupnim vektorem melo vyhodit ValueError")
+    except ValueError as e:
+        check("V08" in str(e), "V08 s nulovym vstupnim vektorem -> ValueError (%s)" % e)
 
     # --- V20: jednotkovy vektor ---
     v20 = make_unit_vector(Vector(3.0, 4.0, 0.0))
@@ -85,6 +118,8 @@ V2=V01>Q1,Q2
 V3=V20>V2
 V4=V42>V1,2.5
 V5=V41>V1,10
+V6=V08>V3,90.0
+V7=V08>V3,90.0,1.0
 D1=1.0
 RETSUB
 END
@@ -95,8 +130,10 @@ END
     check((env["V3"].x, env["V3"].y) == (1.0, 0.0), "GL3: V20>V2 (jednotkovy)")
     check((env["V4"].x, env["V4"].y) == (7.5, 10.0), "GL3: V42>V1,2.5")
     check(abs(env["V5"].x - 6.0) < 1e-9 and abs(env["V5"].y - 8.0) < 1e-9, "GL3: V41>V1,10")
+    check(abs(env["V6"].x) < 1e-9 and abs(env["V6"].y - 1.0) < 1e-9, "GL3: V08>V3,90.0 (default K=0)")
+    check(abs(env["V7"].x) < 1e-9 and abs(env["V7"].y + 1.0) < 1e-9, "GL3: V08>V3,90.0,1.0 (K=1)")
 
-    print("\nVSE OK - V00, V01, V20, V41, V42.")
+    print("\nVSE OK - V00, V01, V08, V20, V41, V42.")
 
 
 if __name__ == "__main__":

@@ -416,7 +416,7 @@ python3 -m gerlib.test_serialize       # serialization round-trip
 python3 -m gerlib.test_s01             # S01 (chordal) vs S03 (uniform) on real profile data
 python3 -m gerlib.test_s10             # S10 - closed/periodic curve, cyclic tridiagonal solve (symmetry check)
 python3 -m gerlib.test_s47             # S47 - join two curves, incl. undocumented K parameter (0/1/2/3) and closed-loop detection
-python3 -m gerlib.test_v_vectors       # V00/V01/V20/V41/V42 - planar vector construction and scaling
+python3 -m gerlib.test_v_vectors       # V00/V01/V08/V20/V41/V42 - planar vector construction, rotation and scaling
 python3 -m geplib.test_t01             # T01 - spatial open curve, chord-length (thin wrapper over S01)
 python3 -m geplib.test_t03             # T03 - spatial open curve, uniform param., length-sensitive (thin wrapper over S03)
 python3 -m geplib.test_t10             # T10 - spatial closed curve (thin wrapper over S10)

@@ -61,6 +61,7 @@ from .c02 import circle_from_3_points
 from .v230 import perpendicular_vector
 from .v00 import make_vector2
 from .v01 import make_vector_between
+from .v08 import rotate_vector
 from .v20 import make_unit_vector
 from .v41 import scale_to_length
 from .v42 import scale_vector
