@@ -62,6 +62,7 @@ from .v230 import perpendicular_vector
 from .v00 import make_vector2
 from .v01 import make_vector_between
 from .v20 import make_unit_vector
+from .v41 import scale_to_length
 from .v42 import scale_vector
 from .l20 import parallel_line
 from .npo import point_count
@@ -129,7 +130,7 @@ __all__ = [
     "perpendicular_bisector", "circle_from_3_points",
     "perpendicular_vector", "parallel_line",
     "make_vector2", "make_vector_between", "make_unit_vector",
-    "scale_vector",
+    "scale_to_length", "scale_vector",
     "point_count", "chain_node", "spline_node", "curve_node",
     "segment_coefficients", "evaluate_segment", "polynomial_roots",
     "real_roots_in_range", "foot_points", "nearest_point",

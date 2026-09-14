@@ -43,6 +43,7 @@ from gerlib import (
     make_vector2 as _gerlib_make_vector2,
     make_vector_between as _gerlib_make_vector_between,
     make_unit_vector as _gerlib_make_unit_vector,
+    scale_to_length as _gerlib_scale_to_length,
     scale_vector as _gerlib_scale_vector,
     perpendicular_to_curve as _gerlib_perpendicular_to_curve,
     radius_of_curvature as _gerlib_radius_of_curvature,
@@ -370,6 +371,12 @@ def _op_v01(p1, p2):
 def _op_v20(v):
     """V20: VM=V20>V - jednotkovy vektor ve smeru V, viz gerlib.v20."""
     return _gerlib_make_unit_vector(v)
+
+
+def _op_v41(v, d):
+    """V41: VM=V41>V,D - vektor rovnobezny s V, velikost upravena na
+    D, viz gerlib.v41."""
+    return _gerlib_scale_to_length(v, d)
 
 
 def _op_v42(v, d):
@@ -749,6 +756,7 @@ OPERATIONS = {
     "V01": _op_v01,
     "V20": _op_v20,
     "V34": _op_v34,
+    "V41": _op_v41,
     "V42": _op_v42,
 
     # --- primky ---
