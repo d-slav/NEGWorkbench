@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test V00, V01, V20 (viz G10.md - 'V - vektor rovinny')."""
+"""Test V00, V01, V20, V42 (viz G10.md - 'V - vektor rovinny')."""
 import os
 import sys
 
@@ -9,6 +9,7 @@ from gerlib.types import Point, Vector
 from gerlib.v00 import make_vector2
 from gerlib.v01 import make_vector_between
 from gerlib.v20 import make_unit_vector
+from gerlib.v42 import scale_vector
 from gl3_lang import parse_program
 from gl3_interpreter import Interpreter
 
@@ -40,6 +41,16 @@ def main():
     except ValueError as e:
         check("V20" in str(e), "V20 na nulovem vektoru -> ValueError (%s)" % e)
 
+    # --- V42: vektor nasobeny skalarem ---
+    v42 = scale_vector(Vector(3.0, 4.0, 0.0), 2.5)
+    check((v42.x, v42.y, v42.z) == (7.5, 10.0, 0.0), "V42: D-nasobek vektoru (3,4,0)*2.5")
+
+    v42_neg = scale_vector(Vector(1.0, -2.0, 3.0), -1.0)
+    check((v42_neg.x, v42_neg.y, v42_neg.z) == (-1.0, 2.0, -3.0), "V42: zaporny skalar obraci smer")
+
+    v42_zero = scale_vector(Vector(5.0, 5.0, 5.0), 0.0)
+    check((v42_zero.x, v42_zero.y, v42_zero.z) == (0.0, 0.0, 0.0), "V42: nasobeni nulou dava nulovy vektor")
+
     # --- test pres realny GL3 zdrojovy text ---
     src = """
 SUBRO/TESTV/out:D1
@@ -48,6 +59,7 @@ Q1=Q00>0,0,0
 Q2=Q00>10,0,0
 V2=V01>Q1,Q2
 V3=V20>V2
+V4=V42>V1,2.5
 D1=1.0
 RETSUB
 END
@@ -56,8 +68,9 @@ END
     check((env["V1"].x, env["V1"].y) == (3.0, 4.0), "GL3: V00>3,4")
     check((env["V2"].x, env["V2"].y) == (10.0, 0.0), "GL3: V01>Q1,Q2")
     check((env["V3"].x, env["V3"].y) == (1.0, 0.0), "GL3: V20>V2 (jednotkovy)")
+    check((env["V4"].x, env["V4"].y) == (7.5, 10.0), "GL3: V42>V1,2.5")
 
-    print("\nVSE OK - V00, V01, V20.")
+    print("\nVSE OK - V00, V01, V20, V42.")
 
 
 if __name__ == "__main__":
